@@ -36,6 +36,7 @@
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            cursor: none; /* Hide default cursor */
         }
 
         #root {
@@ -57,15 +58,13 @@
             z-index: -1;
             opacity: 0.3;
             pointer-events: none;
-            animation: aurora 20s linear infinite;
+            animation: aurora 20s ease-in-out infinite alternate;
         }
 
         @keyframes aurora {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(10vw, -10vh) rotate(15deg); }
-            50% { transform: translate(-5vw, 5vh) rotate(-10deg); }
-            75% { transform: translate(5vw, 10vh) rotate(5deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); filter: hue-rotate(0deg); }
+            50% { transform: translate(10vw, -10vh) rotate(20deg) scale(1.2); filter: hue-rotate(45deg); }
+            100% { transform: translate(-5vw, 5vh) rotate(-10deg) scale(1); filter: hue-rotate(0deg); }
         }
         
         /* Scroll reveal animations */

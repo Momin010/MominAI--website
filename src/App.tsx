@@ -8,6 +8,7 @@ import Testimonials from './sections/Testimonials.tsx';
 import Pricing from './sections/Pricing.tsx';
 import Footer from './components/Footer.tsx';
 import SignUpModal from './components/SignUpModal.tsx';
+import CustomCursor from './components/CustomCursor.tsx';
 
 const App = () => {
     useScrollReveal();
@@ -23,16 +24,19 @@ const App = () => {
         } as React.CSSProperties
     };
     return (
-        <main style={styles.main}>
-            <Header onBuildNowClick={handleOpenModal} />
-            <Hero onBuildNowClick={handleOpenModal} />
-            <Logos />
-            <Features />
-            <Testimonials />
-            <Pricing />
-            <Footer />
-            <SignUpModal isOpen={isModalOpen} onClose={handleCloseModal} />
-        </main>
+        <>
+            <CustomCursor />
+            <main style={styles.main}>
+                <Header onBuildNowClick={handleOpenModal} />
+                <Hero onBuildNowClick={handleOpenModal} />
+                <Logos />
+                <Features />
+                <Testimonials />
+                <Pricing />
+                <Footer />
+                <SignUpModal isOpen={isModalOpen} onClose={handleCloseModal} />
+            </main>
+        </>
     );
 };
 

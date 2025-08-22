@@ -1,6 +1,34 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const Hero = ({ onBuildNowClick }) => {
+    const sectionRef = useRef(null);
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!sectionRef.current) return;
+            const { clientX, clientY, currentTarget } = e;
+            const { left, top, width, height } = currentTarget.getBoundingClientRect();
+            const x = (clientX - left) / width;
+            const y = (clientY - top) / height;
+            const moveX = (x - 0.5) * 40;
+            const moveY = (y - 0.5) * 40;
+            sectionRef.current.style.setProperty('--move-x', `${moveX}px`);
+            sectionRef.current.style.setProperty('--move-y', `${moveY}px`);
+        };
+        
+        const currentSection = sectionRef.current;
+        if (currentSection) {
+            currentSection.addEventListener('mousemove', handleMouseMove);
+        }
+        
+        return () => {
+            if (currentSection) {
+                currentSection.removeEventListener('mousemove', handleMouseMove);
+            }
+        };
+    }, []);
+
+
     const styles = {
         section: {
             minHeight: '100vh',
@@ -14,7 +42,7 @@ const Hero = ({ onBuildNowClick }) => {
         } as React.CSSProperties,
         gridBackground: {
             position: 'absolute',
-            top: 0, left: 0, right: 0, bottom: 0,
+            top: '-10%', left: '-10%', width: '120%', height: '120%',
             background: `
                 linear-gradient(90deg, var(--gray-dark) 1px, transparent 1px),
                 linear-gradient(0deg, var(--gray-dark) 1px, transparent 1px)
@@ -23,6 +51,8 @@ const Hero = ({ onBuildNowClick }) => {
             maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, black, transparent)',
             zIndex: -1,
             opacity: 0.2,
+            transition: 'transform 0.1s linear',
+            transform: 'translate(var(--move-x, 0), var(--move-y, 0))',
         } as React.CSSProperties,
         h1: {
             fontSize: 'clamp(2.5rem, 6vw, 5rem)',
@@ -68,7 +98,7 @@ const Hero = ({ onBuildNowClick }) => {
     };
 
     return (
-        <section style={styles.section}>
+        <section ref={sectionRef} style={styles.section}>
             <div style={styles.gridBackground}></div>
             <h1 style={styles.h1}>Conceive. Generate. Deploy.</h1>
             <p style={styles.p}>The AI platform for building and deploying production-grade applications and websites in seconds. Go from idea to live URL instantly.</p>

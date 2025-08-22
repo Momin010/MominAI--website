@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const Logos = () => {
     const logos = ["Vercel", "Netlify", "GitHub", "Stripe", "Figma", "Notion"];
+    const [isHovered, setIsHovered] = useState(false);
     
     const styles = {
         section: {
@@ -20,7 +21,8 @@ const Logos = () => {
             display: 'flex',
             width: 'max-content',
             animation: 'scroll 30s linear infinite',
-        },
+            animationPlayState: isHovered ? 'paused' : 'running',
+        } as React.CSSProperties,
         logo: {
             color: 'var(--gray)',
             fontSize: '1.5rem',
@@ -42,7 +44,11 @@ const Logos = () => {
     return (
         <section style={styles.section} className="reveal">
             <p style={styles.p}>Trusted by the next generation of builders</p>
-            <div style={{overflow: 'hidden', position: 'relative'}}>
+            <div 
+                style={{overflow: 'hidden', position: 'relative'}}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
                 <div style={styles.scroller}>
                     {[...logos, ...logos].map((logo, i) => ( // Duplicate for seamless scroll
                         <div key={i} style={styles.logo}>{logo}</div>
