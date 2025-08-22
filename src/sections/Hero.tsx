@@ -1,13 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 
-const Hero = ({ onBuildNowClick }) => {
-    const sectionRef = useRef(null);
+interface HeroProps {
+    onBuildNowClick: () => void;
+}
+
+const Hero = ({ onBuildNowClick }: HeroProps) => {
+    const sectionRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
-        const handleMouseMove = (e) => {
+        const handleMouseMove = (e: MouseEvent) => {
             if (!sectionRef.current) return;
-            const { clientX, clientY, currentTarget } = e;
-            const { left, top, width, height } = currentTarget.getBoundingClientRect();
+            const { clientX, clientY } = e;
+            const { left, top, width, height } = sectionRef.current.getBoundingClientRect();
             const x = (clientX - left) / width;
             const y = (clientY - top) / height;
             const moveX = (x - 0.5) * 40;
@@ -18,12 +22,12 @@ const Hero = ({ onBuildNowClick }) => {
         
         const currentSection = sectionRef.current;
         if (currentSection) {
-            currentSection.addEventListener('mousemove', handleMouseMove);
+            currentSection.addEventListener('mousemove', handleMouseMove as EventListener);
         }
         
         return () => {
             if (currentSection) {
-                currentSection.removeEventListener('mousemove', handleMouseMove);
+                currentSection.removeEventListener('mousemove', handleMouseMove as EventListener);
             }
         };
     }, []);

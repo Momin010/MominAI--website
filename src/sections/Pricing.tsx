@@ -43,7 +43,7 @@ const PricingCard = ({ plan }: PricingCardProps) => {
         planDescription: { color: 'var(--gray)', marginBottom: '2rem', minHeight: '40px' },
         featureList: { listStyle: 'none', padding: 0, margin: '0 0 2rem 0', display: 'flex', flexDirection: 'column', gap: '1rem' } as React.CSSProperties,
         featureItem: { display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0, animation: 'fadeInUp 0.5s ease-out forwards' } as React.CSSProperties,
-        button: (isPopular: boolean) => ({
+        button: (isPopular: boolean): React.CSSProperties => ({
             width: '100%',
             padding: '0.75rem 1.5rem',
             borderRadius: '0.5rem',

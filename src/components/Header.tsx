@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Logo } from './icons.tsx';
 
-const Header = ({ onBuildNowClick }) => {
+interface HeaderProps {
+    onBuildNowClick: () => void;
+}
+
+const Header = ({ onBuildNowClick }: HeaderProps) => {
     const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {

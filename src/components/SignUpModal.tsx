@@ -5,7 +5,12 @@ import { GoogleIcon } from './icons.tsx';
 // This is a global variable from the Google script in index.html
 declare const google: any;
 
-const SignUpModal = ({ isOpen, onClose }) => {
+interface SignUpModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [tokenClient, setTokenClient] = useState(null);
     
