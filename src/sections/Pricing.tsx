@@ -2,7 +2,17 @@ import React from 'react';
 import { CheckIcon } from '../components/icons.tsx';
 import { useTilt } from '../hooks/useTilt.ts';
 
-const PricingCard = ({ plan }) => {
+interface PricingCardProps {
+    plan: {
+        name: string;
+        price: string;
+        description: string;
+        features: string[];
+        popular: boolean;
+    };
+}
+
+const PricingCard = ({ plan }: PricingCardProps) => {
     const cardRef = useTilt({ max: 10 });
     
     const styles = {
@@ -33,7 +43,7 @@ const PricingCard = ({ plan }) => {
         planDescription: { color: 'var(--gray)', marginBottom: '2rem', minHeight: '40px' },
         featureList: { listStyle: 'none', padding: 0, margin: '0 0 2rem 0', display: 'flex', flexDirection: 'column', gap: '1rem' } as React.CSSProperties,
         featureItem: { display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0, animation: 'fadeInUp 0.5s ease-out forwards' } as React.CSSProperties,
-        button: (isPopular) => ({
+        button: (isPopular: boolean) => ({
             width: '100%',
             padding: '0.75rem 1.5rem',
             borderRadius: '0.5rem',

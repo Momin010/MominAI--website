@@ -2,7 +2,15 @@ import React from 'react';
 import { CodeIcon, DeployIcon, ScaleIcon } from '../components/icons.tsx';
 import { useTilt } from '../hooks/useTilt.ts';
 
-const FeatureCard = ({ feature }) => {
+interface FeatureCardProps {
+    feature: {
+        icon: React.ReactNode;
+        title: string;
+        description: string;
+    };
+}
+
+const FeatureCard = ({ feature }: FeatureCardProps) => {
     const cardRef = useTilt();
 
     const styles = {
