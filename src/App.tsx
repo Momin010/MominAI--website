@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CustomCursor from './components/CustomCursor.tsx';
 import LandingPage from './components/LandingPage.tsx';
-import IDE from './components/IDE.tsx';
+import IDE from './components/IDE/index.tsx';
 import Loader from './components/Loader.tsx';
 
 const App = () => {

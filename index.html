@@ -46,7 +46,7 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--background);
             color: var(--foreground);
-            overflow-x: hidden;
+            overflow: hidden; /* Prevent scrolling behind the IDE */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -68,7 +68,7 @@
                 radial-gradient(ellipse 80% 80% at 20% 20%, var(--accent-glow), transparent),
                 radial-gradient(ellipse 50% 50% at 80% 90%, rgba(120, 113, 224, 0.3), transparent);
             z-index: -1;
-            opacity: 2.1;
+            opacity: 0.2; /* Updated opacity */
             pointer-events: none;
             animation: aurora 15s ease-in-out infinite alternate;
         }
@@ -99,9 +99,11 @@
     "react": "https://esm.sh/react@^19.1.1",
     "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
     "react-dom": "https://esm.sh/react-dom@^19.1.1",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.25.1",
     "@google/genai": "https://esm.sh/@google/genai@^1.15.0",
     "react-syntax-highlighter": "https://esm.sh/react-syntax-highlighter@15.5.0",
-    "react-syntax-highlighter/": "https://esm.sh/react-syntax-highlighter@15.5.0/"
+    "react-syntax-highlighter/": "https://esm.sh/react-syntax-highlighter@15.5.0/",
+    "react-resizable-panels": "https://esm.sh/react-resizable-panels@^2.0.20"
   }
 }
 </script>
