@@ -16,12 +16,12 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
     
     // Initialize Google Auth Client
     useEffect(() => {
-        if (isOpen && !tokenClient) {
+        if (isOpen && !tokenClient && typeof google !== 'undefined') {
             try {
                 const client = google.accounts.oauth2.initTokenClient({
                     client_id: '601307193094-i9r4kscn6tqkilon3g9c352igtt9ta40.apps.googleusercontent.com',
                     scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-                    callback: (response) => {
+                    callback: (response: any) => {
                         console.log('Google Sign-In Success:', response);
                         // On success, call the onSuccess callback to transition to the IDE
                         onSuccess();
@@ -36,8 +36,8 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
 
 
     useEffect(() => {
-        const handleEsc = (event) => {
-            if (event.keyCode === 27) onClose();
+        const handleEsc = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') onClose();
         };
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
@@ -45,7 +45,7 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
 
     if (!isOpen) return null;
 
-    const handleSubmit = (event) => {
+    const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         // On success, call the onSuccess callback to transition to the IDE
         onSuccess();
@@ -53,9 +53,11 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
 
     const handleGoogleSignIn = () => {
         if (tokenClient) {
-            tokenClient.requestAccessToken();
+            (tokenClient as any).requestAccessToken();
         } else {
             console.error('Google token client not available.');
+            // Fallback for when the script might be slow
+            onSuccess();
         }
     }
 

@@ -23,7 +23,7 @@ const IDE = () => {
     const blobUrlsRef = useRef<string[]>([]);
 
     useEffect(() => {
-        setChatHistory([{ role: 'model', text: 'Hello! I am MominAI. Describe the application you want to build, and I will generate the full codebase for you.' }]);
+        setChatHistory([{ role: 'model', text: 'Hello! I am your AI assistant. I have full context of your project and can help with multi-file changes. Ask away!' }]);
     }, []);
 
     useEffect(() => {
@@ -32,10 +32,12 @@ const IDE = () => {
     
     // Cleanup blob URLs on unmount
     useEffect(() => {
+        const urlsToClean = [...blobUrlsRef.current];
+        const currentPreviewUrl = previewUrl;
         return () => {
-            blobUrlsRef.current.forEach(URL.revokeObjectURL);
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
+            urlsToClean.forEach(URL.revokeObjectURL);
+            if (currentPreviewUrl) {
+                URL.revokeObjectURL(currentPreviewUrl);
             }
         };
     }, [previewUrl]);
@@ -54,16 +56,18 @@ const IDE = () => {
 
         const fileBlobs = new Map<string, string>();
         
+        // Create blobs for non-HTML files first to build a URL map
         generatedFiles.forEach(file => {
-            if (!file.name.endsWith('.html')) {
+             if (!file.name.endsWith('.html')) {
                 const extension = file.name.split('.').pop();
                 let mimeType = 'text/plain';
+                // Use application/javascript for JS/TS files to ensure they're executable
                 if (['js', 'jsx', 'ts', 'tsx'].includes(extension)) mimeType = 'application/javascript';
                 else if (extension === 'css') mimeType = 'text/css';
                 
                 const blob = new Blob([file.content], { type: mimeType });
                 const url = URL.createObjectURL(blob);
-                fileBlobs.set(`/${file.name}`, url);
+                fileBlobs.set(file.name, url); // Use relative path as key
                 blobUrlsRef.current.push(url);
             }
         });
@@ -75,18 +79,24 @@ const IDE = () => {
         }
 
         let processedHtml = htmlFile.content;
-        processedHtml = processedHtml.replace(/(src|href)=["'](.\/|\/)([^"']+)["']/g, (match, attr, prefix, path) => {
-            const fullPath = `/${path}`;
-            if (fileBlobs.has(fullPath)) {
-                return `${attr}="${fileBlobs.get(fullPath)}"`;
+        
+        // Replace relative paths with blob URLs
+        // This regex handles src="./file.js", src="/file.js", and src="file.js"
+        processedHtml = processedHtml.replace(/(src|href)=["'](?:\.\/|\/)?([^"']+)["']/g, (match, attr, path) => {
+            const cleanPath = path.startsWith('src/') ? path : `src/${path}`;
+            const matchedFile = generatedFiles.find(f => f.name === path || f.name === cleanPath);
+            if (matchedFile && fileBlobs.has(matchedFile.name)) {
+                return `${attr}="${fileBlobs.get(matchedFile.name)}"`;
             }
-            return match;
+            return match; // Return original if no blob URL found
         });
         
         const finalBlob = new Blob([processedHtml], { type: 'text/html' });
         const url = URL.createObjectURL(finalBlob);
         
+        // Revoke the old preview URL before setting the new one
         if (previewUrl) URL.revokeObjectURL(previewUrl);
+
         setPreviewUrl(url);
     };
 
@@ -95,7 +105,8 @@ const IDE = () => {
         if (!prompt.trim() || isLoading) return;
 
         setIsLoading(true);
-        setChatHistory(prev => [...prev, { role: 'user', text: prompt }]);
+        const userMessage = { role: 'user' as const, text: prompt };
+        setChatHistory(prev => [...prev, userMessage]);
         const currentPrompt = prompt;
         setPrompt('');
 
@@ -113,21 +124,38 @@ const IDE = () => {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let accumulatedResponse = '';
+            
+            // Add a placeholder for the streaming model response
             setChatHistory(prev => [...prev, { role: 'model', text: '' }]);
-
-            while(true) {
+            
+            while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
+
                 accumulatedResponse += decoder.decode(value, { stream: true });
+                setChatHistory(prev => {
+                    const newHistory = [...prev];
+                    const lastMessage = newHistory[newHistory.length - 1];
+                    // Attempt to parse mid-stream for live thoughts
+                    try {
+                        const cleanJsonString = accumulatedResponse.replace(/^```json|```$/g, '').trim();
+                        const partialJson = JSON.parse(cleanJsonString);
+                        lastMessage.text = partialJson.thoughts || lastMessage.text;
+                    } catch (e) {
+                         // Ignore parsing errors, just show raw text for now
+                         lastMessage.text = accumulatedResponse.replace(/^```json/, '');
+                    }
+                    return newHistory;
+                });
             }
 
-            const jsonString = accumulatedResponse.replace(/^```json|```$/g, '').trim();
-            const parsed = JSON.parse(jsonString);
+            const finalJsonString = accumulatedResponse.replace(/^```json|```$/g, '').trim();
+            const parsed = JSON.parse(finalJsonString);
             
             if (parsed.thoughts && parsed.files && Array.isArray(parsed.files)) {
                 setChatHistory(prev => {
                     const newHistory = [...prev];
-                    newHistory[newHistory.length - 1] = { role: 'model', text: parsed.thoughts, rawJson: accumulatedResponse };
+                    newHistory[newHistory.length - 1] = { role: 'model', text: parsed.thoughts, rawJson: finalJsonString };
                     return newHistory;
                 });
                 
@@ -142,13 +170,14 @@ const IDE = () => {
 
         } catch (error) {
             console.error("Error generating content:", error);
-            setChatHistory(prev => {
+            const errorMessage = `Sorry, an error occurred: ${error.message}`;
+             setChatHistory(prev => {
                 const newHistory = [...prev];
-                const lastMsg = newHistory[newHistory.length - 1];
-                if(lastMsg.role === 'model' && lastMsg.text === '') {
-                     lastMsg.text = `Sorry, an error occurred: ${error.message}`;
+                const lastMessage = newHistory[newHistory.length - 1];
+                if (lastMessage.role === 'model') {
+                    lastMessage.text = errorMessage; // Update placeholder
                 } else {
-                    newHistory.push({ role: 'model', text: `Sorry, an error occurred: ${error.message}` });
+                    newHistory.push({ role: 'model', text: errorMessage }); // Add new error message
                 }
                 return newHistory;
             });
@@ -160,28 +189,32 @@ const IDE = () => {
     const activeFile = files.find(f => f.name === activeFileName);
 
     const styles: { [key: string]: React.CSSProperties } = {
-        ide: { display: 'flex', width: '100%', height: '100%', flexDirection: 'column', backgroundColor: 'rgba(17, 16, 24, 0.7)', backdropFilter: 'blur(20px)', border: '1px solid var(--border-color)', borderRadius: '1rem', boxShadow: '0 10px 50px rgba(0,0,0,0.5)', overflow: 'hidden' },
+        ide: { display: 'flex', width: '100%', maxWidth: '1600px', height: 'calc(100vh - 4rem)', maxHeight: '900px', flexDirection: 'column', backgroundColor: 'rgba(17, 16, 24, 0.7)', backdropFilter: 'blur(20px)', border: '1px solid var(--border-color)', borderRadius: '1rem', boxShadow: '0 10px 50px rgba(0,0,0,0.5)', overflow: 'hidden' },
         header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)', flexShrink: 0, userSelect: 'none' },
+        titleBar: { display: 'flex', alignItems: 'center', gap: '0.75rem'},
         windowControls: { display: 'flex', gap: '0.5rem' },
         controlDot: { width: '12px', height: '12px', borderRadius: '50%' },
         headerTitle: { color: 'var(--gray)', fontWeight: 500 },
         main: { display: 'flex', flex: 1, overflow: 'hidden' },
         panel: { height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' },
-        leftPanel: { width: '30%', minWidth: '300px', borderRight: '1px solid var(--border-color)' },
-        middlePanel: { width: '40%', minWidth: '400px', borderRight: '1px solid var(--border-color)' },
+        leftPanel: { width: '20%', minWidth: '250px', borderRight: '1px solid var(--border-color)' },
+        middlePanel: { width: '50%', minWidth: '400px', borderRight: '1px solid var(--border-color)' },
         rightPanel: { width: '30%', minWidth: '300px' },
         chatMessages: { flex: 1, padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' },
-        message: { maxWidth: '95%', padding: '0.75rem 1rem', borderRadius: '0.75rem', lineHeight: 1.5, wordWrap: 'break-word' },
+        message: { maxWidth: '95%', padding: '0.75rem 1rem', borderRadius: '0.75rem', lineHeight: 1.5, wordWrap: 'break-word', animation: 'fadeIn 0.3s ease-in-out' },
         userMessage: { backgroundColor: 'var(--accent)', color: 'white', alignSelf: 'flex-end', borderBottomRightRadius: '0.125rem' },
         modelMessage: { backgroundColor: 'var(--background-tertiary)', alignSelf: 'flex-start', borderBottomLeftRadius: '0.125rem' },
         chatForm: { display: 'flex', padding: '1rem', borderTop: '1px solid var(--border-color)', backgroundColor: 'var(--background-secondary)' },
         chatInput: { flex: 1, backgroundColor: 'var(--background-tertiary)', border: '1px solid var(--border-color)', borderRadius: '0.5rem', padding: '0.75rem', color: 'var(--foreground)', fontSize: '1rem', resize: 'none', marginRight: '0.5rem', fontFamily: 'var(--font-sans)' },
-        chatButton: { backgroundColor: 'var(--accent)', border: 'none', borderRadius: '0.5rem', width: '44px', height: '44px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+        chatButton: { backgroundColor: 'var(--accent)', border: 'none', borderRadius: '0.5rem', width: '44px', height: '44px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'filter 0.2s ease', opacity: isLoading ? 0.6 : 1 },
         panelHeader: { padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)', userSelect: 'none', color: 'var(--gray)', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' },
-        fileExplorer: { padding: '0.5rem', flex: '0 1 40%', overflowY: 'auto' },
-        fileItem: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.5rem', borderRadius: '0.25rem', cursor: 'pointer', userSelect: 'none', fontSize: '0.9rem' },
-        editorContainer: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-        codeEditor: { flex: 1, padding: '1rem', overflow: 'auto', fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#d4d4d4', backgroundColor: '#1E1E1E', whiteSpace: 'pre-wrap', wordBreak: 'break-all' },
+        fileExplorer: { padding: '0.5rem', flex: '1 1 auto', overflowY: 'auto' },
+        fileItem: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.5rem', borderRadius: '0.25rem', cursor: 'pointer', userSelect: 'none', fontSize: '0.9rem', transition: 'background-color 0.2s ease' },
+        editorContainer: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: '#1E1E1E' },
+        editorTabs: { display: 'flex', backgroundColor: 'var(--background-secondary)', flexShrink: 0 },
+        editorTab: { padding: '0.5rem 1rem', borderRight: '1px solid var(--border-color)', color: 'var(--gray)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' },
+        activeTab: { backgroundColor: '#1E1E1E', color: 'var(--foreground)'},
+        codeEditor: { flex: 1, padding: '1rem', overflow: 'auto', fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#d4d4d4', whiteSpace: 'pre-wrap', wordBreak: 'break-all' },
         iframe: { width: '100%', height: '100%', border: 'none', backgroundColor: 'white' },
         statusBar: { display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--border-color)', fontSize: '0.8rem', color: 'var(--gray)', userSelect: 'none' },
     };
@@ -189,19 +222,40 @@ const IDE = () => {
     return (
         <div style={styles.ide}>
             <header style={styles.header}>
-                <div style={styles.windowControls}>
-                    <div style={{...styles.controlDot, backgroundColor: '#FF5F56'}}></div>
-                    <div style={{...styles.controlDot, backgroundColor: '#FFBD2E'}}></div>
-                    <div style={{...styles.controlDot, backgroundColor: '#27C93F'}}></div>
+                <div style={styles.titleBar}>
+                    <div style={styles.windowControls}>
+                        <div style={{...styles.controlDot, backgroundColor: '#FF5F56'}}></div>
+                        <div style={{...styles.controlDot, backgroundColor: '#FFBD2E'}}></div>
+                        <div style={{...styles.controlDot, backgroundColor: '#27C93F'}}></div>
+                    </div>
+                    <div style={styles.headerTitle}>CodeCraft IDE</div>
                 </div>
-                <div style={styles.headerTitle}>MominAI Assistant</div>
                 <div style={{width: '58px'}}></div>
             </header>
 
             <main style={styles.main}>
                 <div style={{...styles.panel, ...styles.leftPanel}}>
-                    <div style={styles.panelHeader}>AI Assistant</div>
-                    <div style={styles.chatMessages}>
+                    <div style={styles.panelHeader}>Explorer</div>
+                    <div style={styles.fileExplorer}>
+                        {files.length > 0 ? files.map(file => (
+                            <div 
+                                key={file.name} 
+                                style={{
+                                    ...styles.fileItem, 
+                                    backgroundColor: activeFileName === file.name ? 'var(--accent)' : 'transparent',
+                                    color: activeFileName === file.name ? 'white' : 'var(--foreground)',
+                                }}
+                                onMouseOver={e => e.currentTarget.style.backgroundColor = activeFileName === file.name ? 'var(--accent)' : 'var(--gray-dark)'}
+                                onMouseOut={e => e.currentTarget.style.backgroundColor = activeFileName === file.name ? 'var(--accent)' : 'transparent'}
+                                onClick={() => setActiveFileName(file.name)}
+                            >
+                                {getFileIcon(file.name)}
+                                <span>{file.name.split('/').pop()}</span>
+                            </div>
+                        )) : <p style={{color: 'var(--gray)', fontSize: '0.9rem', padding: '0.5rem'}}>No files generated yet.</p>}
+                    </div>
+                    <div style={{...styles.panelHeader, borderTop: '1px solid var(--border-color)'}}>AI Assistant</div>
+                     <div style={styles.chatMessages}>
                         {chatHistory.map((msg, i) => (
                             <div key={i} style={{...styles.message, ...(msg.role === 'user' ? styles.userMessage : styles.modelMessage)}}>
                                 {msg.text}
@@ -224,48 +278,41 @@ const IDE = () => {
                             onChange={e => setPrompt(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePromptSubmit(e); } }}
                             style={styles.chatInput}
-                            placeholder="e.g., a SaaS landing page..."
+                            placeholder="Ask the AI..."
                             rows={1}
                             disabled={isLoading}
                         />
-                        <button type="submit" style={styles.chatButton} disabled={isLoading}><SendIcon /></button>
+                        <button type="submit" style={styles.chatButton} disabled={isLoading} onMouseOver={e => !isLoading && (e.currentTarget.style.filter='brightness(1.2)')} onMouseOut={e => !isLoading && (e.currentTarget.style.filter='brightness(1)')}><SendIcon /></button>
                     </form>
                 </div>
                 
-                <div style={{...styles.panel, ...styles.middlePanel}}>
-                    <div style={styles.panelHeader}>Explorer</div>
-                    <div style={styles.fileExplorer}>
-                        {files.length > 0 ? files.map(file => (
-                            <div 
-                                key={file.name} 
-                                style={{
-                                    ...styles.fileItem, 
-                                    backgroundColor: activeFileName === file.name ? 'var(--accent)' : 'transparent',
-                                    color: activeFileName === file.name ? 'white' : 'var(--foreground)',
-                                }}
-                                onClick={() => setActiveFileName(file.name)}
-                            >
-                                {getFileIcon(file.name)}
-                                <span>{file.name.replace('src/', '')}</span>
-                            </div>
-                        )) : <p style={{color: 'var(--gray)', fontSize: '0.9rem', padding: '0.5rem'}}>No files generated yet.</p>}
-                    </div>
-                     <div style={{...styles.panelHeader, borderTop: '1px solid var(--border-color)'}}>{activeFileName || 'Editor'}</div>
-                    <div style={styles.editorContainer}>
-                       <pre style={{margin: 0, height: '100%', overflow: 'hidden'}}><code style={styles.codeEditor}>
-                           {activeFile ? activeFile.content : 'Select a file to view its content.'}
-                       </code></pre>
-                    </div>
-                </div>
-
-                <div style={{...styles.panel, ...styles.rightPanel}}>
-                    <div style={styles.panelHeader}>Live Preview</div>
-                    {previewUrl ? 
-                        <iframe style={styles.iframe} src={previewUrl} title="Live Preview" sandbox="allow-scripts" /> :
-                        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--gray)', padding: '1rem', textAlign: 'center'}}>
-                            The application preview will appear here once generated.
+                <div style={{...styles.panel, ...styles.middlePanel, ...styles.rightPanel, width: '80%'}}>
+                    <div style={{...styles.panel, ...styles.middlePanel, width: '62.5%'}}>
+                        <div style={styles.editorTabs}>
+                            {activeFileName ? (
+                                <div style={{...styles.editorTab, ...styles.activeTab}}>
+                                    {getFileIcon(activeFileName)} {activeFileName.split('/').pop()}
+                                </div>
+                            ) : (
+                                 <div style={styles.editorTab}>Editor</div>
+                            )}
                         </div>
-                    }
+                        <div style={styles.editorContainer}>
+                           <pre style={{margin: 0, height: '100%', overflow: 'auto'}}><code style={styles.codeEditor}>
+                               {activeFile ? activeFile.content : 'Select a file to view its content.'}
+                           </code></pre>
+                        </div>
+                    </div>
+
+                    <div style={{...styles.panel, ...styles.rightPanel, width: '37.5%', borderRight: 'none' }}>
+                        <div style={styles.panelHeader}>Running: index.html</div>
+                        {previewUrl ? 
+                            <iframe style={styles.iframe} src={previewUrl} title="Live Preview" sandbox="allow-scripts" /> :
+                            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--gray)', padding: '1rem', textAlign: 'center'}}>
+                                The application preview will appear here once generated.
+                            </div>
+                        }
+                    </div>
                 </div>
             </main>
 
@@ -276,6 +323,10 @@ const IDE = () => {
             </footer>
 
             <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(5px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
                 .blinking-cursor {
                     display: inline-block;
                     width: 8px;

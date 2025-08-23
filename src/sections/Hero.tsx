@@ -93,8 +93,9 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
             transition: 'all 0.2s ease',
         },
         buildButton: {
-            backgroundColor: 'var(--foreground)',
-            color: 'var(--background)',
+            backgroundColor: 'var(--accent)',
+            color: 'var(--foreground)',
+            boxShadow: `0 0 15px var(--accent-glow)`,
         },
         contactButton: {
             backgroundColor: 'transparent',

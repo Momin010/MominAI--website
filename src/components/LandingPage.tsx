@@ -24,8 +24,9 @@ const LandingPage = ({ onLoginSuccess }: LandingPageProps) => {
             const currentHash = window.location.hash;
             setRoute(currentHash);
             
+            // Scroll to top for main page or contact page
             if (currentHash === '#contact' || currentHash === '' || currentHash === '#') {
-                window.scrollTo(0, 0);
+                document.querySelector('#root > div')?.scrollTo(0, 0);
             }
         };
         
@@ -38,6 +39,12 @@ const LandingPage = ({ onLoginSuccess }: LandingPageProps) => {
     const handleOpenModal = () => setIsModalOpen(true);
     const handleCloseModal = () => setIsModalOpen(false);
 
+    const handleBuildNow = () => {
+        // For simplicity, we'll just go to the IDE. 
+        // In a real app, you might open the modal first.
+        onLoginSuccess();
+    };
+
     const styles = {
         main: {
             display: 'flex',
@@ -47,13 +54,13 @@ const LandingPage = ({ onLoginSuccess }: LandingPageProps) => {
 
     return (
         <>
-            <Header onBuildNowClick={handleOpenModal} />
+            <Header onBuildNowClick={handleBuildNow} />
             
             {route === '#contact' ? (
                 <Contact />
             ) : (
                 <main style={styles.main}>
-                    <Hero onBuildNowClick={handleOpenModal} />
+                    <Hero onBuildNowClick={handleBuildNow} />
                     <Logos />
                     <Features />
                     <Testimonials />
