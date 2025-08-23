@@ -142,7 +142,7 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
                 display: none;
             }
 
-            @media (max-width: 768px) {
+            @media (max-width: 860px) {
                 .desktop-nav, .desktop-buttons {
                     display: none;
                 }
