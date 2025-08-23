@@ -32,10 +32,10 @@ const CustomCursor = () => {
     const styles = {
         cursor: {
             position: 'fixed',
-            top: '-4px',
-            left: '-4px',
-            width: '32px',
-            height: '32px',
+            top: '-6px',
+            left: '-6px',
+            width: '48px',
+            height: '48px',
             backgroundImage: `url('${cursorImage}')`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
