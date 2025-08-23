@@ -1154,7 +1154,7 @@ var sucrase = (function (exports) {
     return IdentifierRole;
   })(IdentifierRole || {});
 
-  const Keyword = /* @__PURE__ */ (function (Keyword) {
+  var Keyword = /* @__PURE__ */ (function (Keyword) {
     Keyword[Keyword["Await"] = 0] = "Await";
     Keyword[Keyword["Break"] = 1] = "Break";
     Keyword[Keyword["Case"] = 2] = "Case";
@@ -1349,7 +1349,7 @@ var sucrase = (function (exports) {
         return tt.name;
     }
   }
-const ContextualKeyword = /* @__PURE__ */ (function (ContextualKeyword) {
+var ContextualKeyword = /* @__PURE__ */ (function (ContextualKeyword) {
   ContextualKeyword[(ContextualKeyword.Abstract = 0)] = "Abstract";
   ContextualKeyword[(ContextualKeyword.Accessor = 1)] = "Accessor";
   ContextualKeyword[(ContextualKeyword.As = 2)] = "As";
@@ -1466,7 +1466,7 @@ const ContextualKeyword = /* @__PURE__ */ (function (ContextualKeyword) {
     return code === 36 || code === 95;
   }
 
-  const ScopeType = /* @__PURE__ */ (function (ScopeType) {
+  var ScopeType = /* @__PURE__ */ (function (ScopeType) {
     ScopeType[ScopeType["CLASS_PROPERTY_INITIALIZER"] = 0] = "CLASS_PROPERTY_INITIALIZER";
     ScopeType[ScopeType["CLASS_STATIC_BLOCK"] = 1] = "CLASS_STATIC_BLOCK";
     ScopeType[ScopeType["TYPE"] = 2] = "TYPE";
@@ -1488,7 +1488,7 @@ const ContextualKeyword = /* @__PURE__ */ (function (ContextualKeyword) {
   const BIND_FUNCTION = 4;
   const BIND_SIMPLE_CATCH = 5;
   const BIND_OUTSIDE = 6;
-  const ScopeFlag = /* @__PURE__ */ (function (ScopeFlag) {
+  var ScopeFlag = /* @__PURE__ */ (function (ScopeFlag) {
     ScopeFlag[ScopeFlag["Type"] = 1] = "Type";
     ScopeFlag[ScopeFlag["DirectSuper"] = 2] = "DirectSuper";
     ScopeFlag[ScopeFlag["Function"] = 4] = "Function";

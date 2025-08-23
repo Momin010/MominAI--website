@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { useIDEState } from './hooks/useIDEState.ts';
+import { useIDEState } from './hooks/useIDEState';
 
-import Header from './Header.tsx';
-import ChatPanel from './ChatPanel.tsx';
-import FileExplorer from './FileExplorer.tsx';
-import CodeEditor from './CodeEditor.tsx';
-import Terminal from './Terminal.tsx';
-import PreviewPanel from './PreviewPanel.tsx';
+import Header from './Header';
+import ChatPanel from './ChatPanel';
+import FileExplorer from './FileExplorer';
+import CodeEditor from './CodeEditor';
+import Terminal from './Terminal';
+import PreviewPanel from './PreviewPanel';
 
 interface IDEProps {
     onLogout: () => void;
