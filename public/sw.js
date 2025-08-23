@@ -1136,7 +1136,7 @@ var sucrase = (function (exports) {
     return charCodes;
   })({});
 
-  const IdentifierRole = /* @__PURE__ */ (function (IdentifierRole) {
+  var IdentifierRole = (function (IdentifierRole) {
     IdentifierRole[IdentifierRole["BlockScopedDeclaration"] = 0] = "BlockScopedDeclaration";
     IdentifierRole[IdentifierRole["FunctionScopedDeclaration"] = 1] = "FunctionScopedDeclaration";
     IdentifierRole[IdentifierRole["TopLevelDeclaration"] = 2] = "TopLevelDeclaration";
