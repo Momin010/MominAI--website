@@ -98,6 +98,10 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
             backgroundColor: 'transparent',
             color: 'var(--foreground)',
             border: `1px solid var(--border-color)`,
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center'
         }
     };
 
@@ -108,7 +112,7 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
             <p style={styles.p}>The AI platform for building and deploying production-grade applications and websites in seconds. Go from idea to live URL instantly.</p>
             <div style={styles.buttons}>
                 <button onClick={onBuildNowClick} style={{...styles.button, ...styles.buildButton}} onMouseOver={e => e.currentTarget.style.transform='scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform='scale(1)'}>Build Now</button>
-                <button style={{...styles.button, ...styles.contactButton}} onMouseOver={e => e.currentTarget.style.backgroundColor='var(--gray-dark)'} onMouseOut={e => e.currentTarget.style.backgroundColor='transparent'}>Contact Sales</button>
+                <a href="#contact" role="button" style={{...styles.button, ...styles.contactButton}} onMouseOver={e => e.currentTarget.style.backgroundColor='var(--gray-dark)'} onMouseOut={e => e.currentTarget.style.backgroundColor='transparent'}>Contact Sales</a>
             </div>
             <style>{`
                 @keyframes fadeInUp {
