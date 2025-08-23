@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const Logos = () => {
-    const logos = ["Vercel", "Netlify", "GitHub", "Stripe", "Figma", "Notion"];
+    const logos = ["Stripe", "Vercel", "Netlify", "GitHub", "Figma", "Notion"];
     const [isHovered, setIsHovered] = useState(false);
     
     const styles = {

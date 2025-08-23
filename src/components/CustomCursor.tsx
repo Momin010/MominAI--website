@@ -56,7 +56,6 @@ const CustomCursor = () => {
             transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${isHovering || isMouseDown ? 1.2 : 1})`,
             pointerEvents: 'none',
             zIndex: 99999,
-            transition: 'transform 0.1s ease-out',
             willChange: 'transform',
         } as React.CSSProperties,
     };

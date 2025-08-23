@@ -26,7 +26,7 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
                         setIsSubmitted(true);
                         setTimeout(() => {
                             onClose();
-                        }, 1500);
+                        }, 3000);
                     },
                 });
                 setTokenClient(client);
@@ -58,7 +58,7 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
         setIsSubmitted(true);
         setTimeout(() => {
             onClose();
-        }, 1500);
+        }, 3000);
     };
 
     const handleGoogleSignIn = () => {
