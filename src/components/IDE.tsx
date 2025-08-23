@@ -90,16 +90,6 @@ const IDE = ({ onLogout }: IDEProps) => {
         setPreviewUrl(`/preview.html?t=${Date.now()}`);
     };
     
-    const renderMessageWithCode = (text: string) => {
-        const parts = text.split(/(`[^`]+`)/g);
-        return parts.map((part, i) => {
-            if (part.startsWith('`') && part.endsWith('`')) {
-                return <code key={i} className="inline-code">{part.slice(1, -1)}</code>;
-            }
-            return part;
-        });
-    };
-
     const handlePromptSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!prompt || isLoading) return;
@@ -137,7 +127,7 @@ const IDE = ({ onLogout }: IDEProps) => {
             const decoder = new TextDecoder();
             let accumulatedResponse = '';
 
-            // Read the stream to completion without updating the UI with raw JSON
+            // Read the stream to completion
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -147,28 +137,21 @@ const IDE = ({ onLogout }: IDEProps) => {
             // Once the full JSON is received, parse it
             const jsonString = accumulatedResponse.trim();
             const parsed = JSON.parse(jsonString);
+
+            if (typeof parsed.message !== 'string') {
+                throw new Error("Invalid response: 'message' field is missing or not a string.");
+            }
+
+            // Always update the chat with the received message
+            setChatHistory(prev => {
+                const newHistory = [...prev];
+                newHistory[newHistory.length - 1].text = parsed.message; // Update the placeholder
+                return newHistory;
+            });
             
-            if (parsed.files && Array.isArray(parsed.files)) {
+            // If files were also generated, update the IDE state
+            if (Array.isArray(parsed.files) && parsed.files.length > 0) {
                 const newFiles = parsed.files as AppFile[];
-
-                // Generate a user-friendly summary message for the chat
-                let summaryMessage = '';
-                const fileNames = newFiles.map(f => `\`${f.name}\``);
-
-                if (newFiles.length === 0) {
-                    summaryMessage = "I've received your message, but didn't generate any code. How can I help you build your application?";
-                } else if (newFiles.length === 1) {
-                    summaryMessage = `Alright, I've created ${fileNames[0]} for you. Take a look in the editor.`;
-                } else {
-                    summaryMessage = `I've generated ${newFiles.length} files: ${fileNames.join(', ')}. You can browse them in the file explorer.`;
-                }
-                
-                // Update the last message (the placeholder) with the summary
-                setChatHistory(prev => {
-                    const newHistory = [...prev];
-                    newHistory[newHistory.length - 1].text = summaryMessage;
-                    return newHistory;
-                });
 
                 // Update files in the editor and refresh the preview
                 setFiles(newFiles);
@@ -176,10 +159,8 @@ const IDE = ({ onLogout }: IDEProps) => {
                 
                 sendFilesToServiceWorker(newFiles);
                 updatePreview();
-
-            } else {
-                throw new Error("Invalid JSON structure from AI. The response did not contain a 'files' array.");
             }
+
 
         } catch (error) {
             console.error("Error generating content:", error);
@@ -233,7 +214,7 @@ const IDE = ({ onLogout }: IDEProps) => {
                         {chatHistory.map((msg, i) => (
                             <div key={i} className={`message ${msg.role === 'user' ? 'user-message' : 'assistant-message'}`}>
                                 <div className="message-content">
-                                    {msg.text ? renderMessageWithCode(msg.text) : null}
+                                    {msg.text ? msg.text : null}
                                     {isLoading && i === chatHistory.length - 1 && <span className="typing-indicator"></span>}
                                 </div>
                             </div>
@@ -559,14 +540,6 @@ const IDE = ({ onLogout }: IDEProps) => {
                     font-size: 14px;
                     white-space: pre-wrap;
                     word-wrap: break-word;
-                }
-                
-                .inline-code {
-                    background-color: #1c1c1e;
-                    padding: 2px 6px;
-                    border-radius: 4px;
-                    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
-                    font-size: 13px;
                 }
 
                 .user-message .message-content {

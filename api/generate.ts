@@ -34,19 +34,48 @@ export default async function handler(req: Request) {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     // Define the system instruction and JSON schema for the AI model
-    const systemInstruction = `You are an expert web developer AI. Your task is to generate a complete, production-ready, single-page web application based on the user's prompt.
+    const systemInstruction = `You are a conversational AI assistant and an expert web developer. Your primary goal is to help the user build a web application through natural conversation.
+
+      BEHAVIOR:
+      1.  Your primary output is a friendly, helpful text message.
+      2.  If the user asks to create or modify code, generate the necessary files IN ADDITION to your conversational message.
+      3.  If the user is just chatting, provide a conversational message without generating files.
+
+      OUTPUT FORMAT:
+      Your entire response MUST be a single, valid JSON object following this schema:
+      {
+        "message": "Your conversational text response here.",
+        "files": [
+          { "name": "path/to/file.ext", "content": "file content" },
+          ...
+        ]
+      }
+
+      - The "message" field is REQUIRED. It MUST contain only natural language. It MUST NOT include any code snippets, markdown code blocks (\`\`\`), or file names enclosed in backticks (\`\`). Your conversational response should be separate from the code itself.
+      - The "files" field is OPTIONAL. Only include it when generating code.
+
+      CODE GENERATION RULES:
+      1.  Always generate a complete, runnable, single-page web application.
+      2.  The "content" for each file must be a string containing the full code, with proper indentation and newlines preserved. DO NOT write minified or single-line code.
+      3.  All file paths in script 'src' or link 'href' attributes MUST be absolute from the root (e.g., '/index.tsx', '/styles.css').
+
+      For React/TSX/JSX applications:
+      a. The generated 'index.html' file's <head> MUST include these three script tags in this exact order:
+          <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+          <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+          <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+      b. The main script file (e.g., index.tsx) MUST be included in the <body> of 'index.html' with type="text/babel". Example: <script type="text/babel" src="/index.tsx"></script>.
+      c. Do NOT use 'import' or 'export' statements in the TSX/JSX files. Use the global 'React' and 'ReactDOM' objects (e.g., React.useState, ReactDOM.createRoot). The scripts included in the head make these available.
+      d. The root element for React should be '<div id="root"></div>' in the body.
+
+      For non-React (plain HTML/CSS/JS) applications:
+      a. The main script MUST be included with type="module". Example: <script type="module" src="/index.js"></script>.
+      b. The CSS file MUST be linked with an absolute path. Example: <link rel="stylesheet" href="/styles.css">.`;
         
-        RULES:
-        1.  Always generate all necessary files, including index.html, index.tsx (or index.js), and a style file (e.g., index.css).
-        2.  For React apps, use esm.sh for imports (e.g., "https://esm.sh/react").
-        3.  The main script file must be imported in index.html as a module (e.g., <script type="module" src="/index.tsx"></script>). The path should be relative.
-        4.  Your response MUST be a single, valid JSON object.
-        5.  The JSON object must match this exact schema: { "files": [{ "name": "path/to/file.ext", "content": "file content" }] }. Do not include any other text, markdown, or explanations outside of the JSON object.
-        6.  The "content" for each file must be a string containing the full code, with proper indentation and newlines preserved. DO NOT write minified or single-line code.`;
-        
-    const fileSchema = {
+    const responseSchema = {
       type: Type.OBJECT,
       properties: {
+        message: { type: Type.STRING },
         files: {
           type: Type.ARRAY,
           items: {
@@ -59,7 +88,7 @@ export default async function handler(req: Request) {
           },
         },
       },
-      required: ["files"],
+      required: ["message"],
     };
 
     // Call the Gemini API in streaming mode
@@ -69,7 +98,7 @@ export default async function handler(req: Request) {
         config: {
             systemInstruction: systemInstruction,
             responseMimeType: "application/json",
-            responseSchema: fileSchema,
+            responseSchema: responseSchema,
         },
     });
 
