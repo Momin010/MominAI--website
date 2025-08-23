@@ -41,7 +41,8 @@ export default async function handler(req: Request) {
         2.  For React apps, use esm.sh for imports (e.g., "https://esm.sh/react").
         3.  The main script file must be imported in index.html as a module (e.g., <script type="module" src="/index.tsx"></script>). The path should be relative.
         4.  Your response MUST be a single, valid JSON object.
-        5.  The JSON object must match this exact schema: { "files": [{ "name": "path/to/file.ext", "content": "file content" }] }. Do not include any other text, markdown, or explanations outside of the JSON object.`;
+        5.  The JSON object must match this exact schema: { "files": [{ "name": "path/to/file.ext", "content": "file content" }] }. Do not include any other text, markdown, or explanations outside of the JSON object.
+        6.  The "content" for each file must be a string containing the full code, with proper indentation and newlines preserved. DO NOT write minified or single-line code.`;
         
     const fileSchema = {
       type: Type.OBJECT,

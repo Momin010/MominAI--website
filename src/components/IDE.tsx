@@ -89,6 +89,16 @@ const IDE = ({ onLogout }: IDEProps) => {
         // The service worker will intercept the request and serve the correct files.
         setPreviewUrl(`/preview.html?t=${Date.now()}`);
     };
+    
+    const renderMessageWithCode = (text: string) => {
+        const parts = text.split(/(`[^`]+`)/g);
+        return parts.map((part, i) => {
+            if (part.startsWith('`') && part.endsWith('`')) {
+                return <code key={i} className="inline-code">{part.slice(1, -1)}</code>;
+            }
+            return part;
+        });
+    };
 
     const handlePromptSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -101,20 +111,17 @@ const IDE = ({ onLogout }: IDEProps) => {
         setPrompt('');
 
         try {
-            // Add a placeholder for the model's response
+            // Add a placeholder for the model's response which will show the typing indicator
             setChatHistory(prev => [...prev, { role: 'model', text: '' }]);
 
             const response = await fetch('/api/generate', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ history: historyForApi }),
             });
 
             if (!response.ok) {
                 const errorText = await response.text();
-                // Check if the error is due to a missing API key
                 if (errorText.includes("API Key not found")) {
                     setIsApiConfigured(false);
                     throw new Error("API Key is missing. Please ask the administrator to set the API_KEY environment variable in the deployment settings.");
@@ -130,23 +137,40 @@ const IDE = ({ onLogout }: IDEProps) => {
             const decoder = new TextDecoder();
             let accumulatedResponse = '';
 
+            // Read the stream to completion without updating the UI with raw JSON
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
-                
                 accumulatedResponse += decoder.decode(value, { stream: true });
-                setChatHistory(prev => {
-                    const newHistory = [...prev];
-                    newHistory[newHistory.length - 1].text = accumulatedResponse;
-                    return newHistory;
-                });
             }
             
+            // Once the full JSON is received, parse it
             const jsonString = accumulatedResponse.trim();
             const parsed = JSON.parse(jsonString);
             
             if (parsed.files && Array.isArray(parsed.files)) {
                 const newFiles = parsed.files as AppFile[];
+
+                // Generate a user-friendly summary message for the chat
+                let summaryMessage = '';
+                const fileNames = newFiles.map(f => `\`${f.name}\``);
+
+                if (newFiles.length === 0) {
+                    summaryMessage = "I've received your message, but didn't generate any code. How can I help you build your application?";
+                } else if (newFiles.length === 1) {
+                    summaryMessage = `Alright, I've created ${fileNames[0]} for you. Take a look in the editor.`;
+                } else {
+                    summaryMessage = `I've generated ${newFiles.length} files: ${fileNames.join(', ')}. You can browse them in the file explorer.`;
+                }
+                
+                // Update the last message (the placeholder) with the summary
+                setChatHistory(prev => {
+                    const newHistory = [...prev];
+                    newHistory[newHistory.length - 1].text = summaryMessage;
+                    return newHistory;
+                });
+
+                // Update files in the editor and refresh the preview
                 setFiles(newFiles);
                 setActiveFileName(newFiles.find(f => f.name.includes('index.tsx'))?.name || newFiles.find(f => f.name.includes('index.html'))?.name || newFiles[0]?.name || null);
                 
@@ -154,7 +178,7 @@ const IDE = ({ onLogout }: IDEProps) => {
                 updatePreview();
 
             } else {
-                throw new Error("Invalid JSON structure from AI.");
+                throw new Error("Invalid JSON structure from AI. The response did not contain a 'files' array.");
             }
 
         } catch (error) {
@@ -162,6 +186,7 @@ const IDE = ({ onLogout }: IDEProps) => {
             const errorMessage = `Sorry, something went wrong. Details: ${error.message}`;
             setChatHistory(prev => {
                 const newHistory = [...prev];
+                // Update the placeholder message with the error
                 if (newHistory.length > 0) {
                    newHistory[newHistory.length - 1].text = errorMessage;
                 }
@@ -208,7 +233,7 @@ const IDE = ({ onLogout }: IDEProps) => {
                         {chatHistory.map((msg, i) => (
                             <div key={i} className={`message ${msg.role === 'user' ? 'user-message' : 'assistant-message'}`}>
                                 <div className="message-content">
-                                    {msg.text}
+                                    {msg.text ? renderMessageWithCode(msg.text) : null}
                                     {isLoading && i === chatHistory.length - 1 && <span className="typing-indicator"></span>}
                                 </div>
                             </div>
@@ -237,11 +262,13 @@ const IDE = ({ onLogout }: IDEProps) => {
                 {/* Code Panel */}
                 <div className="code-panel">
                     <div className="file-explorer">
-                        <div className="panel-title">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                            </svg>
-                            Files
+                        <div className="panel-title-container">
+                             <div className="panel-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                Files
+                            </div>
                         </div>
                         <div className="file-tree">
                             {files.length > 0 ? files.map(file => (
@@ -447,6 +474,9 @@ const IDE = ({ onLogout }: IDEProps) => {
                 .code-panel {
                     flex: 1;
                     min-width: 400px;
+                    display: flex;
+                    flex-direction: row;
+                    overflow: hidden;
                 }
 
                 .preview-panel {
@@ -466,6 +496,7 @@ const IDE = ({ onLogout }: IDEProps) => {
                     padding: 12px 16px;
                     border-bottom: 1px solid #27272a;
                     background: #0f0f11;
+                    flex-shrink: 0;
                 }
 
                 .panel-title {
@@ -475,6 +506,12 @@ const IDE = ({ onLogout }: IDEProps) => {
                     font-size: 14px;
                     font-weight: 500;
                     color: #e4e4e7;
+                }
+                
+                .panel-title-container {
+                     padding: 12px 16px;
+                     border-bottom: 1px solid #27272a;
+                     flex-shrink: 0;
                 }
 
                 .refresh-btn {
@@ -522,6 +559,14 @@ const IDE = ({ onLogout }: IDEProps) => {
                     font-size: 14px;
                     white-space: pre-wrap;
                     word-wrap: break-word;
+                }
+                
+                .inline-code {
+                    background-color: #1c1c1e;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+                    font-size: 13px;
                 }
 
                 .user-message .message-content {
@@ -618,12 +663,21 @@ const IDE = ({ onLogout }: IDEProps) => {
                 }
 
                 .file-explorer {
-                    border-bottom: 1px solid #27272a;
+                    width: 240px;
+                    min-width: 200px;
+                    max-width: 400px;
+                    border-right: 1px solid #27272a;
                     background: #0f0f11;
+                    resize: horizontal;
+                    overflow: auto;
+                    display: flex;
+                    flex-direction: column;
                 }
 
                 .file-tree {
                     padding: 8px;
+                    flex: 1;
+                    overflow-y: auto;
                 }
 
                 .file-item {
@@ -675,6 +729,7 @@ const IDE = ({ onLogout }: IDEProps) => {
                     height: 40px;
                     background: #0f0f11;
                     border-bottom: 1px solid #27272a;
+                    flex-shrink: 0;
                 }
 
                 .editor-tab {
@@ -701,6 +756,7 @@ const IDE = ({ onLogout }: IDEProps) => {
                     display: flex;
                     flex-direction: column;
                     overflow: hidden;
+                    background: white;
                 }
 
                 .preview-frame {
@@ -717,6 +773,7 @@ const IDE = ({ onLogout }: IDEProps) => {
                     gap: 12px;
                     text-align: center;
                     color: #71717a;
+                    padding: 1rem;
                 }
 
                 .empty-state svg {
@@ -752,6 +809,13 @@ const IDE = ({ onLogout }: IDEProps) => {
 
                 ::-webkit-scrollbar-thumb:hover {
                     background: #52525b;
+                }
+                
+                /* Handle for resizer */
+                ::-webkit-resizer {
+                    background-color: #3f3f46;
+                    border-left: 1px solid #27272a;
+                    border-right: 1px solid #27272a;
                 }
 
                 /* Responsive Design */
