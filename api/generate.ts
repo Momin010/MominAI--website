@@ -6,9 +6,11 @@ import { GoogleGenAI } from '@google/genai';
 // IMPORTANT: Set your API_KEY in your deployment's environment variables
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const systemInstruction = `You are an expert web developer specializing in creating single-page React applications. The user will provide a prompt describing an application. Your task is to generate all the necessary files for a complete, self-contained, and runnable web application using React and standard web technologies (HTML, CSS, TSX). 
+const systemInstruction = `You are an expert web developer specializing in creating single-page React applications. The user will provide a prompt describing an application. Your task is to generate all the necessary files for a complete, self-contained, and runnable web application.
 
-You MUST respond with ONLY a single JSON object. The JSON object should have a single key, 'files', which is an array of objects. Each object in the array represents a file and must have two keys: 'name' (a string with the full file path, e.g., 'index.html', 'src/index.tsx') and 'content' (a string containing the full source code for that file).
+You MUST respond with ONLY a single JSON object. The JSON object must have two keys:
+1. "thoughts": A brief, user-friendly explanation of the application you are about to create, written in a conversational tone. For example: "Okay, I'll create a simple counter application for you using React. It will have a main component to manage the state and buttons to increment and decrement the count."
+2. "files": An array of objects, where each object represents a file and must have two keys: 'name' (a string with the full file path, e.g., 'index.html', 'src/index.tsx') and 'content' (a string containing the full source code for that file).
 
 The generated application should not require any external server or build process to run; it must be runnable directly in the browser using ES modules via an import map pointing to a CDN like esm.sh. Ensure you provide a complete index.html, a root TSX file (e.g., src/index.tsx), and all necessary components. Do not include any text, markdown formatting, or explanations in your response other than the single JSON object.`;
 

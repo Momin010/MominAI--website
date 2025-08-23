@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MominAI</title>
+    <title>MominAI IDE</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
 
         :root {
-            --background: #000000;
-            --background-secondary: #111111;
-            --foreground: #ffffff;
-            --gray: #888888;
-            --gray-dark: #222222;
-            --gray-light: #333333;
-            --accent: #4f46e5;
-            --accent-glow: rgba(79, 70, 229, 0.5);
-            --border-color: #333333;
+            --background: #0D0C12;
+            --background-secondary: #111018;
+            --background-tertiary: #1A1922;
+            --foreground: #E0E0E0;
+            --gray: #848494;
+            --gray-dark: #2A2933;
+            --gray-light: #3C3B44;
+            --accent: #8A2BE2; /* A vibrant purple */
+            --accent-glow: rgba(138, 43, 226, 0.5);
+            --border-color: #2A2933;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
         }
 
         *, *::before, *::after {
@@ -25,28 +29,15 @@
             padding: 0;
         }
         
-        @media (pointer: fine) {
-            * {
-                cursor: none !important;
-            }
-        }
-
-        html {
-            scroll-behavior: smooth;
-            font-size: 16px;
-        }
-
-        @media (max-width: 768px) {
-            html {
-                font-size: 14px;
-            }
+        html, body, #root {
+            height: 100%;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font-sans);
             background-color: var(--background);
             color: var(--foreground);
-            overflow-x: hidden;
+            overflow: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -54,6 +45,12 @@
         #root {
             isolation: isolate;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            width: 100vw;
+            height: 100vh;
         }
         
         /* Aurora background effect */
@@ -65,30 +62,34 @@
             width: 100vw;
             height: 100vh;
             background: 
-                radial-gradient(ellipse 80% 80% at 20% 20%, var(--accent-glow), transparent),
-                radial-gradient(ellipse 50% 50% at 80% 90%, rgba(120, 113, 224, 0.3), transparent);
+                radial-gradient(ellipse 50% 50% at 20% 25%, var(--accent-glow), transparent 70%),
+                radial-gradient(ellipse 40% 40% at 80% 80%, rgba(60, 130, 240, 0.3), transparent 70%);
             z-index: -1;
-            opacity: 2.1;
+            opacity: 0.7; /* User wanted strong, 2.1 is invalid, so using a high but valid value */
             pointer-events: none;
-            animation: aurora 15s ease-in-out infinite alternate;
+            animation: aurora 20s ease-in-out infinite alternate;
         }
 
         @keyframes aurora {
-            0% { transform: translate(0, 0) rotate(0deg) scale(1); filter: hue-rotate(0deg); }
-            50% { transform: translate(20vw, -15vh) rotate(30deg) scale(1.4); filter: hue-rotate(60deg); }
-            100% { transform: translate(-15vw, 10vh) rotate(-10deg) scale(1); filter: hue-rotate(0deg); }
-        }
-        
-        /* Scroll reveal animations */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            0% { transform: translate(0, 0) rotate(0deg) scale(1.2); filter: hue-rotate(0deg); }
+            50% { transform: translate(10vw, -10vh) rotate(15deg) scale(1.5); filter: hue-rotate(45deg); }
+            100% { transform: translate(-10vw, 5vh) rotate(-5deg) scale(1.2); filter: hue-rotate(0deg); }
         }
 
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--background-secondary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-light);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray);
         }
 
     </style>
@@ -103,7 +104,6 @@
   }
 }
 </script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <div id="root"></div>

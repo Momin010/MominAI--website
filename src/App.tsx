@@ -1,25 +1,8 @@
-import React, { useState } from 'react';
-import CustomCursor from './components/CustomCursor.tsx';
-import LandingPage from './components/LandingPage.tsx';
+import React from 'react';
 import IDE from './components/IDE.tsx';
 
 const App = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    const handleLoginSuccess = () => {
-        setIsAuthenticated(true);
-    };
-
-    return (
-        <>
-            <CustomCursor />
-            {isAuthenticated ? (
-                <IDE />
-            ) : (
-                <LandingPage onLoginSuccess={handleLoginSuccess} />
-            )}
-        </>
-    );
+    return <IDE />;
 };
 
 export default App;
