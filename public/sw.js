@@ -1349,51 +1349,51 @@ var sucrase = (function (exports) {
         return tt.name;
     }
   }
+const ContextualKeyword = /* @__PURE__ */ (function (ContextualKeyword) {
+  ContextualKeyword[(ContextualKeyword.Abstract = 0)] = "Abstract";
+  ContextualKeyword[(ContextualKeyword.Accessor = 1)] = "Accessor";
+  ContextualKeyword[(ContextualKeyword.As = 2)] = "As";
+  ContextualKeyword[(ContextualKeyword.Assert = 3)] = "Assert";
+  ContextualKeyword[(ContextualKeyword.Asserts = 4)] = "Asserts";
+  ContextualKeyword[(ContextualKeyword.Async = 5)] = "Async";
+  ContextualKeyword[(ContextualKeyword.From = 6)] = "From";
+  ContextualKeyword[(ContextualKeyword.Get = 7)] = "Get";
+  ContextualKeyword[(ContextualKeyword.Global = 8)] = "Global";
+  ContextualKeyword[(ContextualKeyword.Infer = 9)] = "Infer";
+  ContextualKeyword[(ContextualKeyword.Is = 10)] = "Is";
+  ContextualKeyword[(ContextualKeyword.Keyof = 11)] = "Keyof";
+  ContextualKeyword[(ContextualKeyword.Meta = 12)] = "Meta";
+  ContextualKeyword[(ContextualKeyword.Module = 13)] = "Module";
+  ContextualKeyword[(ContextualKeyword.Namespace = 14)] = "Namespace";
+  ContextualKeyword[(ContextualKeyword.Never = 15)] = "Never";
+  ContextualKeyword[(ContextualKeyword.Of = 16)] = "Of";
+  ContextualKeyword[(ContextualKeyword.Opaque = 17)] = "Opaque";
+  ContextualKeyword[(ContextualKeyword.Out = 18)] = "Out";
+  ContextualKeyword[(ContextualKeyword.Override = 19)] = "Override";
+  ContextualKeyword[(ContextualKeyword.Property = 20)] = "Property";
+  ContextualKeyword[(ContextualKeyword.Readonly = 21)] = "Readonly";
+  ContextualKeyword[(ContextualKeyword.Require = 22)] = "Require";
+  ContextualKeyword[(ContextualKeyword.Satisfies = 23)] = "Satisfies";
+  ContextualKeyword[(ContextualKeyword.Set = 24)] = "Set";
+  ContextualKeyword[(ContextualKeyword.Static = 25)] = "Static";
+  ContextualKeyword[(ContextualKeyword.Symbol = 26)] = "Symbol";
+  ContextualKeyword[(ContextualKeyword.Target = 27)] = "Target";
+  ContextualKeyword[(ContextualKeyword.Type = 28)] = "Type";
+  ContextualKeyword[(ContextualKeyword.Unique = 29)] = "Unique";
+  ContextualKeyword[(ContextualKeyword.Declare = 30)] = "Declare";
+  ContextualKeyword[(ContextualKeyword.Any = 31)] = "Any";
+  ContextualKeyword[(ContextualKeyword.Bigint = 32)] = "Bigint";
+  ContextualKeyword[(ContextualKeyword.Boolean = 33)] = "Boolean";
+  ContextualKeyword[(ContextualKeyword.Constructor = 34)] = "Constructor";
+  ContextualKeyword[(ContextualKeyword.Mixed = 35)] = "Mixed";
+  ContextualKeyword[(ContextualKeyword.Number = 36)] = "Number";
+  ContextualKeyword[(ContextualKeyword.Object = 37)] = "Object";
+  ContextualKeyword[(ContextualKeyword.String = 38)] = "String";
+  ContextualKeyword[(ContextualKeyword.Void = 39)] = "Void";
+  ContextualKeyword[(ContextualKeyword.Enum = 40)] = "Enum";
+  return ContextualKeyword;
+})(ContextualKeyword || {});
 
-  const ContextualKeyword = /* @__PURE__ */ (function (ContextualKeyword) {
-    ContextualKeyword[ContextualKeyword.Abstract] = 0] = "Abstract";
-    ContextualKeyword[ContextualKeyword.Accessor] = 1] = "Accessor";
-    ContextualKeyword[ContextualKeyword.As] = 2] = "As";
-    ContextualKeyword[ContextualKeyword.Assert] = 3] = "Assert";
-    ContextualKeyword[ContextualKeyword.Asserts] = 4] = "Asserts";
-    ContextualKeyword[ContextualKeyword.Async] = 5] = "Async";
-    ContextualKeyword[ContextualKeyword.From] = 6] = "From";
-    ContextualKeyword[ContextualKeyword.Get] = 7] = "Get";
-    ContextualKeyword[ContextualKeyword.Global] = 8] = "Global";
-    ContextualKeyword[ContextualKeyword.Infer] = 9] = "Infer";
-    ContextualKeyword[ContextualKeyword.Is] = 10] = "Is";
-    ContextualKeyword[ContextualKeyword.Keyof] = 11] = "Keyof";
-    ContextualKeyword[ContextualKeyword.Meta] = 12] = "Meta";
-    ContextualKeyword[ContextualKeyword.Module] = 13] = "Module";
-    ContextualKeyword[ContextualKeyword.Namespace] = 14] = "Namespace";
-    ContextualKeyword[ContextualKeyword.Never] = 15] = "Never";
-    ContextualKeyword[ContextualKeyword.Of] = 16] = "Of";
-    ContextualKeyword[ContextualKeyword.Opaque] = 17] = "Opaque";
-    ContextualKeyword[ContextualKeyword.Out] = 18] = "Out";
-    ContextualKeyword[ContextualKeyword.Override] = 19] = "Override";
-    ContextualKeyword[ContextualKeyword.Property] = 20] = "Property";
-    ContextualKeyword[ContextualKeyword.Readonly] = 21] = "Readonly";
-    ContextualKeyword[ContextualKeyword.Require] = 22] = "Require";
-    ContextualKeyword[ContextualKeyword.Satisfies] = 23] = "Satisfies";
-    ContextualKeyword[ContextualKeyword.Set] = 24] = "Set";
-    ContextualKeyword[ContextualKeyword.Static] = 25] = "Static";
-    ContextualKeyword[ContextualKeyword.Symbol] = 26] = "Symbol";
-    ContextualKeyword[ContextualKeyword.Target] = 27] = "Target";
-    ContextualKeyword[ContextualKeyword.Type] = 28] = "Type";
-    ContextualKeyword[ContextualKeyword.Unique] = 29] = "Unique";
-    ContextualKeyword[ContextualKeyword.Declare] = 30] = "Declare";
-    ContextualKeyword[ContextualKeyword.Any] = 31] = "Any";
-    ContextualKeyword[ContextualKeyword.Bigint] = 32] = "Bigint";
-    ContextualKeyword[ContextualKeyword.Boolean] = 33] = "Boolean";
-    ContextualKeyword[ContextualKeyword.Constructor] = 34] = "Constructor";
-    ContextualKeyword[ContextualKeyword.Mixed] = 35] = "Mixed";
-    ContextualKeyword[ContextualKeyword.Number] = 36] = "Number";
-    ContextualKeyword[ContextualKeyword.Object] = 37] = "Object";
-    ContextualKeyword[ContextualKeyword.String] = 38] = "String";
-    ContextualKeyword[ContextualKeyword.Void] = 39] = "Void";
-    ContextualKeyword[ContextualKeyword.Enum] = 40] = "Enum";
-    return ContextualKeyword;
-  })(ContextualKeyword || {});
   const CONTEXTUAL_KEYWORDS = {
     abstract: ContextualKeyword.Abstract,
     accessor: ContextualKeyword.Accessor,
