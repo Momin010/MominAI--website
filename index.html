@@ -25,12 +25,21 @@
             padding: 0;
         }
         
-        * {
-            cursor: none !important;
+        @media (pointer: fine) {
+            * {
+                cursor: none !important;
+            }
         }
 
         html {
             scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            html {
+                font-size: 14px;
+            }
         }
 
         body {

@@ -47,12 +47,12 @@ const Contact = () => {
     };
 
     return (
-        <section style={styles.section}>
+        <section style={styles.section} id="contact-section">
             <h1 style={styles.h1}>Contact Our Sales Team</h1>
             <p style={styles.p}>
                 Our team is here to help you find the perfect solution for your needs. Reach out to us via phone or email, and we'll get back to you as soon as possible.
             </p>
-            <div style={styles.contactInfo}>
+            <div style={styles.contactInfo} className="contact-info-box">
                 <div style={{...styles.contactRow, animationDelay: '0.2s'}}>
                     <strong>Phone:</strong> 
                     <a href="tel:+358449291241" style={styles.contactLink} onMouseOver={e => e.currentTarget.style.color='var(--accent)'} onMouseOut={e => e.currentTarget.style.color='var(--foreground)'}>
@@ -70,6 +70,15 @@ const Contact = () => {
                 @keyframes fadeInUp {
                     from { opacity: 0; transform: translateY(20px); }
                     to { opacity: 1; transform: translateY(0); }
+                }
+                @media (max-width: 768px) {
+                    #contact-section {
+                        padding: 4rem 1rem;
+                    }
+                    .contact-info-box {
+                        padding: 1.5rem;
+                        font-size: 1rem;
+                    }
                 }
             `}</style>
         </section>

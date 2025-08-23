@@ -16,6 +16,7 @@ const Logos = () => {
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
             fontSize: '0.8rem',
+            padding: '0 1rem'
         } as React.CSSProperties,
         scroller: {
             display: 'flex',
@@ -42,7 +43,7 @@ const Logos = () => {
     };
     
     return (
-        <section style={styles.section} className="reveal">
+        <section style={styles.section} className="reveal logos-section">
             <p style={styles.p}>Trusted by the next generation of builders</p>
             <div 
                 style={{overflow: 'hidden', position: 'relative'}}
@@ -60,6 +61,11 @@ const Logos = () => {
                 @keyframes scroll {
                     from { transform: translateX(0); }
                     to { transform: translateX(-50%); }
+                }
+                @media (max-width: 768px) {
+                   .logos-section {
+                        padding: 1rem 0;
+                   }
                 }
             `}</style>
         </section>

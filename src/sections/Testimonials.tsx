@@ -9,7 +9,7 @@ const Testimonials = () => {
 
     const styles = {
         section: { padding: '6rem 2rem', backgroundColor: 'var(--background-secondary)' } as React.CSSProperties,
-        h2: { textAlign: 'center', fontSize: '2.5rem', marginBottom: '4rem' } as React.CSSProperties,
+        h2: { textAlign: 'center', fontSize: 'clamp(2rem, 5vw, 2.5rem)', marginBottom: '4rem' } as React.CSSProperties,
         grid: {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
@@ -36,6 +36,13 @@ const Testimonials = () => {
     
     return (
         <section id="testimonials" style={styles.section} className="reveal">
+             <style>{`
+                @media (max-width: 768px) {
+                    #testimonials {
+                        padding: 4rem 1rem;
+                    }
+                }
+            `}</style>
             <h2 style={styles.h2}>Loved by the world's most innovative teams</h2>
             <div style={styles.grid}>
                 {testimonials.map((t, i) => (

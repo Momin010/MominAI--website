@@ -77,7 +77,7 @@ const Features = () => {
             textAlign: 'center',
         } as React.CSSProperties,
         h2: {
-            fontSize: '2.5rem',
+            fontSize: 'clamp(2rem, 5vw, 2.5rem)',
             marginBottom: '1rem',
         },
         p: {
@@ -113,6 +113,11 @@ const Features = () => {
                  }
                  .feature-card:hover {
                      border-color: var(--accent);
+                 }
+                 @media (max-width: 768px) {
+                    #features {
+                        padding: 4rem 1rem;
+                    }
                  }
             `}</style>
         </section>

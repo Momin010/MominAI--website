@@ -9,8 +9,13 @@ const CustomCursor = () => {
     const [position, setPosition] = useState({ x: -100, y: -100 });
     const [isHovering, setIsHovering] = useState(false);
     const [isMouseDown, setIsMouseDown] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
+        // Check for fine pointer availability on mount
+        const mediaQuery = window.matchMedia('(pointer: fine)');
+        setIsVisible(mediaQuery.matches);
+
         const updatePosition = (e: MouseEvent) => {
             setPosition({ x: e.clientX, y: e.clientY });
         };
@@ -32,7 +37,6 @@ const CustomCursor = () => {
         document.addEventListener('mousedown', handleMouseDown);
         document.addEventListener('mouseup', handleMouseUp);
 
-
         return () => {
             document.removeEventListener('mousemove', updatePosition);
             document.removeEventListener('mouseover', handleMouseOver);
@@ -41,6 +45,10 @@ const CustomCursor = () => {
         };
     }, []);
     
+    if (!isVisible) {
+        return null;
+    }
+
     const cursorImage = isMouseDown ? closedHand : (isHovering ? openHand : pointingHand);
     
     const styles = {

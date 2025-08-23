@@ -83,6 +83,7 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
             zIndex: 1000,
             backdropFilter: 'blur(5px)',
             animation: 'fadeIn 0.3s ease',
+            padding: '1rem'
         } as React.CSSProperties,
         modal: {
             background: 'var(--background-secondary)',
@@ -110,7 +111,7 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
             fontSize: '1.5rem',
             cursor: 'pointer',
         } as React.CSSProperties,
-        h2: { marginBottom: '0.5rem' },
+        h2: { marginBottom: '0.5rem', fontSize: '1.5rem' },
         p: { color: 'var(--gray)', marginBottom: '1.5rem' },
         form: { display: 'flex', flexDirection: 'column', gap: '1rem' } as React.CSSProperties,
         input: {
@@ -171,7 +172,7 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
 
     return createPortal(
         <div style={styles.overlay} onClick={onClose}>
-            <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modal} className="signup-modal" onClick={e => e.stopPropagation()}>
                 <button style={styles.closeButton} onClick={onClose} aria-label="Close modal">&times;</button>
                 {isSubmitted ? (
                     <div style={styles.submittedMessage}>
@@ -205,6 +206,11 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
             <style>{`
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+                @media (max-width: 480px) {
+                    .signup-modal {
+                        padding: 1.5rem;
+                    }
+                }
             `}</style>
         </div>,
         document.body

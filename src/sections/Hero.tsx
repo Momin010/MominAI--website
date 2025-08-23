@@ -8,6 +8,8 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
     const sectionRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
+        if (window.matchMedia('(pointer: coarse)').matches) return;
+
         const handleMouseMove = (e: MouseEvent) => {
             if (!sectionRef.current) return;
             const { clientX, clientY } = e;
@@ -41,7 +43,7 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
             justifyContent: 'center',
             alignItems: 'center',
             textAlign: 'center',
-            padding: '0 1rem',
+            padding: '0 2rem',
             position: 'relative',
         } as React.CSSProperties,
         gridBackground: {
@@ -110,7 +112,7 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
             <div style={styles.gridBackground}></div>
             <h1 style={styles.h1}>Conceive. Generate. Deploy.</h1>
             <p style={styles.p}>The AI platform for building and deploying production-grade applications and websites in seconds. Go from idea to live URL instantly.</p>
-            <div style={styles.buttons}>
+            <div style={styles.buttons} className="hero-buttons">
                 <button onClick={onBuildNowClick} style={{...styles.button, ...styles.buildButton}} onMouseOver={e => e.currentTarget.style.transform='scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform='scale(1)'}>Build Now</button>
                 <a href="#contact" role="button" style={{...styles.button, ...styles.contactButton}} onMouseOver={e => e.currentTarget.style.backgroundColor='var(--gray-dark)'} onMouseOut={e => e.currentTarget.style.backgroundColor='transparent'}>Contact Sales</a>
             </div>
@@ -118,6 +120,18 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
                 @keyframes fadeInUp {
                     from { opacity: 0; transform: translateY(20px); }
                     to { opacity: 1; transform: translateY(0); }
+                }
+                @media (max-width: 480px) {
+                    .hero-buttons {
+                        flex-direction: column;
+                        width: 100%;
+                        max-width: 320px;
+                    }
+                }
+                 @media (max-width: 768px) {
+                    section {
+                        padding: 0 1rem;
+                    }
                 }
             `}</style>
         </section>

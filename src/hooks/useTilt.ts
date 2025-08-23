@@ -15,7 +15,9 @@ export const useTilt = (options = {}) => {
 
     useEffect(() => {
         const element = ref.current;
-        if (!element) return;
+        if (!element || window.matchMedia('(pointer: coarse)').matches) {
+            return;
+        }
 
         const handleMouseMove = (e) => {
             const { left, top, width, height } = element.getBoundingClientRect();

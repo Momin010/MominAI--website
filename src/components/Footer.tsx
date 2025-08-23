@@ -27,18 +27,31 @@ const Footer = () => {
     };
 
     return (
-        <footer style={styles.footer}>
-            <div style={styles.logoContainer}>
-                <MominAILogo width={141} height={32} />
-            </div>
-            <div style={styles.links}>
-                <a href="#features" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Features</a>
-                <a href="#testimonials" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Testimonials</a>
-                <a href="#pricing" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Pricing</a>
-                <a href="#" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Docs</a>
-            </div>
-            <p style={styles.copyright}>© {new Date().getFullYear()} MominAI Inc. All rights reserved.</p>
-        </footer>
+        <>
+            <style>{`
+                @media (max-width: 480px) {
+                    .footer-links {
+                        flex-direction: column;
+                        gap: 1.5rem;
+                    }
+                    .footer-section {
+                        padding: 3rem 1rem;
+                    }
+                }
+            `}</style>
+            <footer style={styles.footer} className="footer-section">
+                <div style={styles.logoContainer}>
+                    <MominAILogo width={141} height={32} />
+                </div>
+                <div style={styles.links} className="footer-links">
+                    <a href="#features" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Features</a>
+                    <a href="#testimonials" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Testimonials</a>
+                    <a href="#pricing" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Pricing</a>
+                    <a href="#" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Docs</a>
+                </div>
+                <p style={styles.copyright}>© {new Date().getFullYear()} MominAI Inc. All rights reserved.</p>
+            </footer>
+        </>
     );
 }
 

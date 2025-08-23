@@ -84,7 +84,7 @@ const Pricing = () => {
     
     const styles = {
         section: { padding: '6rem 2rem', textAlign: 'center' } as React.CSSProperties,
-        h2: { fontSize: '2.5rem', marginBottom: '1rem' },
+        h2: { fontSize: 'clamp(2rem, 5vw, 2.5rem)', marginBottom: '1rem' },
         p: { color: 'var(--gray)', maxWidth: '600px', margin: '0 auto 4rem auto' },
         grid: {
             display: 'grid',
@@ -114,6 +114,11 @@ const Pricing = () => {
                     from { opacity: 0; transform: translateY(10px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
+                 @media (max-width: 768px) {
+                    #pricing {
+                        padding: 4rem 1rem;
+                    }
+                 }
             `}</style>
         </section>
     );
