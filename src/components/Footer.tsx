@@ -1,5 +1,4 @@
 import React from 'react';
-import { Logo } from './icons.tsx';
 
 const Footer = () => {
     const styles = {
@@ -9,6 +8,10 @@ const Footer = () => {
             textAlign: 'center',
         } as React.CSSProperties,
         logoContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' },
+        logoImage: {
+            width: '24px',
+            height: '24px',
+        } as React.CSSProperties,
         links: {
             display: 'flex',
             justifyContent: 'center',
@@ -29,7 +32,7 @@ const Footer = () => {
     return (
         <footer style={styles.footer}>
             <div style={styles.logoContainer}>
-                <Logo />
+                <img src="/assets/Component 1 (2).svg" alt="AI Builder Logo" style={styles.logoImage} />
                 <span>AI Builder</span>
             </div>
             <div style={styles.links}>

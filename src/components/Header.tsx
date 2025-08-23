@@ -1,5 +1,4 @@
 import React from 'react';
-import { Logo } from './icons.tsx';
 
 interface HeaderProps {
     onBuildNowClick: () => void;
@@ -28,6 +27,10 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
             transition: 'top 0.3s ease, box-shadow 0.3s ease',
         } as React.CSSProperties,
         logoContainer: { display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' },
+        logoImage: {
+            width: '24px',
+            height: '24px',
+        } as React.CSSProperties,
         nav: { display: 'flex', gap: '1.5rem', alignItems: 'center' },
         navLink: { 
             position: 'relative',
@@ -81,7 +84,7 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
         `}</style>
         <header style={styles.header}>
             <a href="#" style={styles.logoContainer}>
-                <Logo />
+                <img src="/assets/Component 1 (2).svg" alt="AI Builder Logo" style={styles.logoImage} />
                 <span>AI Builder</span>
             </a>
             <nav style={styles.nav}>
