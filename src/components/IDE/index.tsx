@@ -23,8 +23,6 @@ const IDE = ({ onLogout }: IDEProps) => {
         chatHistory,
         isLoading,
         isApiConfigured,
-        previewUrl,
-        updatePreview,
         handlePromptSubmit,
         activeFile,
         clearSession,
@@ -82,10 +80,7 @@ const IDE = ({ onLogout }: IDEProps) => {
 
                         {/* Preview Panel */}
                         <Panel defaultSize={30} minSize={15}>
-                            <PreviewPanel 
-                                previewUrl={previewUrl}
-                                onRefresh={updatePreview}
-                            />
+                            <PreviewPanel files={files} />
                         </Panel>
                     </PanelGroup>
                 </main>
@@ -133,7 +128,7 @@ const IDE = ({ onLogout }: IDEProps) => {
                 .code-editor-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
                 .editor-tab { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(39, 39, 42, 0.8); border-radius: 6px; font-size: 12px; color: #e4e4e7; }
                 .editor-empty, .preview-empty { flex: 1; display: flex; align-items: center; justify-content: center; }
-                .preview-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: white; border-bottom-right-radius: 1.5rem; }
+                .preview-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #111111; border-bottom-right-radius: 1.5rem; }
                 .preview-frame { flex: 1; width: 100%; border: none; background: white; border-bottom-right-radius: 1.5rem; }
                 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; color: #71717a; padding: 1rem; }
                 .empty-state svg { opacity: 0.5; }

@@ -16,51 +16,21 @@ export const useIDEState = () => {
     const [chatHistory, setChatHistory, clearChatHistory] = useLocalStorageState<ChatMessage[]>('ide_chat_history', initialChat);
     const [isLoading, setIsLoading] = useState(false);
     const [isApiConfigured, setIsApiConfigured] = useState(true);
-    const [previewUrl, setPreviewUrl] = useState('');
 
-    const updateServiceWorker = useCallback((newFiles: AppFile[]) => {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({
-                type: 'UPDATE_FILES',
-                files: newFiles,
-            });
-            console.log('Sent files to service worker');
-            updatePreview();
-        }
-    }, []);
-    
-    // On initial load, if files exist in storage, send them to the SW
+    // Register service worker on initial load
     useEffect(() => {
-        const registerAndInitSW = async () => {
+        const registerSW = async () => {
             if ('serviceWorker' in navigator) {
                 try {
                     await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-                     console.log('Service Worker registered');
-                    if (navigator.serviceWorker.controller) {
-                        if (files.length > 0) {
-                            console.log('Persisted files found, updating preview.');
-                            updateServiceWorker(files);
-                        }
-                    } else {
-                         navigator.serviceWorker.addEventListener('controllerchange', () => {
-                            if (files.length > 0) {
-                                console.log('Controller changed, updating preview.');
-                                updateServiceWorker(files);
-                            }
-                        });
-                    }
+                    console.log('Service Worker registered');
                 } catch (error) {
                     console.error('Service Worker registration failed:', error);
                 }
             }
         };
-        registerAndInitSW();
+        registerSW();
     }, []);
-
-
-    const updatePreview = () => {
-        setPreviewUrl(`/preview.html?t=${Date.now()}`);
-    };
 
     const handlePromptSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -128,9 +98,8 @@ export const useIDEState = () => {
                 if (finalJson.files && finalJson.files.length > 0) {
                     const newFiles = finalJson.files;
                     setFiles(newFiles);
-                    updateServiceWorker(newFiles);
                     if (!activeFileName || !newFiles.some(f => f.name === activeFileName)) {
-                        const preferredFiles = ['index.html', 'src/App.tsx', 'src/index.tsx'];
+                        const preferredFiles = ['src/App.tsx', 'src/main.tsx', 'index.html'];
                         let newActiveFile = newFiles[0]?.name;
                         for (const preferred of preferredFiles) {
                             const found = newFiles.find(f => f.name === preferred);
@@ -166,8 +135,9 @@ export const useIDEState = () => {
         clearFiles();
         clearChatHistory();
         clearActiveFile();
-        updateServiceWorker([]); // Clear files in SW
         setChatHistory(initialChat); // Reset to initial welcome message
+        // Force a reload to clear the WebContainer instance
+        window.location.reload();
         console.log('Session cleared.');
     };
 
@@ -182,8 +152,6 @@ export const useIDEState = () => {
         chatHistory,
         isLoading,
         isApiConfigured,
-        previewUrl,
-        updatePreview,
         handlePromptSubmit,
         activeFile,
         clearSession,
