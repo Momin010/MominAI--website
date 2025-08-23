@@ -19,6 +19,15 @@ self.addEventListener('fetch', (event) => {
       // Fetch the original request.
       const response = await fetch(event.request);
 
+      // If the fetch resulted in an opaque response (e.g., cross-origin request
+      // blocked by COEP), the status will be 0. We cannot construct a new
+      // Response with status 0, as it's invalid. In this case, we just
+      // return the original problematic response and let the browser deal with it.
+      // This prevents our service worker from crashing with a RangeError.
+      if (response.status === 0) {
+          return response;
+      }
+
       // Create a new response with the required headers.
       // We can't modify the original response, so we clone it.
       const newHeaders = new Headers(response.headers);
