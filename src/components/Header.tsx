@@ -1,4 +1,5 @@
 import React from 'react';
+import { MominAILogo } from './icons.tsx';
 
 interface HeaderProps {
     onBuildNowClick: () => void;
@@ -27,10 +28,6 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
             transition: 'top 0.3s ease, box-shadow 0.3s ease',
         } as React.CSSProperties,
         logoContainer: { display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' },
-        logoImage: {
-            height: '28px',
-            width: 'auto',
-        } as React.CSSProperties,
         nav: { display: 'flex', gap: '1.5rem', alignItems: 'center' },
         navLink: { 
             position: 'relative',
@@ -84,7 +81,7 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
         `}</style>
         <header style={styles.header}>
             <a href="#" style={styles.logoContainer}>
-                <img src="/assets/logo.svg" alt="MominAI Logo" style={styles.logoImage} />
+                <MominAILogo />
             </a>
             <nav style={styles.nav}>
                 <a href="#features" className="nav-link" style={styles.navLink}>Features</a>

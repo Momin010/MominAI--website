@@ -1,4 +1,5 @@
 import React from 'react';
+import { MominAILogo } from './icons.tsx';
 
 const Footer = () => {
     const styles = {
@@ -8,10 +9,6 @@ const Footer = () => {
             textAlign: 'center',
         } as React.CSSProperties,
         logoContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '2rem' },
-        logoImage: {
-            height: '32px',
-            width: 'auto',
-        } as React.CSSProperties,
         links: {
             display: 'flex',
             justifyContent: 'center',
@@ -32,7 +29,7 @@ const Footer = () => {
     return (
         <footer style={styles.footer}>
             <div style={styles.logoContainer}>
-                <img src="/assets/logo.svg" alt="MominAI Logo" style={styles.logoImage} />
+                <MominAILogo width={141} height={32} />
             </div>
             <div style={styles.links}>
                 <a href="#features" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Features</a>

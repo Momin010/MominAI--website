@@ -1,5 +1,18 @@
 import React from 'react';
 
+export const MominAILogo = ({ width = 124, height = 28 }: { width?: number, height?: number }) => (
+    <svg width={width} height={height} viewBox="0 0 124 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="MominAI Logo">
+      <defs>
+        <linearGradient id="logoGradient" x1="0" y1="14" x2="124" y2="14" gradientUnits="userSpaceOnUse">
+          <stop stopColor="white"/>
+          <stop offset="1" stopColor="#E0E0E0"/>
+        </linearGradient>
+      </defs>
+      <text x="0" y="22" fontFamily="Inter, sans-serif" fontSize="24" fontWeight="700" fill="url(#logoGradient)">MominAI</text>
+      <path d="M120 14L116 20.9282L112 14L116 7.0718L120 14Z" fill="#4F46E5"/>
+    </svg>
+);
+
 export const CodeIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Code Icon"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>);
 export const DeployIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Deploy Icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>);
 export const ScaleIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Scale Icon"><path d="M21 3l-6 6m0 0V3m0 6h6M3 21l6-6m0 0v6m0-6H3"></path></svg>);
