@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { MominAILogo, SendIcon, HTMLFileIcon, TSXFileIcon, CSSFileIcon, FileIcon } from './icons.tsx';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // A simple in-memory representation of the generated files
 type AppFile = {
     name: string;
@@ -66,7 +64,8 @@ const IDE = ({ onLogout }: IDEProps) => {
 
         setIsLoading(true);
         const currentPrompt = prompt;
-        setChatHistory(prev => [...prev, { role: 'user', text: currentPrompt }]);
+        const historyForApi = [...chatHistory, { role: 'user' as const, text: currentPrompt }];
+        setChatHistory(historyForApi);
         setPrompt('');
 
         const systemInstruction = `You are an expert web developer AI. Your task is to generate a complete, production-ready, single-page web application based on the user's prompt.
@@ -95,17 +94,16 @@ const IDE = ({ onLogout }: IDEProps) => {
           },
           required: ["files"],
         };
-        
 
         try {
+            // Add a placeholder for the model's response
             setChatHistory(prev => [...prev, { role: 'model', text: '' }]);
+
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             const responseStream = await ai.models.generateContentStream({
                 model: 'gemini-2.5-flash',
-                contents: [
-                    ...chatHistory.map(m => ({ role: m.role, parts: [{ text: m.text }]})),
-                    { role: 'user', parts: [{ text: currentPrompt }]}
-                ],
+                contents: historyForApi.map(m => ({ role: m.role, parts: [{ text: m.text }]})),
                 config: {
                     systemInstruction: systemInstruction,
                     responseMimeType: "application/json",
