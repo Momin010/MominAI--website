@@ -9,7 +9,7 @@ const Loader = () => {
             alignItems: 'center',
             height: '100vh',
             width: '100vw',
-            backgroundColor: 'var(--background)',
+            backgroundColor: 'transparent',
             textAlign: 'center',
         } as React.CSSProperties,
         spinner: {

@@ -13,7 +13,7 @@ const App = () => {
         setTimeout(() => {
             setIsAuthenticated(true);
             setIsLoading(false);
-        }, 3000); // 3-second loader
+        }, 6000); // 6-second loader
     };
     
     const handleLogout = () => {
