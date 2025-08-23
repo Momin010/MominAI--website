@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI, Type } from "@google/genai";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { MominAILogo, SendIcon, HTMLFileIcon, TSXFileIcon, CSSFileIcon, FileIcon } from './icons.tsx';
@@ -20,6 +19,7 @@ const IDE = ({ onLogout }: IDEProps) => {
     const [prompt, setPrompt] = useState<string>('');
     const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model', text: string }[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isApiConfigured, setIsApiConfigured] = useState<boolean>(true);
     const [previewUrl, setPreviewUrl] = useState<string>('');
     const chatEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -34,7 +34,10 @@ const IDE = ({ onLogout }: IDEProps) => {
     }, []);
 
     useEffect(() => {
-        setChatHistory([{ role: 'model', text: 'Hello! Describe the application you want to build.' }]);
+        // A simple check. We can't truly know if the key is valid from the client-side,
+        // but we can provide a default state and let the first API call determine the truth.
+        const initialMessage = 'Hello! Describe the application you want to build.';
+        setChatHistory([{ role: 'model', text: initialMessage }]);
     }, []);
 
     useEffect(() => {
@@ -97,52 +100,41 @@ const IDE = ({ onLogout }: IDEProps) => {
         setChatHistory(historyForApi);
         setPrompt('');
 
-        const systemInstruction = `You are an expert web developer AI. Your task is to generate a complete, production-ready, single-page web application based on the user's prompt.
-        
-        RULES:
-        1.  Always generate all necessary files, including index.html, index.tsx (or index.js), and a style file (e.g., index.css).
-        2.  For React apps, use esm.sh for imports (e.g., "https://esm.sh/react").
-        3.  The main script file must be imported in index.html as a module (e.g., <script type="module" src="/index.tsx"></script>). The path should be relative.
-        4.  Your response MUST be a single, valid JSON object.
-        5.  The JSON object must match this exact schema: { "files": [{ "name": "path/to/file.ext", "content": "file content" }] }. Do not include any other text, markdown, or explanations outside of the JSON object.`;
-        
-        const fileSchema = {
-          type: Type.OBJECT,
-          properties: {
-            files: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  name: { type: Type.STRING },
-                  content: { type: Type.STRING },
-                },
-                required: ["name", "content"],
-              },
-            },
-          },
-          required: ["files"],
-        };
-
         try {
             // Add a placeholder for the model's response
             setChatHistory(prev => [...prev, { role: 'model', text: '' }]);
 
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            
-            const responseStream = await ai.models.generateContentStream({
-                model: 'gemini-2.5-flash',
-                contents: historyForApi.map(m => ({ role: m.role, parts: [{ text: m.text }]})),
-                config: {
-                    systemInstruction: systemInstruction,
-                    responseMimeType: "application/json",
-                    responseSchema: fileSchema,
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({ history: historyForApi }),
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                // Check if the error is due to a missing API key
+                if (errorText.includes("API Key not found")) {
+                    setIsApiConfigured(false);
+                    throw new Error("API Key is missing. Please ask the administrator to set the API_KEY environment variable in the deployment settings.");
+                }
+                throw new Error(errorText || `HTTP error! status: ${response.status}`);
+            }
+
+            const reader = response.body?.getReader();
+            if (!reader) {
+                throw new Error('Failed to get response reader');
+            }
+            
+            const decoder = new TextDecoder();
             let accumulatedResponse = '';
-            for await (const chunk of responseStream) {
-                accumulatedResponse += chunk.text;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                accumulatedResponse += decoder.decode(value, { stream: true });
                 setChatHistory(prev => {
                     const newHistory = [...prev];
                     newHistory[newHistory.length - 1].text = accumulatedResponse;
@@ -158,7 +150,6 @@ const IDE = ({ onLogout }: IDEProps) => {
                 setFiles(newFiles);
                 setActiveFileName(newFiles.find(f => f.name.includes('index.tsx'))?.name || newFiles.find(f => f.name.includes('index.html'))?.name || newFiles[0]?.name || null);
                 
-                // Send files to our service worker and then trigger the preview update
                 sendFilesToServiceWorker(newFiles);
                 updatePreview();
 
@@ -168,10 +159,12 @@ const IDE = ({ onLogout }: IDEProps) => {
 
         } catch (error) {
             console.error("Error generating content:", error);
-            const errorMessage = `Sorry, something went wrong. The AI response might be malformed or an API error occurred. Details: ${error.message}`;
+            const errorMessage = `Sorry, something went wrong. Details: ${error.message}`;
             setChatHistory(prev => {
                 const newHistory = [...prev];
-                newHistory[newHistory.length - 1].text = errorMessage;
+                if (newHistory.length > 0) {
+                   newHistory[newHistory.length - 1].text = errorMessage;
+                }
                 return newHistory;
             });
         } finally {
@@ -180,6 +173,7 @@ const IDE = ({ onLogout }: IDEProps) => {
     };
     
     const activeFile = files.find(f => f.name === activeFileName);
+    const isChatDisabled = isLoading || !isApiConfigured;
 
     return (
         <div className="ide-container">
@@ -229,11 +223,11 @@ const IDE = ({ onLogout }: IDEProps) => {
                                 onChange={e => setPrompt(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePromptSubmit(e); }}}
                                 className="chat-input"
-                                placeholder="Describe the application you want to build..."
+                                placeholder={isChatDisabled ? "Chat is disabled. API Key may be missing." : "Describe the application you want to build..."}
                                 rows={1}
-                                disabled={isLoading}
+                                disabled={isChatDisabled}
                             />
-                            <button type="submit" className="send-btn" disabled={isLoading || !prompt.trim()}>
+                            <button type="submit" className="send-btn" disabled={isChatDisabled || !prompt.trim()}>
                                 <SendIcon />
                             </button>
                         </div>
@@ -521,7 +515,7 @@ const IDE = ({ onLogout }: IDEProps) => {
                 }
 
                 .message-content {
-                    max-width: 80%;
+                    max-width: 95%;
                     padding: 12px 16px;
                     border-radius: 12px;
                     line-height: 1.5;
