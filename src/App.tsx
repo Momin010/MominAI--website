@@ -2,42 +2,39 @@ import React, { useState, useEffect } from 'react';
 import CustomCursor from './components/CustomCursor.tsx';
 import LandingPage from './components/LandingPage.tsx';
 import IDE from './components/IDE/index.tsx';
-import Loader from './components/Loader.tsx';
 
 const App = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isIDEView, setIDEView] = useState(false);
+
+    useEffect(() => {
+        // On initial load, check the URL to see which view to render.
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('ide') === 'true') {
+            setIDEView(true);
+        }
+    }, []);
     
     // Manage body scroll based on the current view
     useEffect(() => {
-        if (isLoading || isAuthenticated) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            // LandingPage is visible, allow scrolling.
-            // The Header component will still manage overflow for its mobile menu.
-            document.body.style.overflow = 'auto';
-        }
-    }, [isLoading, isAuthenticated]);
+        document.body.style.overflow = isIDEView ? 'hidden' : 'auto';
+    }, [isIDEView]);
 
 
     const handleLoginSuccess = () => {
-        setIsLoading(true);
-        setTimeout(() => {
-            setIsAuthenticated(true);
-            setIsLoading(false);
-        }, 6000); // 6-second loader
+        // Navigate to the IDE view. This causes a full page reload,
+        // allowing the service worker to apply the correct security headers.
+        window.location.href = '/?ide=true';
     };
     
     const handleLogout = () => {
-        setIsAuthenticated(false);
+        // Navigate back to the landing page. This also reloads the page.
+        window.location.href = '/';
     }
 
     return (
         <>
             <CustomCursor />
-            {isLoading ? (
-                <Loader />
-            ) : isAuthenticated ? (
+            {isIDEView ? (
                 <IDE onLogout={handleLogout} />
             ) : (
                 <LandingPage onLoginSuccess={handleLoginSuccess} />
