@@ -87,15 +87,13 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
             padding: '0.75rem 1.5rem',
             borderRadius: '0.5rem',
             border: 'none',
-            cursor: 'pointer',
             fontWeight: 600,
             fontSize: '1rem',
             transition: 'all 0.2s ease',
         },
         buildButton: {
-            backgroundColor: 'var(--accent)',
-            color: 'var(--foreground)',
-            boxShadow: `0 0 15px var(--accent-glow)`,
+            backgroundColor: 'var(--foreground)',
+            color: 'var(--background)',
         },
         contactButton: {
             backgroundColor: 'transparent',

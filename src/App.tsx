@@ -1,33 +1,27 @@
 import React, { useState } from 'react';
+import CustomCursor from './components/CustomCursor.tsx';
 import LandingPage from './components/LandingPage.tsx';
 import IDE from './components/IDE.tsx';
-import CustomCursor from './components/CustomCursor.tsx';
 
 const App = () => {
-    const [showIDE, setShowIDE] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const handleLoginSuccess = () => {
-        setShowIDE(true);
+        setIsAuthenticated(true);
     };
+    
+    const handleLogout = () => {
+        setIsAuthenticated(false);
+    }
 
     return (
         <>
             <CustomCursor />
-            <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
-                {showIDE ? (
-                    <div style={{
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        padding: '2rem', 
-                        height: '100%'
-                    }}>
-                        <IDE />
-                    </div>
-                ) : (
-                    <LandingPage onLoginSuccess={handleLoginSuccess} />
-                )}
-            </div>
+            {isAuthenticated ? (
+                <IDE onLogout={handleLogout} />
+            ) : (
+                <LandingPage onLoginSuccess={handleLoginSuccess} />
+            )}
         </>
     );
 };

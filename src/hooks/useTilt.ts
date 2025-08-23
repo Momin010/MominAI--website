@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 export const useTilt = (options = {}) => {
-    const ref = useRef<HTMLDivElement>(null);
+    const ref = useRef(null);
 
     const mergedOptions = { 
         max: 15, 
@@ -19,7 +19,7 @@ export const useTilt = (options = {}) => {
             return;
         }
 
-        const handleMouseMove = (e: MouseEvent) => {
+        const handleMouseMove = (e) => {
             const { left, top, width, height } = element.getBoundingClientRect();
             const x = (e.clientX - left) / width;
             const y = (e.clientY - top) / height;

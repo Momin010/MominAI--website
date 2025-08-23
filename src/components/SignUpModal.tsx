@@ -16,12 +16,12 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
     
     // Initialize Google Auth Client
     useEffect(() => {
-        if (isOpen && !tokenClient && typeof google !== 'undefined') {
+        if (isOpen && !tokenClient) {
             try {
                 const client = google.accounts.oauth2.initTokenClient({
                     client_id: '601307193094-i9r4kscn6tqkilon3g9c352igtt9ta40.apps.googleusercontent.com',
                     scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-                    callback: (response: any) => {
+                    callback: (response) => {
                         console.log('Google Sign-In Success:', response);
                         // On success, call the onSuccess callback to transition to the IDE
                         onSuccess();
@@ -36,8 +36,8 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
 
 
     useEffect(() => {
-        const handleEsc = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') onClose();
+        const handleEsc = (event) => {
+            if (event.keyCode === 27) onClose();
         };
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
@@ -45,7 +45,7 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
 
     if (!isOpen) return null;
 
-    const handleSubmit = (event: React.FormEvent) => {
+    const handleSubmit = (event) => {
         event.preventDefault();
         // On success, call the onSuccess callback to transition to the IDE
         onSuccess();
@@ -53,11 +53,9 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
 
     const handleGoogleSignIn = () => {
         if (tokenClient) {
-            (tokenClient as any).requestAccessToken();
+            tokenClient.requestAccessToken();
         } else {
             console.error('Google token client not available.');
-            // Fallback for when the script might be slow
-            onSuccess();
         }
     }
 
@@ -97,7 +95,6 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
             border: 'none',
             color: 'var(--gray)',
             fontSize: '1.5rem',
-            cursor: 'pointer',
         } as React.CSSProperties,
         h2: { marginBottom: '0.5rem', fontSize: '1.5rem' },
         p: { color: 'var(--gray)', marginBottom: '1.5rem' },
@@ -114,7 +111,6 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
             padding: '0.75rem 1.5rem',
             borderRadius: '0.5rem',
             border: 'none',
-            cursor: 'pointer',
             fontWeight: 600,
             fontSize: '1rem',
             transition: 'all 0.2s ease',
@@ -130,7 +126,6 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
             padding: '0.75rem 1.5rem',
             borderRadius: '0.5rem',
             border: '1px solid var(--border-color)',
-            cursor: 'pointer',
             fontWeight: 600,
             fontSize: '1rem',
             transition: 'all 0.2s ease',

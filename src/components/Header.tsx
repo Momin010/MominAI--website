@@ -50,12 +50,11 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
             transition: 'color 0.2s ease',
             padding: '0.25rem 0' 
         } as React.CSSProperties,
-        buttons: { display: 'flex', gap: '1rem' },
+        buttons: { display: 'flex', gap: '1rem', alignItems: 'center' },
         button: {
             padding: '0.5rem 1rem',
             borderRadius: '0.5rem',
             border: 'none',
-            cursor: 'pointer',
             fontWeight: 500,
             transition: 'all 0.2s ease',
         },
@@ -143,11 +142,8 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
                 display: none;
             }
 
-            @media (max-width: 860px) {
-                .desktop-nav {
-                    display: none;
-                }
-                .desktop-buttons {
+            @media (max-width: 768px) {
+                .desktop-nav, .desktop-buttons {
                     display: none;
                 }
                 .mobile-menu-button {
