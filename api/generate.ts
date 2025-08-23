@@ -22,7 +22,7 @@ export default async function handler(req: Request) {
     );
   }
 
-  try: {
+  try {
     // Parse the chat history from the request body
     const { history } = await req.json();
 

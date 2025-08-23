@@ -7,6 +7,18 @@ import Loader from './components/Loader.tsx';
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Manage body scroll based on the current view
+    useEffect(() => {
+        if (isLoading || isAuthenticated) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            // LandingPage is visible, allow scrolling.
+            // The Header component will still manage overflow for its mobile menu.
+            document.body.style.overflow = 'auto';
+        }
+    }, [isLoading, isAuthenticated]);
+
 
     const handleLoginSuccess = () => {
         setIsLoading(true);
