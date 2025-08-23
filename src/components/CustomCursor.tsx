@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
-const cursorImage = 'https://cursor.in/assets/pointinghand.svg';
+const pointingHand = 'https://cursor.in/assets/pointinghand.svg';
+const openHand = 'https://cursor.in/assets/openhand.svg';
+const closedHand = 'https://cursor.in/assets/closedhand.svg';
 
 const CustomCursor = () => {
     const [position, setPosition] = useState({ x: -100, y: -100 });
     const [isHovering, setIsHovering] = useState(false);
+    const [isMouseDown, setIsMouseDown] = useState(false);
 
     useEffect(() => {
         const updatePosition = (e: MouseEvent) => {
@@ -19,15 +23,25 @@ const CustomCursor = () => {
                 setIsHovering(false);
             }
         };
+        
+        const handleMouseDown = () => setIsMouseDown(true);
+        const handleMouseUp = () => setIsMouseDown(false);
 
         document.addEventListener('mousemove', updatePosition);
         document.addEventListener('mouseover', handleMouseOver);
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mouseup', handleMouseUp);
+
 
         return () => {
             document.removeEventListener('mousemove', updatePosition);
             document.removeEventListener('mouseover', handleMouseOver);
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('mouseup', handleMouseUp);
         };
     }, []);
+    
+    const cursorImage = isMouseDown ? closedHand : (isHovering ? openHand : pointingHand);
     
     const styles = {
         cursor: {
@@ -39,16 +53,17 @@ const CustomCursor = () => {
             backgroundImage: `url('${cursorImage}')`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
-            transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${isHovering ? 1.2 : 1})`,
+            transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${isHovering || isMouseDown ? 1.2 : 1})`,
             pointerEvents: 'none',
-            zIndex: 9999,
+            zIndex: 99999,
             transition: 'transform 0.1s ease-out',
             willChange: 'transform',
         } as React.CSSProperties,
     };
     
-    return (
-        <div style={styles.cursor} aria-hidden="true" />
+    return createPortal(
+        <div style={styles.cursor} aria-hidden="true" />,
+        document.body
     );
 };
 
