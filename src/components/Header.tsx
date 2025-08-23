@@ -26,10 +26,10 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2), 0 0 20px rgba(79, 70, 229, 0.25)',
             transition: 'top 0.3s ease, box-shadow 0.3s ease',
         } as React.CSSProperties,
-        logoContainer: { display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' },
+        logoContainer: { display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' },
         logoImage: {
-            width: '24px',
-            height: '24px',
+            height: '28px',
+            width: 'auto',
         } as React.CSSProperties,
         nav: { display: 'flex', gap: '1.5rem', alignItems: 'center' },
         navLink: { 
@@ -84,8 +84,7 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
         `}</style>
         <header style={styles.header}>
             <a href="#" style={styles.logoContainer}>
-                <img src="/assets/Component 1 (2).svg" alt="AI Builder Logo" style={styles.logoImage} />
-                <span>AI Builder</span>
+                <img src="/assets/logo.svg" alt="MominAI Logo" style={styles.logoImage} />
             </a>
             <nav style={styles.nav}>
                 <a href="#features" className="nav-link" style={styles.navLink}>Features</a>

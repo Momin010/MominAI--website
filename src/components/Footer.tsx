@@ -7,10 +7,10 @@ const Footer = () => {
             borderTop: '1px solid var(--border-color)',
             textAlign: 'center',
         } as React.CSSProperties,
-        logoContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' },
+        logoContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '2rem' },
         logoImage: {
-            width: '24px',
-            height: '24px',
+            height: '32px',
+            width: 'auto',
         } as React.CSSProperties,
         links: {
             display: 'flex',
@@ -32,8 +32,7 @@ const Footer = () => {
     return (
         <footer style={styles.footer}>
             <div style={styles.logoContainer}>
-                <img src="/assets/Component 1 (2).svg" alt="AI Builder Logo" style={styles.logoImage} />
-                <span>AI Builder</span>
+                <img src="/assets/logo.svg" alt="MominAI Logo" style={styles.logoImage} />
             </div>
             <div style={styles.links}>
                 <a href="#features" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Features</a>
@@ -41,7 +40,7 @@ const Footer = () => {
                 <a href="#pricing" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Pricing</a>
                 <a href="#" style={styles.link} onMouseOver={e => e.currentTarget.style.color='var(--foreground)'} onMouseOut={e => e.currentTarget.style.color='var(--gray)'}>Docs</a>
             </div>
-            <p style={styles.copyright}>© {new Date().getFullYear()} AI Builder Inc. All rights reserved.</p>
+            <p style={styles.copyright}>© {new Date().getFullYear()} MominAI Inc. All rights reserved.</p>
         </footer>
     );
 }
