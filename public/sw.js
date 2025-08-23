@@ -864,20 +864,20 @@ var sucrase = (function (exports) {
     return "3.35.0";
   }
 
-  const Transform = /* @__PURE__ */ (function (Transform) {
-    Transform[Transform["JSX"] = 0] = "JSX";
-    Transform[Transform["TypeScript"] = 1] = "TypeScript";
-    Transform[Transform["Flow"] = 2] = "Flow";
-    Transform[Transform["Imports"] = 3] = "Imports";
-    Transform[Transform["ReactHotLoader"] = 4] = "ReactHotLoader";
-    Transform[Transform["NumericSeparator"] = 5] = "NumericSeparator";
-    Transform[Transform["OptionalChaining"] = 6] = "OptionalChaining";
-    Transform[Transform["NullishCoalescing"] = 7] = "NullishCoalescing";
-    Transform[Transform["ClassFields"] = 8] = "ClassFields";
-    Transform[Transform["OptionalCatchBinding"] = 9] = "OptionalCatchBinding";
-    Transform[Transform["Jest"] = 10] = "Jest";
-    return Transform;
-  })(Transform || {});
+  var Transform = /* @__PURE__ */ (function (Transform) {
+  Transform[Transform["JSX"] = 0] = "JSX";
+  Transform[Transform["TypeScript"] = 1] = "TypeScript";
+  Transform[Transform["Flow"] = 2] = "Flow";
+  Transform[Transform["Imports"] = 3] = "Imports";
+  Transform[Transform["ReactHotLoader"] = 4] = "ReactHotLoader";
+  Transform[Transform["NumericSeparator"] = 5] = "NumericSeparator";
+  Transform[Transform["OptionalChaining"] = 6] = "OptionalChaining";
+  Transform[Transform["NullishCoalescing"] = 7] = "NullishCoalescing";
+  Transform[Transform["ClassFields"] = 8] = "ClassFields";
+  Transform[Transform["OptionalCatchBinding"] = 9] = "OptionalCatchBinding";
+  Transform[Transform["Jest"] = 10] = "Jest";
+  return Transform;
+})(Transform || {});
 
   const JS_TRANSFORMS = [Transform.OptionalCatchBinding, Transform.NumericSeparator, Transform.OptionalChaining, Transform.NullishCoalescing, Transform.ClassFields];
 
