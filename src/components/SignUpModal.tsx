@@ -8,10 +8,10 @@ declare const google: any;
 interface SignUpModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess: () => void;
 }
 
-const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
-    const [isSubmitted, setIsSubmitted] = useState(false);
+const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
     const [tokenClient, setTokenClient] = useState(null);
     
     // Initialize Google Auth Client
@@ -23,10 +23,8 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
                     scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
                     callback: (response) => {
                         console.log('Google Sign-In Success:', response);
-                        setIsSubmitted(true);
-                        setTimeout(() => {
-                            onClose();
-                        }, 3000);
+                        // On success, call the onSuccess callback to transition to the IDE
+                        onSuccess();
                     },
                 });
                 setTokenClient(client);
@@ -34,7 +32,7 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
                 console.error("Google Client failed to initialize:", error);
             }
         }
-    }, [isOpen, tokenClient, onClose]);
+    }, [isOpen, tokenClient, onSuccess]);
 
 
     useEffect(() => {
@@ -44,21 +42,13 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
-    
-    useEffect(() => {
-        if (!isOpen) {
-            setTimeout(() => setIsSubmitted(false), 300);
-        }
-    }, [isOpen]);
 
     if (!isOpen) return null;
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        setIsSubmitted(true);
-        setTimeout(() => {
-            onClose();
-        }, 3000);
+        // On success, call the onSuccess callback to transition to the IDE
+        onSuccess();
     };
 
     const handleGoogleSignIn = () => {
@@ -96,10 +86,6 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
             boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
             animation: 'scaleIn 0.3s ease',
             textAlign: 'center',
-            minHeight: '350px', 
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
         } as React.CSSProperties,
         closeButton: {
             position: 'absolute',
@@ -165,43 +151,33 @@ const SignUpModal = ({ isOpen, onClose }: SignUpModalProps) => {
         dividerText: {
             padding: '0 1rem'
         } as React.CSSProperties,
-        submittedMessage: {
-            animation: 'fadeIn 0.5s ease'
-        } as React.CSSProperties,
     };
 
     return createPortal(
         <div style={styles.overlay} onClick={onClose}>
             <div style={styles.modal} className="signup-modal" onClick={e => e.stopPropagation()}>
                 <button style={styles.closeButton} onClick={onClose} aria-label="Close modal">&times;</button>
-                {isSubmitted ? (
-                    <div style={styles.submittedMessage}>
-                        <h2 style={styles.h2}>Thank You!</h2>
-                        <p style={styles.p}>Our platform is launching soon. We'll be in touch!</p>
+                <>
+                    <h2 style={styles.h2}>Create Your Account</h2>
+                    <p style={styles.p}>Join millions of developers building the future.</p>
+                    
+                    <button style={styles.googleButton} onClick={handleGoogleSignIn} onMouseOver={e => e.currentTarget.style.backgroundColor='#f0f0f0'} onMouseOut={e => e.currentTarget.style.backgroundColor='var(--foreground)'}>
+                       <GoogleIcon />
+                       <span>Sign up with Google</span>
+                    </button>
+
+                    <div style={styles.divider}>
+                        <div style={styles.dividerLine} />
+                        <span style={styles.dividerText}>OR</span>
+                        <div style={styles.dividerLine} />
                     </div>
-                ) : (
-                    <>
-                        <h2 style={styles.h2}>Create Your Account</h2>
-                        <p style={styles.p}>Join millions of developers building the future.</p>
-                        
-                        <button style={styles.googleButton} onClick={handleGoogleSignIn} onMouseOver={e => e.currentTarget.style.backgroundColor='#f0f0f0'} onMouseOut={e => e.currentTarget.style.backgroundColor='var(--foreground)'}>
-                           <GoogleIcon />
-                           <span>Sign up with Google</span>
-                        </button>
 
-                        <div style={styles.divider}>
-                            <div style={styles.dividerLine} />
-                            <span style={styles.dividerText}>OR</span>
-                            <div style={styles.dividerLine} />
-                        </div>
-
-                        <form style={styles.form} onSubmit={handleSubmit}>
-                            <input style={styles.input} type="email" placeholder="Email Address" required aria-label="Email Address" />
-                            <input style={styles.input} type="password" placeholder="Password" required aria-label="Password"/>
-                            <button type="submit" style={styles.button} onMouseOver={e => e.currentTarget.style.filter='brightness(1.2)'} onMouseOut={e => e.currentTarget.style.filter='brightness(1)'}>Continue with Email</button>
-                        </form>
-                    </>
-                )}
+                    <form style={styles.form} onSubmit={handleSubmit}>
+                        <input style={styles.input} type="email" placeholder="Email Address" required aria-label="Email Address" />
+                        <input style={styles.input} type="password" placeholder="Password" required aria-label="Password"/>
+                        <button type="submit" style={styles.button} onMouseOver={e => e.currentTarget.style.filter='brightness(1.2)'} onMouseOut={e => e.currentTarget.style.filter='brightness(1)'}>Continue with Email</button>
+                    </form>
+                </>
             </div>
             <style>{`
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
