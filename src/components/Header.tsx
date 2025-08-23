@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Logo } from './icons.tsx';
 
 interface HeaderProps {
@@ -6,31 +6,26 @@ interface HeaderProps {
 }
 
 const Header = ({ onBuildNowClick }: HeaderProps) => {
-    const [scrolled, setScrolled] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 10);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     const styles = {
         header: {
             position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            padding: '1rem 2rem',
+            top: '1rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 'calc(100% - 4rem)',
+            maxWidth: '1100px',
+            padding: '0.75rem 1.5rem',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             zIndex: 100,
-            transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, border-bottom-color 0.3s ease',
-            backgroundColor: scrolled ? 'rgba(0, 0, 0, 0.5)' : 'transparent',
-            backdropFilter: scrolled ? 'blur(10px)' : 'none',
-            borderBottom: scrolled ? `1px solid var(--border-color)` : '1px solid transparent',
+            backgroundColor: 'rgba(17, 17, 17, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '1rem',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+            transition: 'top 0.3s ease',
         } as React.CSSProperties,
         logoContainer: { display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' },
         nav: { display: 'flex', gap: '1.5rem', alignItems: 'center' },
