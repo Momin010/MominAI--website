@@ -18,8 +18,14 @@ const App = () => {
 
     useEffect(() => {
         const handleHashChange = () => {
-            setRoute(window.location.hash);
-            window.scrollTo(0, 0);
+            const currentHash = window.location.hash;
+            setRoute(currentHash);
+            
+            // Only scroll to the top for "page" routes like #contact or the homepage,
+            // not for anchor links like #features.
+            if (currentHash === '#contact' || currentHash === '' || currentHash === '#') {
+                window.scrollTo(0, 0);
+            }
         };
         
         handleHashChange(); // Set initial route
