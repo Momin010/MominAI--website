@@ -1,11 +1,11 @@
 import React from 'react';
 import { HTMLFileIcon, TSXFileIcon, CSSFileIcon, FileIcon } from '../icons.tsx';
 
-export const getFileIcon = (fileName: string): React.ReactNode => {
-    if (fileName.endsWith('.html')) return <HTMLFileIcon />;
-    if (fileName.endsWith('.tsx') || fileName.endsWith('.jsx') || fileName.endsWith('.js')) return <TSXFileIcon />;
-    if (fileName.endsWith('.css')) return <CSSFileIcon />;
-    return <FileIcon />;
+export const getFileIcon = (fileName: string): React.FC => {
+    if (fileName.endsWith('.html')) return HTMLFileIcon;
+    if (fileName.endsWith('.tsx') || fileName.endsWith('.jsx') || fileName.endsWith('.js')) return TSXFileIcon;
+    if (fileName.endsWith('.css')) return CSSFileIcon;
+    return FileIcon;
 };
 
 export const getLanguageForSyntaxHighlighter = (fileName: string) => {
