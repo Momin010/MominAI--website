@@ -10,7 +10,7 @@ interface FeatureCardProps {
     };
 }
 
-const FeatureCard = ({ feature }: FeatureCardProps) => {
+const FeatureCard: React.FC<FeatureCardProps> = ({ feature }) => {
     const cardRef = useTilt();
 
     const styles = {

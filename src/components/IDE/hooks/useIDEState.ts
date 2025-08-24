@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppFile, ChatMessage } from '../types.ts';
 import { useLocalStorageState } from '../../../hooks/useLocalStorageState.ts';
 

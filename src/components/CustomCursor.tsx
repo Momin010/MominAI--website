@@ -11,40 +11,50 @@ const CustomCursor = () => {
     const [isMouseDown, setIsMouseDown] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
 
+    // Effect 1: Determine visibility based on media query
     useEffect(() => {
-        // Check for fine pointer availability on mount
         const mediaQuery = window.matchMedia('(pointer: fine)');
-        setIsVisible(mediaQuery.matches);
-
-        const updatePosition = (e: MouseEvent) => {
-            setPosition({ x: e.clientX, y: e.clientY });
-        };
+        const updateVisibility = () => setIsVisible(mediaQuery.matches);
         
-        const handleMouseOver = (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            if (target.closest('a, button, input, [role="button"], [onclick]')) {
-                setIsHovering(true);
-            } else {
-                setIsHovering(false);
-            }
-        };
+        updateVisibility();
+        mediaQuery.addEventListener('change', updateVisibility);
         
-        const handleMouseDown = () => setIsMouseDown(true);
-        const handleMouseUp = () => setIsMouseDown(false);
-
-        document.addEventListener('mousemove', updatePosition);
-        document.addEventListener('mouseover', handleMouseOver);
-        document.addEventListener('mousedown', handleMouseDown);
-        document.addEventListener('mouseup', handleMouseUp);
-
-        return () => {
-            document.removeEventListener('mousemove', updatePosition);
-            document.removeEventListener('mouseover', handleMouseOver);
-            document.removeEventListener('mousedown', handleMouseDown);
-            document.removeEventListener('mouseup', handleMouseUp);
-        };
+        return () => mediaQuery.removeEventListener('change', updateVisibility);
     }, []);
-    
+
+    // Effect 2: Manage event listeners and native cursor style based on visibility
+    useEffect(() => {
+        if (isVisible) {
+            document.documentElement.style.cursor = 'none';
+
+            const updatePosition = (e: MouseEvent) => {
+                setPosition({ x: e.clientX, y: e.clientY });
+            };
+            const handleMouseOver = (e: MouseEvent) => {
+                const target = e.target as HTMLElement;
+                setIsHovering(!!target.closest('a, button, input, [role="button"], [onclick]'));
+            };
+            const handleMouseDown = () => setIsMouseDown(true);
+            const handleMouseUp = () => setIsMouseDown(false);
+
+            document.addEventListener('mousemove', updatePosition);
+            document.addEventListener('mouseover', handleMouseOver);
+            document.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mouseup', handleMouseUp);
+            
+            return () => {
+                document.documentElement.style.cursor = '';
+                document.removeEventListener('mousemove', updatePosition);
+                document.removeEventListener('mouseover', handleMouseOver);
+                document.removeEventListener('mousedown', handleMouseDown);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+        } else {
+            // Ensure cursor is default if not visible
+            document.documentElement.style.cursor = '';
+        }
+    }, [isVisible]);
+
     if (!isVisible) {
         return null;
     }

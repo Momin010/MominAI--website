@@ -12,7 +12,7 @@ interface PricingCardProps {
     };
 }
 
-const PricingCard = ({ plan }: PricingCardProps) => {
+const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
     const cardRef = useTilt({ max: 10 });
     
     const styles = {
