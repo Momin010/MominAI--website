@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { GoogleIcon } from './icons.tsx';
-
-// This is a global variable from the Google script in index.html
-declare const google: any;
 
 interface SignUpModalProps {
     isOpen: boolean;
@@ -12,32 +9,10 @@ interface SignUpModalProps {
 }
 
 const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
-    const [tokenClient, setTokenClient] = useState(null);
     
-    // Initialize Google Auth Client
     useEffect(() => {
-        if (isOpen && !tokenClient) {
-            try {
-                const client = google.accounts.oauth2.initTokenClient({
-                    client_id: '601307193094-i9r4kscn6tqkilon3g9c352igtt9ta40.apps.googleusercontent.com',
-                    scope: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-                    callback: (response) => {
-                        console.log('Google Sign-In Success:', response);
-                        // On success, call the onSuccess callback to transition to the IDE
-                        onSuccess();
-                    },
-                });
-                setTokenClient(client);
-            } catch (error) {
-                console.error("Google Client failed to initialize:", error);
-            }
-        }
-    }, [isOpen, tokenClient, onSuccess]);
-
-
-    useEffect(() => {
-        const handleEsc = (event) => {
-            if (event.keyCode === 27) onClose();
+        const handleEsc = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') onClose();
         };
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
@@ -45,18 +20,10 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
 
     if (!isOpen) return null;
 
-    const handleSubmit = (event) => {
+    const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         onSuccess();
     };
-
-    const handleGoogleSignIn = () => {
-        if (tokenClient) {
-            tokenClient.requestAccessToken();
-        } else {
-            console.error('Google token client not available.');
-        }
-    }
 
     return createPortal(
         <div 
@@ -65,37 +32,37 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
             onClick={onClose}
         >
             <div 
-                className="bg-[var(--background-secondary)] p-8 sm:p-10 rounded-2xl border border-[var(--border-color)] w-full max-w-sm relative shadow-2xl text-center"
+                className="bg-[#101010] p-8 rounded-2xl border border-[var(--border-color)] w-full max-w-sm relative shadow-2xl text-center"
                 style={{ animation: 'scaleIn 0.3s ease' }}
                 onClick={e => e.stopPropagation()}
             >
                 <button 
-                    className="absolute top-4 right-4 bg-transparent border-none text-[var(--gray)] text-2xl cursor-pointer" 
+                    className="absolute top-4 right-4 bg-transparent border-none text-[var(--gray)] text-2xl cursor-pointer hover:text-white transition-colors" 
                     onClick={onClose} 
                     aria-label="Close modal"
                 >&times;</button>
                 
                 <h2 className="mb-2 text-2xl font-bold">Create Your Account</h2>
-                <p className="text-[var(--gray)] mb-6">Join millions of developers building the future.</p>
+                <p className="text-[var(--gray)] mb-6 text-sm">Join millions of developers building the future.</p>
                 
                 <button 
-                    className="flex items-center justify-center gap-3 w-full p-3 rounded-lg border border-[var(--border-color)] font-semibold text-base transition-all duration-200 bg-[var(--foreground)] text-black hover:bg-gray-200"
-                    onClick={handleGoogleSignIn}
+                    className="flex items-center justify-center gap-3 w-full p-2.5 rounded-lg border border-[var(--border-color)] font-semibold text-sm transition-all duration-200 bg-white text-black hover:bg-gray-200"
+                    onClick={onSuccess}
                 >
                    <GoogleIcon />
                    <span>Sign up with Google</span>
                 </button>
 
-                <div className="flex items-center text-center text-[var(--gray)] my-6 text-xs">
+                <div className="flex items-center text-center text-[var(--gray)] my-6 text-xs uppercase">
                     <div className="flex-1 border-b border-[var(--border-color)]" />
                     <span className="px-4">OR</span>
                     <div className="flex-1 border-b border-[var(--border-color)]" />
                 </div>
 
                 <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-                    <input className="p-3 rounded-lg border border-[var(--border-color)] bg-[var(--background)] text-[var(--foreground)] text-base" type="email" placeholder="Email Address" required aria-label="Email Address" />
-                    <input className="p-3 rounded-lg border border-[var(--border-color)] bg-[var(--background)] text-[var(--foreground)] text-base" type="password" placeholder="Password" required aria-label="Password"/>
-                    <button type="submit" className="p-3 rounded-lg border-none font-semibold text-base transition-all duration-200 bg-[var(--accent)] text-[var(--foreground)] mt-2 hover:brightness-125">
+                    <input className="p-3 rounded-lg border border-[var(--border-color)] bg-[var(--background-secondary)] text-[var(--foreground)] text-sm placeholder:text-gray-500 focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none" type="email" placeholder="Email Address" required aria-label="Email Address" />
+                    <input className="p-3 rounded-lg border border-[var(--border-color)] bg-[var(--background-secondary)] text-[var(--foreground)] text-sm placeholder:text-gray-500 focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none" type="password" placeholder="Password" required aria-label="Password"/>
+                    <button type="submit" className="p-3 rounded-lg border-none font-semibold text-sm transition-all duration-200 bg-[var(--accent)] text-[var(--accent-text)] mt-2 hover:brightness-110">
                         Continue with Email
                     </button>
                 </form>

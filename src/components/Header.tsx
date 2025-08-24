@@ -1,16 +1,22 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { MominAILogo } from './icons.tsx';
 
 interface HeaderProps {
     onBuildNowClick: () => void;
     onLoginClick: () => void;
-    onLogoClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick, onLogoClick }) => {
+const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 10);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     useEffect(() => {
         if (isMenuOpen) {
@@ -38,31 +44,39 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick, onLogoCl
     });
     
     const NavLink = ({ href, children }: { href: string, children: React.ReactNode}) => (
-        <a href={href} className="relative text-[var(--gray)] hover:text-[var(--foreground)] transition-colors duration-200 py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[var(--accent)] after:to-[var(--accent-glow)] after:scale-x-0 after:origin-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-left">
+        <a href={href} className="text-[var(--gray)] hover:text-[var(--foreground)] transition-colors duration-200 text-sm no-underline">
             {children}
         </a>
     );
 
+    const navLinks = [
+        { href: "#features", label: "Features" },
+        { href: "#testimonials", label: "Testimonials" },
+        { href: "#pricing", label: "Pricing" }
+    ];
+
     return (
         <>
-            <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-6xl px-6 py-2 flex justify-between items-center z-[100] bg-[rgba(17,17,17,0.7)] backdrop-blur-lg rounded-full border border-[var(--border-color)] shadow-[0_4px_20px_rgba(0,0,0,0.2),_0_0_20px_rgba(79,70,229,0.25)] transition-all duration-300">
-                <a href="#" onClick={(e) => { e.preventDefault(); onLogoClick(); }} className="flex items-center font-semibold text-[var(--foreground)] no-underline">
+            <header 
+                className={`fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl px-4 py-2 flex justify-between items-center z-[100] transition-all duration-300
+                ${isScrolled ? 'bg-[rgba(18,15,36,0.7)] backdrop-blur-lg border border-[var(--border-color)] shadow-lg' : 'bg-transparent border-transparent'} rounded-full`}
+            >
+                <a href="#" className="flex items-center font-semibold text-[var(--foreground)] no-underline">
                     <MominAILogo width={100} height={22} />
                 </a>
                 
                 {/* Desktop Navigation */}
                 <nav className="hidden lg:flex gap-6 items-center">
-                    <NavLink href="#features">Features</NavLink>
-                    <NavLink href="#testimonials">Testimonials</NavLink>
-                    <div className="flex gap-4 items-center pl-4">
-                        <button onClick={onLoginClick} className="px-4 py-2 rounded-full border border-[var(--border-color)] font-semibold text-sm cursor-pointer transition-all duration-200 bg-transparent text-[var(--foreground)] hover:bg-[var(--gray-dark)]">
-                            Login
-                        </button>
-                        <button onClick={onBuildNowClick} className="px-4 py-2 rounded-full border-none font-semibold text-sm cursor-pointer transition-all duration-200 bg-[var(--accent)] text-[var(--foreground)] hover:brightness-125">
-                            Build Now
-                        </button>
-                    </div>
+                    {navLinks.map(link => <NavLink key={link.href} href={link.href}>{link.label}</NavLink>)}
                 </nav>
+                 <div className="hidden lg:flex gap-4 items-center">
+                    <button onClick={onLoginClick} className="px-4 py-1.5 rounded-full border-none font-semibold text-sm cursor-pointer transition-all duration-200 bg-transparent text-[var(--gray)] hover:text-[var(--foreground)]">
+                        Login
+                    </button>
+                    <button onClick={onBuildNowClick} className="px-4 py-1.5 rounded-full border-none font-semibold text-sm cursor-pointer transition-all duration-200 bg-[var(--accent)] text-[var(--accent-text)] hover:brightness-110">
+                        Build Now
+                    </button>
+                </div>
 
                 {/* Mobile Menu Button */}
                 <button className="lg:hidden flex flex-col justify-around w-6 h-6 bg-transparent border-none z-[1001]" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
@@ -73,20 +87,17 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick, onLogoCl
             </header>
 
             {/* Mobile Menu Overlay */}
-            {isMenuOpen && (
-                <div className="fixed inset-0 bg-black/95 backdrop-blur-lg z-[999] flex flex-col justify-center items-center gap-8" style={{ animation: 'fadeIn 0.3s ease-out' }}>
-                    <a href="#features" className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>Features</a>
-                    <a href="#testimonials" className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>Testimonials</a>
-                    <div className="flex flex-col gap-6 items-center mt-8">
-                        <button onClick={() => { onLoginClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border border-[var(--border-color)] text-2xl bg-transparent text-white">
-                            Login
-                        </button>
-                        <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border-none text-2xl bg-[var(--accent)] text-white">
-                            Build Now
-                        </button>
-                    </div>
+            <div className={`fixed inset-0 bg-black/90 backdrop-blur-lg z-[999] flex flex-col justify-center items-center gap-8 lg:hidden transition-opacity duration-300 ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+                {navLinks.map(link => <a key={link.href} href={link.href} className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>{link.label}</a>)}
+                <div className="flex flex-col gap-6 items-center mt-8">
+                    <button onClick={() => { onLoginClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border border-[var(--border-color)] text-2xl bg-transparent text-white">
+                        Login
+                    </button>
+                    <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border-none text-2xl bg-[var(--accent)] text-white">
+                        Build Now
+                    </button>
                 </div>
-            )}
+            </div>
         </>
     );
 };
