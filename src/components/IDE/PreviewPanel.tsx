@@ -12,7 +12,7 @@ type Status = 'idle' | 'booting' | 'installing' | 'starting-server' | 'running' 
 const statusMessages: Record<Status, string> = {
     idle: 'Ready to build.',
     booting: 'Booting WebContainer...',
-    installing: 'Installing dependencies...',
+    installing: 'Installing dependencies with pnpm (faster!)...',
     'starting-server': 'Starting dev server...',
     running: 'Live preview is running.',
     error: 'An error occurred.',
@@ -113,9 +113,9 @@ const PreviewPanel = ({ files }: PreviewPanelProps) => {
                 );
                 
                 setStatus('installing');
-                const installProcess = await wc.spawn('npm', ['install']);
+                const installProcess = await wc.spawn('pnpm', ['install']);
                 if (await installProcess.exit !== 0) {
-                    throw new Error('npm install failed');
+                    throw new Error('pnpm install failed');
                 }
                 
                 setStatus('starting-server');
@@ -130,7 +130,7 @@ const PreviewPanel = ({ files }: PreviewPanelProps) => {
                     }
                 }
 
-                const devProcess = await wc.spawn('npm', devProcessArgs);
+                const devProcess = await wc.spawn('pnpm', devProcessArgs);
                 processRef.current = devProcess;
 
                 devProcess.output.pipeTo(new WritableStream({

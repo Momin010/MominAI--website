@@ -26,6 +26,7 @@ const IDE = ({ onLogout }: IDEProps) => {
         handlePromptSubmit,
         activeFile,
         clearSession,
+        updateFileContent,
     } = useIDEState();
     
     const [isMobile, setIsMobile] = useState(window.innerWidth < 900);
@@ -66,7 +67,14 @@ const IDE = ({ onLogout }: IDEProps) => {
                                             activeFileName={activeFileName}
                                             onFileSelect={setActiveFileName}
                                         />
-                                        <CodeEditor activeFile={activeFile} />
+                                        <CodeEditor 
+                                            activeFile={activeFile} 
+                                            onContentChange={(newContent) => {
+                                                if (activeFile) {
+                                                    updateFileContent(activeFile.name, newContent);
+                                                }
+                                            }}
+                                        />
                                     </div>
                                 </Panel>
                                 <PanelResizeHandle className="resize-handle" />

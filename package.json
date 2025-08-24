@@ -13,9 +13,14 @@
     "react-dom": "^19.1.1",
     "react-router-dom": "6.25.1",
     "@google/genai": "^1.15.0",
-    "react-syntax-highlighter": "15.5.0",
     "react-resizable-panels": "^2.0.20",
-    "@webcontainer/api": "^1.1.8"
+    "@webcontainer/api": "^1.1.8",
+    "@uiw/react-codemirror": "4.23.0",
+    "@codemirror/lang-javascript": "6.2.2",
+    "@codemirror/lang-html": "6.4.9",
+    "@codemirror/lang-css": "6.2.1",
+    "@codemirror/lang-json": "6.0.1",
+    "@codemirror/theme-one-dark": "6.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

@@ -141,6 +141,14 @@ export const useIDEState = () => {
         console.log('Session cleared.');
     };
 
+    const updateFileContent = useCallback((fileName: string, newContent: string) => {
+        setFiles(prevFiles =>
+            prevFiles.map(file =>
+                file.name === fileName ? { ...file, content: newContent } : file
+            )
+        );
+    }, [setFiles]);
+
     const activeFile = useMemo(() => files.find(f => f.name === activeFileName), [files, activeFileName]);
 
     return {
@@ -155,5 +163,6 @@ export const useIDEState = () => {
         handlePromptSubmit,
         activeFile,
         clearSession,
+        updateFileContent,
     };
 };
