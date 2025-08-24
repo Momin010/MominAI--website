@@ -1,33 +1,35 @@
+
 import React, { useEffect, lazy, Suspense, useState } from 'react';
 import Loader from './IDE/components/Loader.tsx';
+import LandingPage from './components/LandingPage.tsx';
 
 const IDE = lazy(() => import('./IDE/App.tsx'));
 
 const App = () => {
-    const [isReady, setIsReady] = useState(false);
+    const [isLaunchingIde, setIsLaunchingIde] = useState(false);
+    const [isIdeReady, setIsIdeReady] = useState(false);
 
+    const handleLaunchIde = () => {
+        setIsLaunchingIde(true);
+    };
+    
     useEffect(() => {
-        const launchIde = async () => {
-            // If headers are already set, we're good to go.
+        if (!isLaunchingIde) return;
+
+        const prepareIdeEnvironment = async () => {
             if (window.crossOriginIsolated) {
-                setIsReady(true);
+                setIsIdeReady(true);
                 return;
             }
 
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('ide') === 'true') {
-                // We've been reloaded by the service worker.
-                // Clean the URL and mark as ready.
                 window.history.replaceState({}, document.title, window.location.pathname);
-                setIsReady(true);
+                setIsIdeReady(true);
             } else {
-                // This is the first load. We need to trigger a reload via the service worker
-                // to get the necessary COOP/COEP headers.
                 try {
                     const swReg = await navigator.serviceWorker.ready;
                     if (!swReg.active) {
-                        // This can happen on the very first load if the SW isn't activated yet.
-                        // A hard reload is the simplest solution for the user.
                         console.error('Service worker not active. Reloading the page to activate it.');
                         window.location.reload();
                         return;
@@ -36,8 +38,6 @@ const App = () => {
                     const url = new URL(window.location.href);
                     url.searchParams.set('ide', 'true');
                     
-                    // Use a MessageChannel to know when the service worker is done processing the message
-                    // before we navigate.
                     const channel = new MessageChannel();
                     swReg.active.postMessage({ type: 'RELOAD' }, [channel.port2]);
                     
@@ -52,20 +52,21 @@ const App = () => {
             }
         };
 
-        launchIde();
-    }, []);
+        prepareIdeEnvironment();
+    }, [isLaunchingIde]);
 
-    // Show a loader until the environment is confirmed to be ready.
-    if (!isReady) {
-        return <Loader />;
+    if (isLaunchingIde) {
+        if (!isIdeReady) {
+            return <Loader />;
+        }
+        return (
+            <Suspense fallback={<Loader />}>
+                <IDE />
+            </Suspense>
+        );
     }
-
-    // Render the IDE once headers are set.
-    return (
-        <Suspense fallback={<Loader />}>
-            <IDE />
-        </Suspense>
-    );
+    
+    return <LandingPage onLaunchIde={handleLaunchIde} />;
 };
 
 export default App;
