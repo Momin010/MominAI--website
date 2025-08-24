@@ -54,17 +54,18 @@ const CustomCursor = () => {
     const styles = {
         cursor: {
             position: 'fixed',
-            top: '-6px',
-            left: '-6px',
+            // Position using top/left for better reliability over transform
+            top: `${position.y - 6}px`,
+            left: `${position.x - 6}px`,
             width: '48px',
             height: '48px',
             backgroundImage: `url('${cursorImage}')`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
-            transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${isHovering || isMouseDown ? 1.2 : 1})`,
+            transform: `scale(${isHovering || isMouseDown ? 1.2 : 1})`,
             pointerEvents: 'none',
             zIndex: 99999,
-            willChange: 'transform',
+            transition: 'transform 0.15s cubic-bezier(0.25, 1, 0.5, 1)',
         } as React.CSSProperties,
     };
     
