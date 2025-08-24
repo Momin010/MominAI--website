@@ -9,23 +9,23 @@ const CustomCursor = () => {
     const [position, setPosition] = useState({ x: -100, y: -100 });
     const [isHovering, setIsHovering] = useState(false);
     const [isMouseDown, setIsMouseDown] = useState(false);
-    const [isVisible, setIsVisible] = useState(false);
+    const [isFinePointer, setIsFinePointer] = useState(false);
 
-    // Effect 1: Determine visibility based on media query
     useEffect(() => {
         const mediaQuery = window.matchMedia('(pointer: fine)');
-        const updateVisibility = () => setIsVisible(mediaQuery.matches);
+        const updatePointerType = () => setIsFinePointer(mediaQuery.matches);
         
-        updateVisibility();
-        mediaQuery.addEventListener('change', updateVisibility);
+        updatePointerType();
+        mediaQuery.addEventListener('change', updatePointerType);
         
-        return () => mediaQuery.removeEventListener('change', updateVisibility);
+        return () => mediaQuery.removeEventListener('change', updatePointerType);
     }, []);
 
-    // Effect 2: Manage event listeners and native cursor style based on visibility
     useEffect(() => {
-        if (isVisible) {
-            document.documentElement.style.cursor = 'none';
+        if (isFinePointer) {
+            const styleElement = document.createElement('style');
+            styleElement.innerHTML = '*, a, button { cursor: none !important; }';
+            document.head.appendChild(styleElement);
 
             const updatePosition = (e: MouseEvent) => {
                 setPosition({ x: e.clientX, y: e.clientY });
@@ -43,19 +43,18 @@ const CustomCursor = () => {
             document.addEventListener('mouseup', handleMouseUp);
             
             return () => {
-                document.documentElement.style.cursor = '';
+                if (document.head.contains(styleElement)) {
+                    document.head.removeChild(styleElement);
+                }
                 document.removeEventListener('mousemove', updatePosition);
                 document.removeEventListener('mouseover', handleMouseOver);
                 document.removeEventListener('mousedown', handleMouseDown);
                 document.removeEventListener('mouseup', handleMouseUp);
             };
-        } else {
-            // Ensure cursor is default if not visible
-            document.documentElement.style.cursor = '';
         }
-    }, [isVisible]);
+    }, [isFinePointer]);
 
-    if (!isVisible) {
+    if (!isFinePointer) {
         return null;
     }
 
@@ -64,7 +63,6 @@ const CustomCursor = () => {
     const styles = {
         cursor: {
             position: 'fixed',
-            // Position using top/left for better reliability over transform
             top: `${position.y - 6}px`,
             left: `${position.x - 6}px`,
             width: '48px',
