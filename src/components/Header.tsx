@@ -1,13 +1,15 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { MominAILogo } from './icons.tsx';
 
 interface HeaderProps {
     onBuildNowClick: () => void;
     onLoginClick: () => void;
+    onLogoClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
+const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick, onLogoClick }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -44,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
     return (
         <>
             <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-6xl px-6 py-2 flex justify-between items-center z-[100] bg-[rgba(17,17,17,0.7)] backdrop-blur-lg rounded-full border border-[var(--border-color)] shadow-[0_4px_20px_rgba(0,0,0,0.2),_0_0_20px_rgba(79,70,229,0.25)] transition-all duration-300">
-                <a href="#" className="flex items-center font-semibold text-[var(--foreground)] no-underline">
+                <a href="#" onClick={(e) => { e.preventDefault(); onLogoClick(); }} className="flex items-center font-semibold text-[var(--foreground)] no-underline">
                     <MominAILogo width={100} height={22} />
                 </a>
                 
@@ -52,7 +54,6 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
                 <nav className="hidden lg:flex gap-6 items-center">
                     <NavLink href="#features">Features</NavLink>
                     <NavLink href="#testimonials">Testimonials</NavLink>
-                    <NavLink href="#pricing">Pricing</NavLink>
                     <div className="flex gap-4 items-center pl-4">
                         <button onClick={onLoginClick} className="px-4 py-2 rounded-full border border-[var(--border-color)] font-semibold text-sm cursor-pointer transition-all duration-200 bg-transparent text-[var(--foreground)] hover:bg-[var(--gray-dark)]">
                             Login
@@ -76,7 +77,6 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
                 <div className="fixed inset-0 bg-black/95 backdrop-blur-lg z-[999] flex flex-col justify-center items-center gap-8" style={{ animation: 'fadeIn 0.3s ease-out' }}>
                     <a href="#features" className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>Features</a>
                     <a href="#testimonials" className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>Testimonials</a>
-                    <a href="#pricing" className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>Pricing</a>
                     <div className="flex flex-col gap-6 items-center mt-8">
                         <button onClick={() => { onLoginClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border border-[var(--border-color)] text-2xl bg-transparent text-white">
                             Login

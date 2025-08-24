@@ -1,72 +1,65 @@
-
-import React, { useEffect, lazy, Suspense, useState } from 'react';
-import Loader from './IDE/components/Loader.tsx';
+import React, { useState, useEffect } from 'react';
+import CustomCursor from './components/CustomCursor.tsx';
 import LandingPage from './components/LandingPage.tsx';
-
-const IDE = lazy(() => import('./IDE/App.tsx'));
+import IDE from './IDE/App.tsx';
 
 const App = () => {
-    const [isLaunchingIde, setIsLaunchingIde] = useState(false);
-    const [isIdeReady, setIsIdeReady] = useState(false);
+    const [isIDEView, setIDEView] = useState(false);
 
-    const handleLaunchIde = () => {
-        setIsLaunchingIde(true);
-    };
-    
     useEffect(() => {
-        if (!isLaunchingIde) return;
+        // On initial load, check the URL to see which view to render.
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('ide') === 'true') {
+            setIDEView(true);
+        }
+    }, []);
+    
+    // Manage root element styles to contain the view and control scrolling.
+    useEffect(() => {
+        const rootEl = document.getElementById('root');
+        if (!rootEl) return;
 
-        const prepareIdeEnvironment = async () => {
-            if (window.crossOriginIsolated) {
-                setIsIdeReady(true);
-                return;
-            }
+        if (isIDEView) {
+            // For the IDE, constrain the root to the viewport height and prevent overflow.
+            rootEl.style.height = '100vh';
+            rootEl.style.overflow = 'hidden';
+        } else {
+            // For the landing page, allow the root to grow with its content.
+            rootEl.style.height = 'auto';
+            rootEl.style.overflow = 'visible';
+        }
 
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('ide') === 'true') {
-                window.history.replaceState({}, document.title, window.location.pathname);
-                setIsIdeReady(true);
-            } else {
-                try {
-                    const swReg = await navigator.serviceWorker.ready;
-                    if (!swReg.active) {
-                        console.error('Service worker not active. Reloading the page to activate it.');
-                        window.location.reload();
-                        return;
-                    }
-                    
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('ide', 'true');
-                    
-                    const channel = new MessageChannel();
-                    swReg.active.postMessage({ type: 'RELOAD' }, [channel.port2]);
-                    
-                    channel.port1.onmessage = () => {
-                        window.location.href = url.href;
-                    };
-
-                } catch (error) {
-                    console.error('Service worker readiness error:', error);
-                    alert('Could not prepare the development environment. Please check your browser settings and try again.');
-                }
+        // Cleanup function to reset styles when the component unmounts.
+        return () => {
+            if (rootEl) {
+                rootEl.style.height = 'auto';
+                rootEl.style.overflow = 'visible';
             }
         };
+    }, [isIDEView]);
 
-        prepareIdeEnvironment();
-    }, [isLaunchingIde]);
 
-    if (isLaunchingIde) {
-        if (!isIdeReady) {
-            return <Loader />;
-        }
-        return (
-            <Suspense fallback={<Loader />}>
-                <IDE />
-            </Suspense>
-        );
-    }
+    const handleLoginSuccess = () => {
+        // Navigate to the IDE view. This causes a full page reload,
+        // allowing the service worker to apply the correct security headers.
+        window.location.href = '/?ide=true';
+    };
     
-    return <LandingPage onLaunchIde={handleLaunchIde} />;
+    const handleLogout = () => {
+        // Navigate back to the landing page. This also reloads the page.
+        window.location.href = '/';
+    }
+
+    return (
+        <>
+            <CustomCursor />
+            {isIDEView ? (
+                <IDE onLogout={handleLogout} />
+            ) : (
+                <LandingPage onLoginSuccess={handleLoginSuccess} />
+            )}
+        </>
+    );
 };
 
 export default App;

@@ -1,11 +1,13 @@
 
+
 import React, { useEffect, useRef } from 'react';
 
 interface HeroProps {
     onBuildNowClick: () => void;
+    onContactSalesClick: () => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ onBuildNowClick }) => {
+const Hero: React.FC<HeroProps> = ({ onBuildNowClick, onContactSalesClick }) => {
     const sectionRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
@@ -53,12 +55,12 @@ const Hero: React.FC<HeroProps> = ({ onBuildNowClick }) => {
                 className="flex flex-col sm:flex-row gap-4"
                 style={{ animation: 'fadeInUp 1s ease-out 0.4s backwards' }}
             >
-                <button onClick={onBuildNowClick} className="px-6 py-3 rounded-lg border-none font-semibold text-base transition-all duration-200 bg-[var(--accent)] text-[var(--foreground)] hover:brightness-125">
+                <button onClick={onBuildNowClick} className="px-6 py-3 rounded-lg border-none font-semibold text-base transition-all duration-200 bg-[var(--accent)] text-[var(--foreground)] hover:brightness-125 hover:scale-105 active:scale-100">
                     Start Building Now
                 </button>
-                <a href="#contact" role="button" className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-base transition-all duration-200 bg-transparent text-[var(--foreground)] border border-[var(--border-color)] no-underline hover:bg-[var(--gray-dark)]">
+                <button onClick={onContactSalesClick} className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-base transition-all duration-200 bg-transparent text-[var(--foreground)] border border-[var(--border-color)] no-underline hover:bg-[var(--gray-dark)] hover:scale-105 active:scale-100">
                     Contact Sales
-                </a>
+                </button>
             </div>
         </section>
     );

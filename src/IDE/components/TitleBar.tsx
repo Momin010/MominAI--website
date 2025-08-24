@@ -5,9 +5,10 @@ import { Icons } from './Icon';
 interface TitleBarProps {
   panelVisibility: { left: boolean; right: boolean; bottom: boolean };
   onTogglePanel: (panel: 'left' | 'right' | 'bottom') => void;
+  onLogout: () => void;
 }
 
-const TitleBar: React.FC<TitleBarProps> = ({ panelVisibility, onTogglePanel }) => {
+const TitleBar: React.FC<TitleBarProps> = ({ panelVisibility, onTogglePanel, onLogout }) => {
   return (
     <div className="bg-[var(--ui-panel-bg-heavy)] text-white/90 px-4 py-2 flex items-center justify-between border border-[var(--ui-border)] flex-shrink-0 rounded-t-[var(--ui-border-radius)] shadow-lg">
       <div className="flex items-center space-x-2">
@@ -23,6 +24,10 @@ const TitleBar: React.FC<TitleBarProps> = ({ panelVisibility, onTogglePanel }) =
         </button>
         <button title="Toggle Right Panel" onClick={() => onTogglePanel('right')} className={`p-1.5 rounded ${panelVisibility.right ? 'bg-white/10' : ''} hover:bg-white/20`}>
           <Icons.PanelRightClose className="w-5 h-5" />
+        </button>
+        <div className="w-px h-5 bg-[var(--ui-border)] mx-2"></div>
+        <button title="Logout" onClick={onLogout} className={`p-1.5 rounded text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-colors`}>
+          <Icons.LogOut className="w-5 h-5" />
         </button>
       </div>
     </div>

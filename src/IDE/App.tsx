@@ -102,8 +102,11 @@ const NotificationProvider: React.FC<{children: ReactNode}> = ({ children }) => 
     );
 };
 
+interface IDEWorkspaceProps {
+    onLogout: () => void;
+}
 
-const IDEWorkspace = () => {
+const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     const { isLoading: isWcLoading, error, serverUrl } = useWebContainer();
     const { fs, isLoading: isFsLoading, updateNode, createNode, deleteNode, renameNode, moveNode } = useFileSystem();
     
@@ -301,7 +304,7 @@ const IDEWorkspace = () => {
                     addNotification={addNotification}
                 />
 
-                <TitleBar onTogglePanel={togglePanel} panelVisibility={panelVisibility} />
+                <TitleBar onTogglePanel={togglePanel} panelVisibility={panelVisibility} onLogout={onLogout} />
                 <div className="flex-grow flex min-h-0 gap-2">
                     {panelVisibility.left && <ActivityBar activeView={activeView} setActiveView={setActiveView} />}
                     <div className="flex-grow">
@@ -371,14 +374,17 @@ const IDEWorkspace = () => {
     );
 };
 
+interface AppProps {
+    onLogout: () => void;
+}
 
-const App = () => {
+const App: React.FC<AppProps> = ({ onLogout }) => {
     return (
         <ThemeProvider>
             <CommandPaletteProvider>
                 <NotificationProvider>
                     <WebContainerProvider>
-                        <IDEWorkspace />
+                        <IDEWorkspace onLogout={onLogout} />
                     </WebContainerProvider>
                 </NotificationProvider>
             </CommandPaletteProvider>
