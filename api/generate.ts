@@ -2,9 +2,9 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Configure the Vercel edge runtime
+// Configure the Vercel nodejs runtime
 export const config = {
-  runtime: 'edge',
+  runtime: 'nodejs',
 };
 
 // The main handler for the serverless function
