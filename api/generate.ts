@@ -5,6 +5,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 // Configure the Vercel nodejs runtime
 export const config = {
   runtime: 'nodejs',
+  maxDuration: 300, // Set timeout to 5 minutes
 };
 
 // The main handler for the serverless function
