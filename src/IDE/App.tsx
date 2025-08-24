@@ -7,7 +7,7 @@ import { WebContainerProvider, useWebContainer } from './WebContainerProvider.ts
 import { useFileSystem } from './hooks/useFileSystem.ts';
 import { useLocalStorageState } from '../hooks/useLocalStorageState.ts';
 import { ThemeProvider } from './contexts/ThemeContext.tsx';
-import { CommandPaletteProvider } from './hooks/useCommandPalette.tsx';
+import { CommandPaletteProvider } from './hooks/useCommandPalette.ts';
 import { AIProvider } from './contexts/AIContext.tsx';
 import { generateCodeForFile } from './services/aiService.ts';
 import { getAllFiles } from './utils/fsUtils.ts';
