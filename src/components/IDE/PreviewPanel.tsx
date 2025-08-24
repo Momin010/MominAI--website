@@ -22,7 +22,14 @@ const statusMessages: Record<Status, string> = {
 const PreviewPanel = ({ files }: PreviewPanelProps) => {
     const wcInstanceRef = useRef<WebContainerType | null>(null);
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const [status, setStatus] = useState<Status>('idle');
+    
+    const [status, setStatusInternal] = useState<Status>('idle');
+    const statusRef = useRef<Status>(status);
+    const setStatus = (newStatus: Status) => {
+        statusRef.current = newStatus;
+        setStatusInternal(newStatus);
+    };
+
     const [previewUrl, setPreviewUrl] = useState('');
     const [error, setError] = useState<string | null>(null);
     const lastFilesRef = useRef<AppFile[]>([]);
@@ -129,8 +136,20 @@ const PreviewPanel = ({ files }: PreviewPanelProps) => {
                 devProcess.output.pipeTo(new WritableStream({
                     write(data) {
                         console.log('Dev Server:', data);
+                        if (data.includes('error when starting dev server') || data.includes('failed to load config')) {
+                            setError('Vite server failed to start. The generated vite.config.ts may be invalid.');
+                            setStatus('error');
+                        }
                     }
                 }));
+                
+                devProcess.exit.then(code => {
+                    if (code !== 0 && statusRef.current === 'starting-server') {
+                         console.error(`Dev server process exited unexpectedly with code ${code}`);
+                         setError(`Dev server failed to start (exit code: ${code}). Please check the generated code for errors.`);
+                         setStatus('error');
+                    }
+                });
 
             } catch (err) {
                 console.error('Error during project run:', err);
