@@ -15,7 +15,7 @@ export const useTilt = (options = {}) => {
 
     useEffect(() => {
         const element = ref.current;
-        if (!element || window.matchMedia('(pointer: coarse)').matches) {
+        if (!element) {
             return;
         }
 

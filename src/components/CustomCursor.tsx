@@ -12,22 +12,9 @@ const CustomCursor = () => {
     });
     const [isHovering, setIsHovering] = useState(false);
     const [isMouseDown, setIsMouseDown] = useState(false);
-    const [isFinePointer, setIsFinePointer] = useState(false);
     const [isGloballyHidden, setIsGloballyHidden] = useState(false);
 
     useEffect(() => {
-        const mediaQuery = window.matchMedia('(pointer: fine)');
-        const updatePointerType = () => setIsFinePointer(mediaQuery.matches);
-        
-        updatePointerType();
-        mediaQuery.addEventListener('change', updatePointerType);
-        
-        return () => mediaQuery.removeEventListener('change', updatePointerType);
-    }, []);
-
-    useEffect(() => {
-        if (!isFinePointer) return;
-
         const checkVisibility = () => {
             setIsGloballyHidden(document.body.classList.contains('native-cursor-active'));
         };
@@ -38,38 +25,36 @@ const CustomCursor = () => {
         checkVisibility(); // Initial check
 
         return () => observer.disconnect();
-    }, [isFinePointer]);
+    }, []);
 
     useEffect(() => {
-        if (isFinePointer) {
-            document.body.classList.add('custom-cursor-active');
+        document.body.classList.add('custom-cursor-active');
 
-            const updatePosition = (e: MouseEvent) => {
-                setPosition({ x: e.clientX, y: e.clientY });
-            };
-            const handleMouseOver = (e: MouseEvent) => {
-                const target = e.target as HTMLElement;
-                setIsHovering(!!target.closest('a, button, input, [role="button"], [onclick]'));
-            };
-            const handleMouseDown = () => setIsMouseDown(true);
-            const handleMouseUp = () => setIsMouseDown(false);
+        const updatePosition = (e: MouseEvent) => {
+            setPosition({ x: e.clientX, y: e.clientY });
+        };
+        const handleMouseOver = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            setIsHovering(!!target.closest('a, button, input, [role="button"], [onclick]'));
+        };
+        const handleMouseDown = () => setIsMouseDown(true);
+        const handleMouseUp = () => setIsMouseDown(false);
 
-            document.addEventListener('mousemove', updatePosition);
-            document.addEventListener('mouseover', handleMouseOver);
-            document.addEventListener('mousedown', handleMouseDown);
-            document.addEventListener('mouseup', handleMouseUp);
-            
-            return () => {
-                document.body.classList.remove('custom-cursor-active');
-                document.removeEventListener('mousemove', updatePosition);
-                document.removeEventListener('mouseover', handleMouseOver);
-                document.removeEventListener('mousedown', handleMouseDown);
-                document.removeEventListener('mouseup', handleMouseUp);
-            };
-        }
-    }, [isFinePointer]);
+        document.addEventListener('mousemove', updatePosition);
+        document.addEventListener('mouseover', handleMouseOver);
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mouseup', handleMouseUp);
+        
+        return () => {
+            document.body.classList.remove('custom-cursor-active');
+            document.removeEventListener('mousemove', updatePosition);
+            document.removeEventListener('mouseover', handleMouseOver);
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
 
-    if (!isFinePointer || isGloballyHidden) {
+    if (isGloballyHidden) {
         return null;
     }
 

@@ -8,8 +8,6 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
     const sectionRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
-        if (window.matchMedia('(pointer: coarse)').matches) return;
-
         const handleMouseMove = (e: MouseEvent) => {
             if (!sectionRef.current) return;
             const { clientX, clientY } = e;
