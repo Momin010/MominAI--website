@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import type { Plugin, IDEApi } from '../types';
 
@@ -53,7 +54,7 @@ export const usePlugins = (plugins: Plugin[], api: IDEApi) => {
 
         return () => {
             console.log("Cleaning up plugins...");
-            Object.values(activePlugins.current).forEach(plugin => plugin.deactivate(api));
+            Object.values(activePlugins.current).forEach(plugin => (plugin as Plugin).deactivate(api));
             activePlugins.current = {};
             window.removeEventListener('storage', handleStorageChange);
             window.removeEventListener('storageChange', handleStorageChange);

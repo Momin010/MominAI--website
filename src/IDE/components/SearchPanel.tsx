@@ -111,9 +111,9 @@ const SearchPanel: React.FC<SearchPanelProps> = ({ performSearch, isSearching, s
                 className="font-bold text-white px-2 py-1 cursor-pointer hover:bg-white/10"
                 onClick={() => onResultClick(path)}
               >
-                {path} ({results.length})
+                {path} ({(results as SearchResult[]).length})
               </h3>
-              {results.map((result, index) => (
+              {(results as SearchResult[]).map((result, index) => (
                 <div 
                     key={`${path}-${result.line}-${index}`} 
                     className="flex p-2 pl-4 cursor-pointer hover:bg-white/10"

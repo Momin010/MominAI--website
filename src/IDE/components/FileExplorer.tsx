@@ -143,8 +143,8 @@ const DirectoryView: React.FC<DirectoryViewProps> = ({ directory, path, handleCo
   }, [isRenaming]);
 
   const sortedChildren = Object.entries(directory.children).sort(([aName, aNode], [bName, bNode]) => {
-    if (aNode.type === 'directory' && bNode.type === 'file') return -1;
-    if (aNode.type === 'file' && bNode.type === 'directory') return 1;
+    if ((aNode as FileSystemNode).type === 'directory' && (bNode as FileSystemNode).type === 'file') return -1;
+    if ((aNode as FileSystemNode).type === 'file' && (bNode as FileSystemNode).type === 'directory') return 1;
     return aName.localeCompare(bName);
   });
 
@@ -230,10 +230,10 @@ const DirectoryView: React.FC<DirectoryViewProps> = ({ directory, path, handleCo
         <div className={path !== '' ? "pl-4" : ""}>
           {sortedChildren.map(([name, node]) => {
             const newPath = path ? `${path}/${name}` : `/${name}`;
-            return node.type === 'directory' ? (
+            return (node as FileSystemNode).type === 'directory' ? (
               <DirectoryView
                 key={newPath}
-                directory={node}
+                directory={node as Directory}
                 path={newPath}
                 {...props}
                 handleContextMenu={handleContextMenu}
@@ -241,7 +241,7 @@ const DirectoryView: React.FC<DirectoryViewProps> = ({ directory, path, handleCo
             ) : (
               <FileView
                 key={newPath}
-                file={node}
+                file={node as File}
                 path={newPath}
                 {...props}
                 handleContextMenu={handleContextMenu}

@@ -18,10 +18,42 @@ export const files = {
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.3",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.35",
+    "autoprefixer": "^10.4.17"
   }
 }`,
     },
+  },
+  'tailwind.config.js': {
+    file: {
+      contents: `
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+`
+    }
+  },
+  'postcss.config.js': {
+    file: {
+      contents: `
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+`
+    }
   },
   'vite.config.js': {
     file: {
@@ -74,23 +106,30 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         file: {
           contents: `
 import React, { useState } from 'react'
-import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <div className="container">
-      <h1>Hello from WebContainer!</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR.
-        </p>
+    <main className="min-h-screen w-full flex flex-col items-center justify-center text-center bg-gray-900 text-white p-4">
+      <div className="space-y-4">
+        <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+          Hello from WebContainer!
+        </h1>
+        <p className="text-gray-400">Your lightning-fast development environment is ready.</p>
+        <div className="bg-gray-800/50 backdrop-blur-sm border border-white/10 p-6 rounded-lg shadow-lg">
+          <button 
+            onClick={() => setCount((count) => count + 1)}
+            className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+          >
+            Count is {count}
+          </button>
+          <p className="mt-4 text-sm text-gray-500">
+            Edit <code className="bg-gray-700 p-1 rounded font-mono">src/App.jsx</code> and save to see HMR in action.
+          </p>
+        </div>
       </div>
-    </div>
+    </main>
   )
 }
 
@@ -101,58 +140,21 @@ export default App
       'index.css': {
         file: {
             contents: `
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 html, body, #root {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  width: 100%;
   height: 100%;
+  width: 100%;
 }
 
 body {
+  background-color: #111827; /* A nice dark gray */
+  color: #f3f4f6; /* A light gray for text */
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #213547;
-  background-color: #ffffff;
-}
-`
-        }
-      },
-       'App.css': {
-        file: {
-            contents: `
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  height: 100%;
-  padding: 2em;
-}
-
-.card {
-  padding: 2em;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  margin-top: 1rem;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-
-button:hover {
-  border-color: #646cff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 `
         }
