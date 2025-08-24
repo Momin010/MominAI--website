@@ -4,70 +4,29 @@ const Logos = () => {
     const logos = ["Stripe", "Vercel", "Netlify", "GitHub", "Figma", "Notion"];
     const [isHovered, setIsHovered] = useState(false);
     
-    const styles = {
-        section: {
-            padding: '2rem 0',
-            textAlign: 'center',
-            overflow: 'hidden',
-        } as React.CSSProperties,
-        p: {
-            color: 'var(--gray)',
-            marginBottom: '2rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            fontSize: '0.8rem',
-            padding: '0 1rem'
-        } as React.CSSProperties,
-        scroller: {
-            display: 'flex',
-            width: 'max-content',
-            animation: 'scroll 30s linear infinite',
-            animationPlayState: isHovered ? 'paused' : 'running',
-        } as React.CSSProperties,
-        logo: {
-            color: 'var(--gray)',
-            fontSize: '1.5rem',
-            margin: '0 2rem',
-            whiteSpace: 'nowrap',
-            fontFamily: 'monospace',
-        },
-        mask: {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'linear-gradient(to right, var(--background) 0%, transparent 10%, transparent 90%, var(--background) 100%)',
-            pointerEvents: 'none',
-        } as React.CSSProperties
-    };
-    
     return (
-        <section style={styles.section} className="reveal logos-section">
-            <p style={styles.p}>Trusted by the next generation of builders</p>
+        <section className="reveal py-8 sm:py-8 text-center overflow-hidden">
+            <p className="text-[var(--gray)] mb-8 uppercase tracking-widest text-xs px-4">
+                Trusted by the next generation of builders
+            </p>
             <div 
-                style={{overflow: 'hidden', position: 'relative'}}
+                className="relative overflow-hidden"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
-                <div style={styles.scroller}>
-                    {[...logos, ...logos].map((logo, i) => ( // Duplicate for seamless scroll
-                        <div key={i} style={styles.logo}>{logo}</div>
+                <div 
+                    className="flex w-max"
+                    style={{ 
+                        animation: 'scroll 30s linear infinite',
+                        animationPlayState: isHovered ? 'paused' : 'running',
+                     }}
+                >
+                    {[...logos, ...logos].map((logo, i) => (
+                        <div key={i} className="text-[var(--gray)] text-2xl mx-8 whitespace-nowrap font-mono">{logo}</div>
                     ))}
                 </div>
-                <div style={styles.mask}></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-[var(--background)] via-transparent to-[var(--background)] pointer-events-none"></div>
             </div>
-            <style>{`
-                @keyframes scroll {
-                    from { transform: translateX(0); }
-                    to { transform: translateX(-50%); }
-                }
-                @media (max-width: 768px) {
-                   .logos-section {
-                        padding: 1rem 0;
-                   }
-                }
-            `}</style>
         </section>
     );
 };

@@ -21,117 +21,45 @@ const Hero: React.FC<HeroProps> = ({ onBuildNowClick }) => {
             sectionRef.current.style.setProperty('--move-y', `${moveY}px`);
         };
         
-        const currentSection = sectionRef.current;
-        if (currentSection) {
-            currentSection.addEventListener('mousemove', handleMouseMove as EventListener);
-        }
+        document.addEventListener('mousemove', handleMouseMove as EventListener);
         
         return () => {
-            if (currentSection) {
-                currentSection.removeEventListener('mousemove', handleMouseMove as EventListener);
-            }
+            document.removeEventListener('mousemove', handleMouseMove as EventListener);
         };
     }, []);
 
-
-    const styles = {
-        section: {
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center',
-            padding: '0 2rem',
-            position: 'relative',
-        } as React.CSSProperties,
-        gridBackground: {
-            position: 'absolute',
-            top: '-10%', left: '-10%', width: '120%', height: '120%',
-            background: `
-                linear-gradient(90deg, var(--gray-dark) 1px, transparent 1px),
-                linear-gradient(0deg, var(--gray-dark) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px',
-            maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, black, transparent)',
-            zIndex: -1,
-            opacity: 0.2,
-            transition: 'transform 0.1s linear',
-            transform: 'translate(var(--move-x, 0), var(--move-y, 0))',
-        } as React.CSSProperties,
-        h1: {
-            fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-            fontWeight: 800,
-            marginBottom: '1rem',
-            background: 'linear-gradient(90deg, #fff, #aaa)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            animation: 'fadeInUp 1s ease-out',
-        },
-        p: {
-            fontSize: 'clamp(1rem, 2vw, 1.25rem)',
-            color: 'var(--gray)',
-            maxWidth: '600px',
-            marginBottom: '2rem',
-            animation: 'fadeInUp 1s ease-out 0.2s',
-            animationFillMode: 'backwards',
-        },
-        buttons: {
-            display: 'flex',
-            gap: '1rem',
-            animation: 'fadeInUp 1s ease-out 0.4s',
-            animationFillMode: 'backwards',
-        },
-        button: {
-            padding: '0.75rem 1.5rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            fontWeight: 600,
-            fontSize: '1rem',
-            transition: 'all 0.2s ease',
-        },
-        buildButton: {
-            backgroundColor: 'var(--accent)',
-            color: 'var(--foreground)',
-        },
-        contactButton: {
-            backgroundColor: 'transparent',
-            color: 'var(--foreground)',
-            border: `1px solid var(--border-color)`,
-            textDecoration: 'none',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-        }
-    };
-
     return (
-        <section ref={sectionRef} style={styles.section}>
-            <div style={styles.gridBackground}></div>
-            <h1 style={styles.h1}>Conceive. Generate. Deploy.</h1>
-            <p style={styles.p}>The AI platform for building and deploying production-grade applications and websites in seconds. Go from idea to live URL instantly.</p>
-            <div style={styles.buttons} className="hero-buttons">
-                <button onClick={onBuildNowClick} style={{...styles.button, ...styles.buildButton}} onMouseOver={e => e.currentTarget.style.filter='brightness(1.2)'} onMouseOut={e => e.currentTarget.style.filter='brightness(1)'}>Start Building Now</button>
-                <a href="#contact" role="button" style={{...styles.button, ...styles.contactButton}} onMouseOver={e => e.currentTarget.style.backgroundColor='var(--gray-dark)'} onMouseOut={e => e.currentTarget.style.backgroundColor='transparent'}>Contact Sales</a>
+        <section 
+            ref={sectionRef} 
+            className="min-h-screen flex flex-col justify-center items-center text-center p-8 relative"
+        >
+            <div 
+                className="absolute top-[-10%] left-[-10%] w-[120%] h-[120%] bg-[linear-gradient(90deg,var(--gray-dark)_1px,transparent_1px),linear-gradient(0deg,var(--gray-dark)_1px,transparent_1px)] [background-size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)] z-[-1] opacity-20 transition-transform duration-100 ease-linear"
+                style={{ transform: 'translate(var(--move-x, 0), var(--move-y, 0))' }}
+            ></div>
+            <h1 
+                className="text-[clamp(2.5rem,6vw,5rem)] font-extrabold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent"
+                style={{ animation: 'fadeInUp 1s ease-out' }}
+            >
+                Conceive. Generate. Deploy.
+            </h1>
+            <p 
+                className="text-[clamp(1rem,2vw,1.25rem)] text-[var(--gray)] max-w-2xl mb-8"
+                style={{ animation: 'fadeInUp 1s ease-out 0.2s backwards' }}
+            >
+                The AI platform for building and deploying production-grade applications and websites in seconds. Go from idea to live URL instantly.
+            </p>
+            <div 
+                className="flex flex-col sm:flex-row gap-4"
+                style={{ animation: 'fadeInUp 1s ease-out 0.4s backwards' }}
+            >
+                <button onClick={onBuildNowClick} className="px-6 py-3 rounded-lg border-none font-semibold text-base transition-all duration-200 bg-[var(--accent)] text-[var(--foreground)] hover:brightness-125">
+                    Start Building Now
+                </button>
+                <a href="#contact" role="button" className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-base transition-all duration-200 bg-transparent text-[var(--foreground)] border border-[var(--border-color)] no-underline hover:bg-[var(--gray-dark)]">
+                    Contact Sales
+                </a>
             </div>
-            <style>{`
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                @media (max-width: 480px) {
-                    .hero-buttons {
-                        flex-direction: column;
-                        width: 100%;
-                        max-width: 320px;
-                    }
-                }
-                 @media (max-width: 768px) {
-                    section {
-                        padding: 0 1rem;
-                    }
-                }
-            `}</style>
         </section>
     );
 };

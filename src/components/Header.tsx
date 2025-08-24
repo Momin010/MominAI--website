@@ -23,174 +23,70 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
         setIsMenuOpen(false);
     };
 
-    const styles = {
-        header: {
-            position: 'fixed',
-            top: '1rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 'calc(100% - 2rem)',
-            maxWidth: '1100px',
-            padding: '0.50rem 1.5rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            zIndex: 100,
-            backgroundColor: 'rgba(17, 17, 17, 0.7)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '5rem',
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2), 0 0 20px rgba(79, 70, 229, 0.25)',
-            transition: 'top 0.3s ease, box-shadow 0.3s ease',
-        } as React.CSSProperties,
-        logoContainer: { display: 'flex', alignItems: 'center', fontWeight: 600, color: 'var(--foreground)', textDecoration: 'none' },
-        nav: { display: 'flex', gap: '1.5rem', alignItems: 'center' },
-        navLink: { 
-            position: 'relative',
-            color: 'var(--gray)', 
-            textDecoration: 'none', 
-            transition: 'color 0.2s ease',
-            padding: '0.25rem 0' 
-        } as React.CSSProperties,
-        buttonsContainer: { display: 'flex', gap: '1rem', alignItems: 'center'},
-        buildButton: {
-            padding: '0.5rem 1rem',
-            borderRadius: '2rem',
-            border: 'none',
-            fontWeight: 600,
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            backgroundColor: 'var(--accent)',
-            color: 'var(--foreground)',
-        },
-        loginButton: {
-            padding: '0.5rem 1rem',
-            borderRadius: '2rem',
-            border: '1px solid var(--border-color)',
-            fontWeight: 600,
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            backgroundColor: 'transparent',
-            color: 'var(--foreground)',
-        },
-        hamburger: {
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-around',
-            background: 'transparent',
-            border: 'none',
-            zIndex: 1001
-        } as React.CSSProperties,
-        hamburgerLine: (isOpen: boolean, position: 'top' | 'middle' | 'bottom'): React.CSSProperties => ({
-            width: '100%',
-            height: '2px',
-            backgroundColor: 'var(--foreground)',
-            borderRadius: '1px',
-            transition: 'all 0.3s ease',
-            transformOrigin: 'center',
-            ...(isOpen && position === 'top' && { transform: 'translateY(7px) rotate(45deg)' }),
-            ...(isOpen && position === 'middle' && { opacity: 0, transform: 'scale(0)' }),
-            ...(isOpen && position === 'bottom' && { transform: 'translateY(-7px) rotate(-45deg)' }),
-        }),
-        mobileMenu: {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0,0,0,0.95)',
-            backdropFilter: 'blur(10px)',
-            zIndex: 999,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '2rem',
-            animation: 'fadeIn 0.3s ease-out'
-        } as React.CSSProperties,
-        mobileNavLink: {
-            color: 'var(--foreground)',
-            textDecoration: 'none',
-            fontSize: '2rem',
-            fontWeight: 600
-        } as React.CSSProperties
-    };
+    const hamburgerLineStyle = (isOpen: boolean, position: 'top' | 'middle' | 'bottom'): React.CSSProperties => ({
+        width: '100%',
+        height: '2px',
+        backgroundColor: 'var(--foreground)',
+        borderRadius: '1px',
+        transition: 'all 0.3s ease',
+        transformOrigin: 'center',
+        ...(isOpen && position === 'top' && { transform: 'translateY(7px) rotate(45deg)' }),
+        ...(isOpen && position === 'middle' && { opacity: 0, transform: 'scale(0)' }),
+        ...(isOpen && position === 'bottom' && { transform: 'translateY(-7px) rotate(-45deg)' }),
+    });
+    
+    const NavLink = ({ href, children }: { href: string, children: React.ReactNode}) => (
+        <a href={href} className="relative text-[var(--gray)] hover:text-[var(--foreground)] transition-colors duration-200 py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[var(--accent)] after:to-[var(--accent-glow)] after:scale-x-0 after:origin-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-left">
+            {children}
+        </a>
+    );
 
     return (
         <>
-        <style>{`
-            .nav-link::after {
-                content: '';
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: 2px;
-                background: linear-gradient(90deg, var(--accent), var(--accent-glow));
-                transform: scaleX(0);
-                transform-origin: right;
-                transition: transform 0.3s ease-out;
-            }
-            .nav-link:hover {
-                color: var(--foreground);
-            }
-            .nav-link:hover::after {
-                transform: scaleX(1);
-                transform-origin: left;
-            }
+            <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-6xl px-6 py-2 flex justify-between items-center z-[100] bg-[rgba(17,17,17,0.7)] backdrop-blur-lg rounded-full border border-[var(--border-color)] shadow-[0_4px_20px_rgba(0,0,0,0.2),_0_0_20px_rgba(79,70,229,0.25)] transition-all duration-300">
+                <a href="#" className="flex items-center font-semibold text-[var(--foreground)] no-underline">
+                    <MominAILogo width={100} height={22} />
+                </a>
+                
+                {/* Desktop Navigation */}
+                <nav className="hidden lg:flex gap-6 items-center">
+                    <NavLink href="#features">Features</NavLink>
+                    <NavLink href="#testimonials">Testimonials</NavLink>
+                    <NavLink href="#pricing">Pricing</NavLink>
+                    <div className="flex gap-4 items-center pl-4">
+                        <button onClick={onLoginClick} className="px-4 py-2 rounded-full border border-[var(--border-color)] font-semibold text-sm cursor-pointer transition-all duration-200 bg-transparent text-[var(--foreground)] hover:bg-[var(--gray-dark)]">
+                            Login
+                        </button>
+                        <button onClick={onBuildNowClick} className="px-4 py-2 rounded-full border-none font-semibold text-sm cursor-pointer transition-all duration-200 bg-[var(--accent)] text-[var(--foreground)] hover:brightness-125">
+                            Build Now
+                        </button>
+                    </div>
+                </nav>
 
-            .desktop-nav {
-                display: flex;
-            }
-            .mobile-menu-button {
-                display: none;
-            }
+                {/* Mobile Menu Button */}
+                <button className="lg:hidden flex flex-col justify-around w-6 h-6 bg-transparent border-none z-[1001]" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
+                    <div style={hamburgerLineStyle(isMenuOpen, 'top')}></div>
+                    <div style={hamburgerLineStyle(isMenuOpen, 'middle')}></div>
+                    <div style={hamburgerLineStyle(isMenuOpen, 'bottom')}></div>
+                </button>
+            </header>
 
-            @media (max-width: 860px) {
-                .desktop-nav {
-                    display: none;
-                }
-                .mobile-menu-button {
-                    display: flex;
-                }
-            }
-            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        `}</style>
-        <header style={styles.header}>
-            <a href="#" style={styles.logoContainer}>
-                <MominAILogo width={100} height={22} />
-            </a>
-            <nav style={styles.nav} className="desktop-nav">
-                <a href="#features" className="nav-link" style={styles.navLink}>Features</a>
-                <a href="#testimonials" className="nav-link" style={styles.navLink}>Testimonials</a>
-                <a href="#pricing" className="nav-link" style={styles.navLink}>Pricing</a>
-                 <div style={styles.buttonsContainer}>
-                    <button onClick={onLoginClick} style={styles.loginButton} onMouseOver={e => e.currentTarget.style.backgroundColor='var(--gray-dark)'} onMouseOut={e => e.currentTarget.style.backgroundColor='transparent'}>Login</button>
-                    <button onClick={onBuildNowClick} style={styles.buildButton} onMouseOver={e => e.currentTarget.style.filter='brightness(1.2)'} onMouseOut={e => e.currentTarget.style.filter='brightness(1)'}>Build Now</button>
+            {/* Mobile Menu Overlay */}
+            {isMenuOpen && (
+                <div className="fixed inset-0 bg-black/95 backdrop-blur-lg z-[999] flex flex-col justify-center items-center gap-8" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+                    <a href="#features" className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>Features</a>
+                    <a href="#testimonials" className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>Testimonials</a>
+                    <a href="#pricing" className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>Pricing</a>
+                    <div className="flex flex-col gap-6 items-center mt-8">
+                        <button onClick={() => { onLoginClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border border-[var(--border-color)] text-2xl bg-transparent text-white">
+                            Login
+                        </button>
+                        <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border-none text-2xl bg-[var(--accent)] text-white">
+                            Build Now
+                        </button>
+                    </div>
                 </div>
-            </nav>
-            <button className="mobile-menu-button" onClick={() => setIsMenuOpen(!isMenuOpen)} style={styles.hamburger} aria-label="Toggle menu">
-                <div style={styles.hamburgerLine(isMenuOpen, 'top')}></div>
-                <div style={styles.hamburgerLine(isMenuOpen, 'middle')}></div>
-                <div style={styles.hamburgerLine(isMenuOpen, 'bottom')}></div>
-            </button>
-        </header>
-
-        {isMenuOpen && (
-            <div style={styles.mobileMenu}>
-                <a href="#features" style={styles.mobileNavLink} onClick={handleLinkClick}>Features</a>
-                <a href="#testimonials" style={styles.mobileNavLink} onClick={handleLinkClick}>Testimonials</a>
-                <a href="#pricing" style={styles.mobileNavLink} onClick={handleLinkClick}>Pricing</a>
-                 <div style={{...styles.buttonsContainer, flexDirection: 'column', marginTop: '2rem'}}>
-                    <button onClick={() => { onLoginClick(); handleLinkClick(); }} style={{...styles.loginButton, fontSize: '1.5rem', padding: '1rem 2rem'}}>Login</button>
-                    <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} style={{...styles.buildButton, fontSize: '1.5rem', padding: '1rem 2rem'}}>Build Now</button>
-                </div>
-            </div>
-        )}
+            )}
         </>
     );
 };
