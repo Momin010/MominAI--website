@@ -350,8 +350,8 @@ export default async function handler(req: Request) {
       required: ["message"],
     };
 
-    // Call the Gemini API in streaming mode
-    const responseStream = await ai.models.generateContentStream({
+    // Call the Gemini API (non-streaming)
+    const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: history.map(m => ({ role: m.role, parts: [{ text: m.text }]})),
         config: {
@@ -361,31 +361,21 @@ export default async function handler(req: Request) {
         },
     });
 
-    // Create a new readable stream to send the response back to the client
-    const stream = new ReadableStream({
-      async start(controller) {
-        const encoder = new TextEncoder();
-        for await (const chunk of responseStream) {
-          const text = chunk.text;
-          if (text) {
-             controller.enqueue(encoder.encode(text));
-          }
-        }
-        controller.close();
-      },
-    });
+    const responseText = response.text;
 
-    // Return the streaming response
-    return new Response(stream, {
+    // Return the complete JSON response
+    return new Response(responseText, {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'X-Content-Type-Options': 'nosniff',
+        'Content-Type': 'application/json',
       },
     });
 
   } catch (error) {
     console.error("Error in /api/generate:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-    return new Response(`An error occurred: ${errorMessage}`, { status: 500 });
+    return new Response(JSON.stringify({ error: `An error occurred: ${errorMessage}` }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+    });
   }
 }

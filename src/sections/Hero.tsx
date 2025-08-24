@@ -1,10 +1,11 @@
+
 import React, { useEffect, useRef } from 'react';
 
 interface HeroProps {
     onBuildNowClick: () => void;
 }
 
-const Hero = ({ onBuildNowClick }: HeroProps) => {
+const Hero: React.FC<HeroProps> = ({ onBuildNowClick }) => {
     const sectionRef = useRef<HTMLElement>(null);
 
     useEffect(() => {
@@ -90,8 +91,8 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
             transition: 'all 0.2s ease',
         },
         buildButton: {
-            backgroundColor: 'var(--foreground)',
-            color: 'var(--background)',
+            backgroundColor: 'var(--accent)',
+            color: 'var(--foreground)',
         },
         contactButton: {
             backgroundColor: 'transparent',
@@ -110,7 +111,7 @@ const Hero = ({ onBuildNowClick }: HeroProps) => {
             <h1 style={styles.h1}>Conceive. Generate. Deploy.</h1>
             <p style={styles.p}>The AI platform for building and deploying production-grade applications and websites in seconds. Go from idea to live URL instantly.</p>
             <div style={styles.buttons} className="hero-buttons">
-                <button onClick={onBuildNowClick} style={{...styles.button, ...styles.buildButton}} onMouseOver={e => e.currentTarget.style.transform='scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform='scale(1)'}>Build Now</button>
+                <button onClick={onBuildNowClick} style={{...styles.button, ...styles.buildButton}} onMouseOver={e => e.currentTarget.style.filter='brightness(1.2)'} onMouseOut={e => e.currentTarget.style.filter='brightness(1)'}>Start Building Now</button>
                 <a href="#contact" role="button" style={{...styles.button, ...styles.contactButton}} onMouseOver={e => e.currentTarget.style.backgroundColor='var(--gray-dark)'} onMouseOut={e => e.currentTarget.style.backgroundColor='transparent'}>Contact Sales</a>
             </div>
             <style>{`

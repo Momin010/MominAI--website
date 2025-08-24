@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useScrollReveal } from '../hooks/useScrollReveal.ts';
 import Header from './Header.tsx';
@@ -7,24 +8,26 @@ import Features from '../sections/Features.tsx';
 import Testimonials from '../sections/Testimonials.tsx';
 import Pricing from '../sections/Pricing.tsx';
 import Footer from './Footer.tsx';
-import SignUpModal from './SignUpModal.tsx';
 import Contact from '../sections/Contact.tsx';
+import SignUpModal from './SignUpModal.tsx';
 
 interface LandingPageProps {
-    onLoginSuccess: () => void;
+    onLaunchIde: () => void;
 }
 
-const LandingPage = ({ onLoginSuccess }: LandingPageProps) => {
+const LandingPage = ({ onLaunchIde }: LandingPageProps) => {
     useScrollReveal();
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [route, setRoute] = useState(window.location.hash);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const handleHashChange = () => {
             const currentHash = window.location.hash;
             setRoute(currentHash);
             
-            if (currentHash === '#contact' || currentHash === '' || currentHash === '#') {
+            if (currentHash === '#contact') {
+                 // specific logic for contact page if needed
+            } else if (currentHash === '' || currentHash === '#') {
                 window.scrollTo(0, 0);
             }
         };
@@ -34,9 +37,11 @@ const LandingPage = ({ onLoginSuccess }: LandingPageProps) => {
         window.addEventListener('hashchange', handleHashChange);
         return () => window.removeEventListener('hashchange', handleHashChange);
     }, []);
-
-    const handleOpenModal = () => setIsModalOpen(true);
-    const handleCloseModal = () => setIsModalOpen(false);
+    
+    const handleLoginSuccess = () => {
+        setIsModalOpen(false);
+        onLaunchIde();
+    };
 
     const styles = {
         main: {
@@ -47,13 +52,20 @@ const LandingPage = ({ onLoginSuccess }: LandingPageProps) => {
 
     return (
         <>
-            <Header onBuildNowClick={handleOpenModal} />
+            <Header onBuildNowClick={() => setIsModalOpen(true)} onLoginClick={() => setIsModalOpen(true)} />
+             <SignUpModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSuccess={handleLoginSuccess}
+            />
             
             {route === '#contact' ? (
-                <Contact />
+                <main style={styles.main}>
+                     <Contact />
+                </main>
             ) : (
                 <main style={styles.main}>
-                    <Hero onBuildNowClick={handleOpenModal} />
+                    <Hero onBuildNowClick={() => setIsModalOpen(true)} />
                     <Logos />
                     <Features />
                     <Testimonials />
@@ -62,11 +74,6 @@ const LandingPage = ({ onLoginSuccess }: LandingPageProps) => {
             )}
             
             <Footer />
-            <SignUpModal 
-                isOpen={isModalOpen} 
-                onClose={handleCloseModal} 
-                onSuccess={onLoginSuccess}
-            />
         </>
     );
 };

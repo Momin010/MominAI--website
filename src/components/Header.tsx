@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { MominAILogo } from './icons.tsx';
 
 interface HeaderProps {
     onBuildNowClick: () => void;
+    onLoginClick: () => void;
 }
 
-const Header = ({ onBuildNowClick }: HeaderProps) => {
+const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -50,22 +52,28 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
             transition: 'color 0.2s ease',
             padding: '0.25rem 0' 
         } as React.CSSProperties,
-        buttons: { display: 'flex', gap: '1rem', alignItems: 'center' },
-        button: {
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            fontWeight: 500,
-            transition: 'all 0.2s ease',
-        },
-        loginButton: {
-            backgroundColor: 'transparent',
-            color: 'var(--foreground)',
-        },
+        buttonsContainer: { display: 'flex', gap: '1rem', alignItems: 'center'},
         buildButton: {
+            padding: '0.5rem 1rem',
+            borderRadius: '2rem',
+            border: 'none',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
             backgroundColor: 'var(--accent)',
             color: 'var(--foreground)',
-            boxShadow: `0 0 15px var(--accent-glow)`,
+        },
+        loginButton: {
+            padding: '0.5rem 1rem',
+            borderRadius: '2rem',
+            border: '1px solid var(--border-color)',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            backgroundColor: 'transparent',
+            color: 'var(--foreground)',
         },
         hamburger: {
             width: '24px',
@@ -135,7 +143,7 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
                 transform-origin: left;
             }
 
-            .desktop-nav, .desktop-buttons {
+            .desktop-nav {
                 display: flex;
             }
             .mobile-menu-button {
@@ -143,7 +151,7 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
             }
 
             @media (max-width: 860px) {
-                .desktop-nav, .desktop-buttons {
+                .desktop-nav {
                     display: none;
                 }
                 .mobile-menu-button {
@@ -160,11 +168,11 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
                 <a href="#features" className="nav-link" style={styles.navLink}>Features</a>
                 <a href="#testimonials" className="nav-link" style={styles.navLink}>Testimonials</a>
                 <a href="#pricing" className="nav-link" style={styles.navLink}>Pricing</a>
+                 <div style={styles.buttonsContainer}>
+                    <button onClick={onLoginClick} style={styles.loginButton} onMouseOver={e => e.currentTarget.style.backgroundColor='var(--gray-dark)'} onMouseOut={e => e.currentTarget.style.backgroundColor='transparent'}>Login</button>
+                    <button onClick={onBuildNowClick} style={styles.buildButton} onMouseOver={e => e.currentTarget.style.filter='brightness(1.2)'} onMouseOut={e => e.currentTarget.style.filter='brightness(1)'}>Build Now</button>
+                </div>
             </nav>
-            <div style={styles.buttons} className="desktop-buttons">
-                <button style={{...styles.button, ...styles.loginButton}} onMouseOver={e => e.currentTarget.style.backgroundColor='var(--gray-dark)'} onMouseOut={e => e.currentTarget.style.backgroundColor='transparent'}>Login</button>
-                <button onClick={onBuildNowClick} style={{...styles.button, ...styles.buildButton}} onMouseOver={e => e.currentTarget.style.filter='brightness(1.2)'} onMouseOut={e => e.currentTarget.style.filter='brightness(1)'}>Build Now</button>
-            </div>
             <button className="mobile-menu-button" onClick={() => setIsMenuOpen(!isMenuOpen)} style={styles.hamburger} aria-label="Toggle menu">
                 <div style={styles.hamburgerLine(isMenuOpen, 'top')}></div>
                 <div style={styles.hamburgerLine(isMenuOpen, 'middle')}></div>
@@ -177,7 +185,10 @@ const Header = ({ onBuildNowClick }: HeaderProps) => {
                 <a href="#features" style={styles.mobileNavLink} onClick={handleLinkClick}>Features</a>
                 <a href="#testimonials" style={styles.mobileNavLink} onClick={handleLinkClick}>Testimonials</a>
                 <a href="#pricing" style={styles.mobileNavLink} onClick={handleLinkClick}>Pricing</a>
-                <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} style={{...styles.button, ...styles.buildButton, padding: '1rem 2rem', fontSize: '1.5rem', marginTop: '2rem'}}>Build Now</button>
+                 <div style={{...styles.buttonsContainer, flexDirection: 'column', marginTop: '2rem'}}>
+                    <button onClick={() => { onLoginClick(); handleLinkClick(); }} style={{...styles.loginButton, fontSize: '1.5rem', padding: '1rem 2rem'}}>Login</button>
+                    <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} style={{...styles.buildButton, fontSize: '1.5rem', padding: '1rem 2rem'}}>Build Now</button>
+                </div>
             </div>
         )}
         </>

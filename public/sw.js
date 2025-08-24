@@ -10,6 +10,12 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'RELOAD') {
+        event.ports[0].postMessage({ reloaded: true });
+    }
+});
+
 self.addEventListener('fetch', (event) => {
   // We only want to modify the main document request (navigation).
   if (event.request.mode === 'navigate') {

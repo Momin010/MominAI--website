@@ -1,62 +1,68 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import CustomCursor from './components/CustomCursor.tsx';
 import LandingPage from './components/LandingPage.tsx';
-import IDE from './components/IDE/index.tsx';
+import Loader from './components/Loader.tsx';
+
+const IDE = lazy(() => import('./IDE/IDE.tsx'));
+
+type View = 'landing' | 'ide';
 
 const App = () => {
-    const [isIDEView, setIDEView] = useState(false);
+    const [view, setView] = useState<View>('landing');
+    const [isIdeLoading, setIsIdeLoading] = useState(true);
+
+    const launchIde = async () => {
+        const sw = await navigator.serviceWorker.ready;
+        if (!sw) {
+            console.error('Service worker not ready');
+            // Show an error to the user
+            return;
+        }
+
+        // Check if headers are already set
+        const areHeadersSet = window.crossOriginIsolated;
+        
+        if (areHeadersSet) {
+             setView('ide');
+        } else {
+            const url = new URL(window.location.href);
+            url.searchParams.set('ide', 'true');
+            
+            // Perform a controlled reload
+            const channel = new MessageChannel();
+            sw.active?.postMessage({ type: 'RELOAD' }, [channel.port2]);
+            
+            channel.port1.onmessage = () => {
+                window.location.href = url.href;
+            };
+        }
+    };
 
     useEffect(() => {
-        // On initial load, check the URL to see which view to render.
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('ide') === 'true') {
-            setIDEView(true);
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('ide') === 'true') {
+            setView('ide');
+            // Clean the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            setIsIdeLoading(false);
         }
     }, []);
-    
-    // Manage root element styles to contain the view and control scrolling.
-    useEffect(() => {
-        const rootEl = document.getElementById('root');
-        if (!rootEl) return;
 
-        if (isIDEView) {
-            // For the IDE, constrain the root to the viewport height and prevent overflow.
-            rootEl.style.height = '100vh';
-            rootEl.style.overflow = 'hidden';
-        } else {
-            // For the landing page, allow the root to grow with its content.
-            rootEl.style.height = 'auto';
-            rootEl.style.overflow = 'visible';
-        }
-
-        // Cleanup function to reset styles when the component unmounts.
-        return () => {
-            if (rootEl) {
-                rootEl.style.height = 'auto';
-                rootEl.style.overflow = 'visible';
-            }
-        };
-    }, [isIDEView]);
-
-
-    const handleLoginSuccess = () => {
-        // Navigate to the IDE view. This causes a full page reload,
-        // allowing the service worker to apply the correct security headers.
-        window.location.href = '/?ide=true';
-    };
-    
-    const handleLogout = () => {
-        // Navigate back to the landing page. This also reloads the page.
-        window.location.href = '/';
+    if (isIdeLoading && view === 'landing') {
+        return <Loader />;
     }
 
     return (
         <>
             <CustomCursor />
-            {isIDEView ? (
-                <IDE onLogout={handleLogout} />
+            {view === 'landing' ? (
+                <LandingPage onLaunchIde={launchIde} />
             ) : (
-                <LandingPage onLoginSuccess={handleLoginSuccess} />
+                <Suspense fallback={<Loader />}>
+                    <IDE />
+                </Suspense>
             )}
         </>
     );
