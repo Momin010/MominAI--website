@@ -21,12 +21,29 @@ const statusMessages: Record<Status, string> = {
 
 const PreviewPanel = ({ files }: PreviewPanelProps) => {
     const wcInstanceRef = useRef<WebContainerType | null>(null);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
     const [status, setStatus] = useState<Status>('idle');
     const [previewUrl, setPreviewUrl] = useState('');
     const [error, setError] = useState<string | null>(null);
     const lastFilesRef = useRef<AppFile[]>([]);
     const processRef = useRef<WebContainerProcess | null>(null);
 
+    useEffect(() => {
+        const iframe = iframeRef.current;
+        if (iframe) {
+            const handleMouseEnter = () => document.body.classList.add('native-cursor-active');
+            const handleMouseLeave = () => document.body.classList.remove('native-cursor-active');
+
+            iframe.addEventListener('mouseenter', handleMouseEnter);
+            iframe.addEventListener('mouseleave', handleMouseLeave);
+
+            return () => {
+                iframe.removeEventListener('mouseenter', handleMouseEnter);
+                iframe.removeEventListener('mouseleave', handleMouseLeave);
+                document.body.classList.remove('native-cursor-active');
+            };
+        }
+    }, [previewUrl]);
 
     useEffect(() => {
         const bootAndRun = async () => {
@@ -144,6 +161,7 @@ const PreviewPanel = ({ files }: PreviewPanelProps) => {
             <div className="preview-content">
                 {previewUrl ? (
                     <iframe
+                        ref={iframeRef}
                         src={previewUrl}
                         className="preview-frame"
                         title="Application Preview"

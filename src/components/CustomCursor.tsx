@@ -13,6 +13,7 @@ const CustomCursor = () => {
     const [isHovering, setIsHovering] = useState(false);
     const [isMouseDown, setIsMouseDown] = useState(false);
     const [isFinePointer, setIsFinePointer] = useState(false);
+    const [isGloballyHidden, setIsGloballyHidden] = useState(false);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia('(pointer: fine)');
@@ -23,6 +24,21 @@ const CustomCursor = () => {
         
         return () => mediaQuery.removeEventListener('change', updatePointerType);
     }, []);
+
+    useEffect(() => {
+        if (!isFinePointer) return;
+
+        const checkVisibility = () => {
+            setIsGloballyHidden(document.body.classList.contains('native-cursor-active'));
+        };
+
+        const observer = new MutationObserver(checkVisibility);
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        
+        checkVisibility(); // Initial check
+
+        return () => observer.disconnect();
+    }, [isFinePointer]);
 
     useEffect(() => {
         if (isFinePointer) {
@@ -53,7 +69,7 @@ const CustomCursor = () => {
         }
     }, [isFinePointer]);
 
-    if (!isFinePointer) {
+    if (!isFinePointer || isGloballyHidden) {
         return null;
     }
 
