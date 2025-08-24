@@ -1,11 +1,12 @@
 
 
+
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect, useMemo } from 'react';
 
 // Providers & Hooks
 import { WebContainerProvider, useWebContainer } from './WebContainerProvider.tsx';
 import { useFileSystem } from './hooks/useFileSystem.ts';
-import { useLocalStorageState } from '../../hooks/useLocalStorageState.ts';
+import { useLocalStorageState } from './hooks/useLocalStorageState.ts';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext.tsx';
 import { CommandPaletteProvider, useCommandPalette } from './hooks/useCommandPalette.ts';
 import { AIProvider, useAI } from './contexts/AIContext.tsx';
