@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-const pointingHand = 'https://cursor.in/assets/pointinghand.svg';
-const openHand = 'https://cursor.in/assets/openhand.svg';
-const closedHand = 'https://cursor.in/assets/closedhand.svg';
+// SVG content for the cursors, inlined to prevent cross-origin issues with COEP.
+// The SVG strings are URI-encoded to be used in CSS.
+const svgToDataURI = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+
+// Default cursor (open hand)
+const pointingHandSVG = `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 27.5c0-.828.672-1.5 1.5-1.5h19c.828 0 1.5.672 1.5 1.5v12c0 .828-.672 1.5-1.5 1.5h-19c-.828 0-1.5-.672-1.5-1.5v-12z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 26V13c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5v13" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 26V8.5c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5V26" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 26V8.5c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5V26" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M27 26V13c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5v13" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+
+// Hover cursor (pointing finger)
+const openHandSVG = `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 27.5c0-.828.672-1.5 1.5-1.5h19c.828 0 1.5.672 1.5 1.5v12c0 .828-.672 1.5-1.5 1.5h-19c-.828 0-1.5-.672-1.5-1.5v-12z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 26V8.5c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5V26" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 26v-9c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5v9" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 26v-9c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5v9" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M27 26v-9c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5v9" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+
+// Mousedown cursor (grabbing hand)
+const closedHandSVG = `<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 27.5c0-.828.672-1.5 1.5-1.5h19c.828 0 1.5.672 1.5 1.5v12c0 .828-.672 1.5-1.5 1.5h-19c-.828 0-1.5-.672-1.5-1.5v-12z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 26v-5.5c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5V26" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17 26V15c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5v11" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 26V15c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5v11" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M27 26v-5.5c0-.828.672-1.5 1.5-1.5h2c.828 0 1.5.672 1.5 1.5V26" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+
+const pointingHand = svgToDataURI(pointingHandSVG);
+const openHand = svgToDataURI(openHandSVG);
+const closedHand = svgToDataURI(closedHandSVG);
 
 const CustomCursor = () => {
     const [position, setPosition] = useState({ x: -100, y: -100 });
