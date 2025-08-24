@@ -4,7 +4,7 @@ import CustomCursor from './components/CustomCursor.tsx';
 import LandingPage from './components/LandingPage.tsx';
 import Loader from './components/Loader.tsx';
 
-const IDE = lazy(() => import('./IDE/IDE.tsx'));
+const IDE = lazy(() => import('./IDE/App.tsx'));
 
 type View = 'landing' | 'ide';
 

@@ -9,7 +9,7 @@ export const Terminal: React.FC = () => {
     const isTerminalAttached = useRef(false);
 
     useEffect(() => {
-        if (!webContainer || isLoading || isTerminalAttached.current || !terminalRef.current) {
+        if (isLoading || !webContainer || isTerminalAttached.current || !terminalRef.current) {
             return;
         }
 
@@ -23,36 +23,46 @@ export const Terminal: React.FC = () => {
         terminal.open(terminalRef.current);
         fitAddon.fit();
 
-        const shellProcess = webContainer.spawn('jsh');
-        isTerminalAttached.current = true;
-        
-        shellProcess.output.pipeTo(new WritableStream({
-            write(data) {
-                terminal.write(data);
-            }
-        }));
+        const attachShell = async () => {
+            const shellProcess = await webContainer.spawn('jsh');
+            isTerminalAttached.current = true;
+            
+            shellProcess.output.pipeTo(new WritableStream({
+                write(data) {
+                    terminal.write(data);
+                }
+            }));
 
-        const input = shellProcess.input.getWriter();
-        terminal.onData(data => {
-            input.write(data);
-        });
-        
-        const resizeObserver = new ResizeObserver(() => {
-            fitAddon.fit();
-            shellProcess.resize({
-                cols: terminal.cols,
-                rows: terminal.rows
+            const input = shellProcess.input.getWriter();
+            terminal.onData(data => {
+                input.write(data);
             });
-        });
-        
-        if (terminalRef.current) {
-             resizeObserver.observe(terminalRef.current);
-        }
+
+            const resizeObserver = new ResizeObserver(() => {
+                requestAnimationFrame(() => {
+                    fitAddon.fit();
+                    shellProcess.resize({
+                        cols: terminal.cols,
+                        rows: terminal.rows
+                    });
+                });
+            });
+            
+            if (terminalRef.current) {
+                 resizeObserver.observe(terminalRef.current);
+            }
+            
+            return () => {
+                terminal.dispose();
+                resizeObserver.disconnect();
+                isTerminalAttached.current = false;
+            };
+        };
+
+        const cleanupPromise = attachShell();
 
         return () => {
-            terminal.dispose();
-            resizeObserver.disconnect();
-            isTerminalAttached.current = false;
+            cleanupPromise.then(cleanup => cleanup());
         };
     }, [webContainer, isLoading]);
 
