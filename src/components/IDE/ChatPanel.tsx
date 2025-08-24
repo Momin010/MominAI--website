@@ -48,16 +48,19 @@ const ChatPanel = ({ chatHistory, prompt, onPromptChange, onSubmit, isLoading, i
             <div className="chat-messages">
                 {chatHistory.map((msg, index) => (
                     <div key={index} className={`message ${msg.role === 'user' ? 'user-message' : 'assistant-message'}`}>
-                        <div className="message-content">{msg.text}</div>
-                    </div>
-                ))}
-                {isLoading && chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user' && (
-                     <div className="message assistant-message">
                         <div className="message-content">
-                            Thinking...<span className="typing-indicator"></span>
+                            {msg.text}
+                            {/* If this is the last message, it's from the model, it's empty, and we're loading, show the indicator. */}
+                            {isLoading && msg.role === 'model' && msg.text === '' && index === chatHistory.length - 1 && (
+                                <>
+                                  <span className="typing-indicator" style={{ animationDelay: '0s' }}></span>
+                                  <span className="typing-indicator" style={{ animationDelay: '0.2s' }}></span>
+                                  <span className="typing-indicator" style={{ animationDelay: '0.4s' }}></span>
+                                </>
+                            )}
                         </div>
                     </div>
-                )}
+                ))}
                 <div ref={chatEndRef} />
             </div>
             <form className="chat-input-form" onSubmit={onSubmit}>

@@ -37,8 +37,10 @@ export const useIDEState = () => {
         if (!prompt.trim() || isLoading) return;
 
         const userMessage: ChatMessage = { role: 'user', text: prompt };
-        const currentHistory = [...chatHistory, userMessage];
-        setChatHistory(currentHistory);
+        // Immediately add the user's message and an empty model message for the "thinking" UI
+        setChatHistory(prev => [...prev, userMessage, { role: 'model', text: '' }]);
+        const currentHistory = [...chatHistory, userMessage]; // History for the API doesn't include the empty model bubble
+
         setPrompt('');
         setIsLoading(true);
 
@@ -58,74 +60,55 @@ export const useIDEState = () => {
             const decoder = new TextDecoder();
             let accumulatedText = '';
             
-            setChatHistory((prev: ChatMessage[]) => [...prev, { role: 'model', text: '' }]);
-
+            // Simplified stream reading: just accumulate the text
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
-
                 accumulatedText += decoder.decode(value, { stream: true });
-
-                try {
-                    // Attempt to parse the stream as it comes in to find the message
-                    // This allows for faster UI updates for the conversational part
-                    const partialJson = JSON.parse(accumulatedText + '"}'); // a bit hacky but works for streaming
-                    if (partialJson.message) {
-                        setChatHistory((prev: ChatMessage[]) => {
-                            const newHistory = [...prev];
-                            if (newHistory.length > 0) {
-                                newHistory[newHistory.length - 1].text = partialJson.message;
-                            }
-                            return newHistory;
-                        });
-                    }
-                } catch (e) {
-                    // Not valid JSON yet, continue accumulating
-                }
             }
+            accumulatedText += decoder.decode(); // Final flush
 
-            try {
-                const finalJson = JSON.parse(accumulatedText);
-                if (finalJson.message) {
-                     setChatHistory((prev: ChatMessage[]) => {
-                        const newHistory = [...prev];
-                         if (newHistory.length > 0) {
-                            newHistory[newHistory.length - 1].text = finalJson.message;
-                        }
-                        return newHistory;
-                    });
+            // Parse the complete JSON response only once at the end
+            const finalJson = JSON.parse(accumulatedText);
+            const responseMessage = finalJson.message || "Here are the files I've generated for you.";
+
+            // Update the last message (the empty "thinking" bubble) with the final response
+            setChatHistory((prev: ChatMessage[]) => {
+                const newHistory = [...prev];
+                if (newHistory.length > 0 && newHistory[newHistory.length - 1].role === 'model') {
+                    newHistory[newHistory.length - 1].text = responseMessage;
                 }
-                if (finalJson.files && finalJson.files.length > 0) {
-                    const newFiles = finalJson.files;
-                    setFiles(newFiles);
-                    if (!activeFileName || !newFiles.some(f => f.name === activeFileName)) {
-                        const preferredFiles = ['src/App.tsx', 'src/main.tsx', 'index.html'];
-                        let newActiveFile = newFiles[0]?.name;
-                        for (const preferred of preferredFiles) {
-                            const found = newFiles.find(f => f.name === preferred);
-                            if (found) {
-                                newActiveFile = found.name;
-                                break;
-                            }
+                return newHistory;
+            });
+
+            if (finalJson.files && finalJson.files.length > 0) {
+                const newFiles = finalJson.files;
+                setFiles(newFiles);
+                if (!activeFileName || !newFiles.some(f => f.name === activeFileName)) {
+                    const preferredFiles = ['src/App.tsx', 'src/main.tsx', 'index.html'];
+                    let newActiveFile = newFiles[0]?.name;
+                    for (const preferred of preferredFiles) {
+                        const found = newFiles.find(f => f.name === preferred);
+                        if (found) {
+                            newActiveFile = found.name;
+                            break;
                         }
-                        setActiveFileName(newActiveFile);
                     }
+                    setActiveFileName(newActiveFile);
                 }
-            } catch (parseError) {
-                console.error("Could not parse final JSON from stream.", parseError, "Content:", accumulatedText);
-                 setChatHistory((prev: ChatMessage[]) => {
-                    const newHistory = [...prev];
-                     if (newHistory.length > 0) {
-                        newHistory[newHistory.length-1].text = "Sorry, I received an unexpected response. Please try again.";
-                    }
-                    return newHistory;
-                });
             }
 
         } catch (error) {
             console.error('API Error:', error);
             const errorMessage = `Sorry, there was an error. ${error instanceof Error ? error.message : ''}`;
-            setChatHistory((prev: ChatMessage[]) => [...prev, { role: 'model', text: errorMessage }]);
+            // Update the "thinking" bubble with an error message
+            setChatHistory((prev: ChatMessage[]) => {
+                const newHistory = [...prev];
+                 if (newHistory.length > 0 && newHistory[newHistory.length - 1].role === 'model') {
+                    newHistory[newHistory.length - 1].text = errorMessage;
+                }
+                return newHistory;
+            });
         } finally {
             setIsLoading(false);
         }

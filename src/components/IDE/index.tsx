@@ -116,8 +116,8 @@ const IDE = ({ onLogout }: IDEProps) => {
                 .message-content { max-width: 95%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; font-size: 14px; white-space: pre-wrap; word-wrap: break-word; }
                 .user-message .message-content { background: #2563eb; color: white; border-bottom-right-radius: 4px; }
                 .assistant-message .message-content { background: rgba(39, 39, 42, 0.8); color: #e4e4e7; border-bottom-left-radius: 4px; }
-                .typing-indicator { display: inline-block; width: 8px; height: 16px; background: #a1a1aa; margin-left: 4px; animation: blink 1s infinite; border-radius: 1px; }
-                @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+                .typing-indicator { display: inline-block; width: 8px; height: 8px; background: #a1a1aa; margin: 0 2px; animation: blink 1.2s infinite steps(1, start); border-radius: 50%; }
+                @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
                 .chat-input-form { padding: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1); background: rgba(10, 10, 12, 0.5); }
                 .input-container { display: flex; align-items: flex-end; gap: 12px; padding: 12px; background: #27272a; border: 1px solid #3f3f46; border-radius: 12px; transition: all 0.2s ease; }
                 .input-container:focus-within { border-color: #2563eb; background: #1e1e20; }
