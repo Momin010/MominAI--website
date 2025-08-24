@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { WebContainer } from '@webcontainer/api';
 import type { WebContainer as WebContainerType } from '@webcontainer/api';
@@ -51,22 +52,13 @@ export const WebContainerProvider: React.FC<{ children: ReactNode }> = ({ childr
                     console.error("WebContainer Error:", err);
                     setError(err.message);
                 });
-
-                console.log("Installing dependencies...");
-                const installProcess = await wc.spawn('npm', ['install']);
-                if (await installProcess.exit !== 0) {
-                    throw new Error('Dependency installation failed');
-                }
                 
-                console.log("Starting dev server...");
-                await wc.spawn('npm', ['run', 'dev']);
-                
-                // Note: The 'server-ready' event will set the URL and mark loading as complete.
+                // UI is ready to be shown, setup will continue in the terminal
+                setIsLoading(false);
 
             } catch (err) {
                 console.error("Failed to initialize WebContainer:", err);
                 setError(err instanceof Error ? err.message : String(err));
-            } finally {
                 setIsLoading(false);
             }
         };

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { Terminal as XtermTerminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
@@ -5,66 +6,69 @@ import { useWebContainer } from '../WebContainerProvider.tsx';
 
 export const Terminal: React.FC = () => {
     const terminalRef = useRef<HTMLDivElement>(null);
-    const { webContainer, isLoading } = useWebContainer();
+    const { webContainer } = useWebContainer();
     const isTerminalAttached = useRef(false);
 
     useEffect(() => {
-        if (isLoading || !webContainer || isTerminalAttached.current || !terminalRef.current) {
+        if (!webContainer || isTerminalAttached.current || !terminalRef.current) {
             return;
         }
 
+        isTerminalAttached.current = true;
         const terminal = new XtermTerminal({
             cursorBlink: true,
+            convertEol: true,
             theme: { background: 'transparent', foreground: '#e5e5e5', cursor: 'var(--accent-primary)' },
-            fontFamily: 'monospace', fontSize: 14, allowProposedApi: true
+            fontFamily: 'monospace', fontSize: 14,
         });
         const fitAddon = new FitAddon();
         terminal.loadAddon(fitAddon);
         terminal.open(terminalRef.current);
         fitAddon.fit();
+        
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => fitAddon.fit());
+        });
+        resizeObserver.observe(terminalRef.current);
 
-        const attachShell = async () => {
-            const shellProcess = await webContainer.spawn('jsh');
-            isTerminalAttached.current = true;
-            
-            shellProcess.output.pipeTo(new WritableStream({
+        const runSetup = async () => {
+            terminal.writeln('Welcome to CodeCraft IDE!');
+            terminal.writeln('--------------------------');
+            terminal.writeln('\x1b[1;33mStarting environment setup...\x1b[0m');
+
+            // 1. Install dependencies
+            terminal.writeln('\n\x1b[1;34m> npm install\x1b[0m');
+            const installProcess = await webContainer.spawn('npm', ['install']);
+            installProcess.output.pipeTo(new WritableStream({
                 write(data) {
                     terminal.write(data);
                 }
             }));
-
-            const input = shellProcess.input.getWriter();
-            terminal.onData(data => {
-                input.write(data);
-            });
-
-            const resizeObserver = new ResizeObserver(() => {
-                requestAnimationFrame(() => {
-                    fitAddon.fit();
-                    shellProcess.resize({
-                        cols: terminal.cols,
-                        rows: terminal.rows
-                    });
-                });
-            });
-            
-            if (terminalRef.current) {
-                 resizeObserver.observe(terminalRef.current);
+            const installExitCode = await installProcess.exit;
+            if (installExitCode !== 0) {
+                terminal.writeln(`\x1b[1;31mInstallation failed with exit code ${installExitCode}\x1b[0m`);
+                return;
             }
-            
-            return () => {
-                terminal.dispose();
-                resizeObserver.disconnect();
-                isTerminalAttached.current = false;
-            };
+            terminal.writeln('\x1b[1;32mDependencies installed successfully.\x1b[0m');
+
+            // 2. Start dev server
+            terminal.writeln('\n\x1b[1;34m> npm run dev\x1b[0m');
+            const devProcess = await webContainer.spawn('npm', ['run', 'dev']);
+            devProcess.output.pipeTo(new WritableStream({
+                write(data) {
+                    terminal.write(data);
+                }
+            }));
         };
 
-        const cleanupPromise = attachShell();
+        runSetup();
 
         return () => {
-            cleanupPromise.then(cleanup => cleanup());
+            resizeObserver.disconnect();
+            terminal.dispose();
+            isTerminalAttached.current = false;
         };
-    }, [webContainer, isLoading]);
+    }, [webContainer]);
 
     return (
         <div className="bg-[var(--ui-panel-bg)] backdrop-blur-md h-full w-full">
