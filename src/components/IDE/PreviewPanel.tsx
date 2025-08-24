@@ -112,7 +112,18 @@ const PreviewPanel = ({ files }: PreviewPanelProps) => {
                 }
                 
                 setStatus('starting-server');
-                const devProcess = await wc.spawn('npm', ['run', 'dev']);
+                
+                const devProcessArgs = ['run', 'dev', '--', '--host'];
+                const indexHtmlFile = files.find(f => f.name.endsWith('index.html'));
+
+                if (indexHtmlFile && indexHtmlFile.name !== 'index.html') {
+                    const rootDir = indexHtmlFile.name.substring(0, indexHtmlFile.name.lastIndexOf('/'));
+                    if (rootDir) {
+                        devProcessArgs.push('--root', rootDir);
+                    }
+                }
+
+                const devProcess = await wc.spawn('npm', devProcessArgs);
                 processRef.current = devProcess;
 
                 devProcess.output.pipeTo(new WritableStream({
