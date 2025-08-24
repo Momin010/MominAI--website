@@ -18,11 +18,9 @@ const AiFileGeneratorModal: React.FC<AiFileGeneratorModalProps> = ({ isOpen, onC
 
   useEffect(() => {
     if (isOpen) {
-        // Reset state when modal opens
         setFilename('');
         setPrompt('');
         setIsGenerating(false);
-        // Focus the input field
         setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
@@ -42,6 +40,7 @@ const AiFileGeneratorModal: React.FC<AiFileGeneratorModalProps> = ({ isOpen, onC
     setIsGenerating(true);
     try {
       await onSubmit(basePath, filename, prompt);
+      onClose(); // Close on success
     } catch (error) {
       const message = error instanceof Error ? error.message : "An unknown error occurred.";
       addNotification({ message, type: 'error' });
@@ -56,11 +55,11 @@ const AiFileGeneratorModal: React.FC<AiFileGeneratorModalProps> = ({ isOpen, onC
       onClick={onClose}
     >
       <div 
-        className="bg-[var(--ui-panel-bg-heavy)] backdrop-blur-lg text-white rounded-lg shadow-xl w-full max-w-lg p-6 border border-[var(--ui-border)] animate-float-in"
+        className="bg-[var(--background-secondary)] text-white rounded-lg shadow-2xl w-full max-w-lg p-6 border border-[var(--border-color)] animate-fade-in-up"
         onClick={e => e.stopPropagation()}
       >
         <h2 className="text-xl font-bold mb-4">New File with AI</h2>
-        <p className="text-sm text-gray-400 mb-2">Generating file in: <span className="font-mono bg-black/20 px-1 py-0.5 rounded">{basePath === '' ? '/' : basePath}</span></p>
+        <p className="text-sm text-[var(--gray)] mb-2">Generating file in: <span className="font-mono bg-[var(--gray-dark)] px-1 py-0.5 rounded">{basePath === '' ? '/' : basePath}</span></p>
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -74,7 +73,7 @@ const AiFileGeneratorModal: React.FC<AiFileGeneratorModalProps> = ({ isOpen, onC
               value={filename}
               onChange={(e) => setFilename(e.target.value)}
               placeholder="e.g., component.tsx or utils.py"
-              className="w-full bg-black/30 p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-all"
               required
             />
           </div>
@@ -88,7 +87,7 @@ const AiFileGeneratorModal: React.FC<AiFileGeneratorModalProps> = ({ isOpen, onC
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="e.g., 'A React counter component with increment and decrement buttons' or 'A Python function to download a file from a URL'"
-              className="w-full bg-black/30 p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-all resize-y"
               rows={4}
               required
             ></textarea>
@@ -99,14 +98,14 @@ const AiFileGeneratorModal: React.FC<AiFileGeneratorModalProps> = ({ isOpen, onC
               type="button"
               onClick={onClose}
               disabled={isGenerating}
-              className="px-4 py-2 rounded-md bg-gray-600 hover:bg-gray-500 text-sm font-medium transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-md bg-[var(--gray-light)] hover:bg-[var(--gray)] text-white text-sm font-semibold transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isGenerating}
-              className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-wait"
+              className="px-4 py-2 rounded-md bg-[var(--accent)] hover:brightness-125 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-wait"
             >
               {isGenerating ? 'Generating...' : 'Generate File'}
             </button>

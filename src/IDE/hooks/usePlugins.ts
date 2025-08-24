@@ -14,7 +14,7 @@ export const usePlugins = (plugins: Plugin[], api: IDEApi) => {
                 Object.keys(activePlugins.current).forEach(pluginId => {
                     if (!enabledPlugins[pluginId]) {
                         console.log(`Deactivating plugin: ${pluginId}`);
-                        activePlugins.current[pluginId].deactivate(api);
+                        (activePlugins.current[pluginId] as Plugin).deactivate(api);
                         delete activePlugins.current[pluginId];
                     }
                 });

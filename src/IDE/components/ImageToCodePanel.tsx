@@ -24,7 +24,6 @@ const ImageToCodePanel: React.FC = () => {
     };
 
     useEffect(() => {
-      // Cleanup when the component unmounts
       return () => cleanup();
     }, []);
 
@@ -86,11 +85,13 @@ const ImageToCodePanel: React.FC = () => {
     const isCameraActive = !!videoRef.current?.srcObject;
 
     return (
-        <div className="bg-[var(--ui-panel-bg)] text-white w-full h-full flex flex-col p-4 overflow-y-auto">
+        <div className="bg-transparent text-white w-full h-full flex flex-col p-4 overflow-y-auto">
+             <div className="p-2 border-b border-[var(--border-color)] flex-shrink-0 mb-4">
+                <h2 className="text-sm font-bold uppercase tracking-wider">Image to Code</h2>
+            </div>
             <div className="flex-grow flex flex-col items-center justify-center">
-                <div className="w-full max-w-2xl">
-                    <h2 className="text-xl font-bold mb-4 text-center">Generate UI from Image</h2>
-                    <div className="w-full h-64 bg-black/20 rounded-lg flex items-center justify-center mb-4">
+                <div className="w-full">
+                    <div className="w-full h-64 bg-[var(--gray-dark)]/50 border border-dashed border-[var(--border-color)] rounded-lg flex items-center justify-center mb-4 overflow-hidden">
                         {imageSrc && <img src={imageSrc} className="max-w-full max-h-full object-contain rounded-lg" />}
                         {isCameraActive && <video ref={videoRef} autoPlay className="w-full h-full object-contain rounded-lg" />}
                         {!imageSrc && !isCameraActive && (
@@ -101,18 +102,18 @@ const ImageToCodePanel: React.FC = () => {
                     </div>
 
                      <div className="flex items-center justify-center space-x-4 mb-4">
-                        <label className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded cursor-pointer transition-colors">
+                        <label className="bg-[var(--gray-light)] hover:bg-[var(--gray)] text-white font-bold py-2 px-4 rounded-md cursor-pointer transition-colors text-sm">
                             Upload Image
                             <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                         </label>
-                        <button onClick={isCameraActive ? takePicture : startCamera} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition-colors">
+                        <button onClick={isCameraActive ? takePicture : startCamera} className="bg-[var(--accent)] hover:brightness-125 text-white font-bold py-2 px-4 rounded-md transition-colors text-sm">
                             {isCameraActive ? 'Take Picture' : 'Use Camera'}
                         </button>
                     </div>
 
-                    <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Add a hint (e.g., 'This is a login form, make it responsive')" className="w-full bg-black/30 p-2 rounded mb-4 text-sm outline-none focus:ring-2 focus:ring-blue-500" rows={2}/>
+                    <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Add a hint (e.g., 'This is a login form, make it responsive')" className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md mb-4 text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] transition-colors resize-y" rows={2}/>
 
-                    <button onClick={handleSubmit} disabled={isLoading || !imageSrc} className="w-full px-4 py-2 rounded bg-green-600 hover:bg-green-500 text-white font-bold disabled:bg-gray-500 disabled:cursor-wait transition-colors">
+                    <button onClick={handleSubmit} disabled={isLoading || !imageSrc} className="w-full px-4 py-2 rounded-md bg-green-600 hover:bg-green-700 text-white font-bold disabled:bg-gray-500 disabled:cursor-wait transition-colors">
                         {isLoading ? 'Generating...' : 'Generate Code'}
                     </button>
                 </div>

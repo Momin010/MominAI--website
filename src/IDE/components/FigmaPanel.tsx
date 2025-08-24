@@ -45,8 +45,8 @@ const FigmaPanel: React.FC = () => {
     };
 
     return (
-        <div className="text-gray-200 h-full flex flex-col bg-[var(--ui-panel-bg)] backdrop-blur-md">
-            <div className="p-2 border-b border-[var(--ui-border)]">
+        <div className="text-gray-200 h-full flex flex-col bg-transparent">
+            <div className="p-2 border-b border-[var(--border-color)] flex-shrink-0">
                 <h2 className="text-sm font-bold uppercase tracking-wider">Figma Import</h2>
             </div>
             <div className="flex-grow overflow-y-auto p-4 space-y-4">
@@ -57,7 +57,7 @@ const FigmaPanel: React.FC = () => {
                         value={figmaUrl}
                         onChange={(e) => setFigmaUrl(e.target.value)}
                         placeholder="https://www.figma.com/file/..."
-                        className="w-full bg-black/30 p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] transition-colors"
                     />
                 </div>
                 <div>
@@ -67,9 +67,9 @@ const FigmaPanel: React.FC = () => {
                         value={figmaToken}
                         onChange={(e) => handleTokenChange(e.target.value)}
                         placeholder="Your personal access token"
-                        className="w-full bg-black/30 p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] transition-colors"
                     />
-                     <a href="https://www.figma.com/developers/api#access-tokens" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 hover:underline mt-1">
+                     <a href="https://www.figma.com/developers/api#access-tokens" target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--accent)] hover:underline mt-1">
                         How to get a token?
                     </a>
                 </div>
@@ -79,14 +79,14 @@ const FigmaPanel: React.FC = () => {
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         placeholder="e.g., 'focus on the login form, make it responsive'"
-                        className="w-full bg-black/30 p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] transition-colors resize-y"
                         rows={3}
                     />
                 </div>
                 <button
                     onClick={handleImport}
                     disabled={isLoading || !figmaUrl || !figmaToken}
-                    className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-wait"
+                    className="w-full bg-[var(--accent)]/80 hover:brightness-125 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-wait"
                 >
                     {isLoading ? 'Importing...' : 'Import with AI'}
                 </button>

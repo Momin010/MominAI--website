@@ -18,9 +18,9 @@ const DependencyTable: React.FC<{ title: string; dependencies: DependencyInfo[] 
     <div className="mb-4">
         <h3 className="font-bold text-white px-2 py-1">{title} ({dependencies.length})</h3>
         {dependencies.map(dep => (
-            <div key={dep.name} className="p-2 border-b border-white/10">
+            <div key={dep.name} className="p-2 border-b border-white/5 hover:bg-white/5">
                 <div className="flex justify-between items-center">
-                    <span className="font-mono text-blue-300">{dep.name}</span>
+                    <span className="font-mono text-[var(--accent)]">{dep.name}</span>
                     <div>
                         <span className="font-mono text-gray-400 mr-2">{dep.version}</span>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(dep.status)}`}>{dep.status}</span>
@@ -34,8 +34,8 @@ const DependencyTable: React.FC<{ title: string; dependencies: DependencyInfo[] 
 
 const DependencyPanel: React.FC<DependencyPanelProps> = ({ report }) => {
     return (
-        <div className="text-gray-200 h-full flex flex-col bg-[var(--ui-panel-bg)] backdrop-blur-md">
-            <div className="p-2 border-b border-[var(--ui-border)] flex-shrink-0">
+        <div className="text-gray-200 h-full flex flex-col bg-transparent">
+            <div className="p-2 border-b border-[var(--border-color)] flex-shrink-0">
                 <h2 className="text-sm font-bold uppercase tracking-wider">Dependency Analysis</h2>
             </div>
             <div className="flex-grow overflow-y-auto p-1 text-sm">

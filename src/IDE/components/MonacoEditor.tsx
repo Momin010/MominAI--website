@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { getInlineCodeSuggestion } from '../services/aiService';
 import { useAI } from '../contexts/AIContext';
@@ -24,7 +25,6 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
   const { performEditorAction } = useAI();
   const { theme } = useTheme();
 
-  // Use refs for props that change often to stabilize the main useEffect dependencies
   const onChangeRef = useRef(onChange);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
@@ -44,7 +44,6 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
     }
   }, []);
 
-  // Effect to create the editor instance once
   useEffect(() => {
     let resizeObserver: ResizeObserver | null = null;
     let suggestionProvider: any = null;
@@ -54,21 +53,28 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
         base: 'vs-dark',
         inherit: true,
         rules: [
-            { token: 'comment', foreground: '6a9955' },
-            { token: 'keyword', foreground: 'c586c0' },
+            { token: 'comment', foreground: '6a9955', fontStyle: 'italic' },
+            { token: 'keyword', foreground: 'c586c0', fontStyle: 'bold' },
             { token: 'string', foreground: 'ce9178' },
             { token: 'number', foreground: 'b5cea8' },
+            { token: 'type', foreground: '4ec9b0' },
+            { token: 'delimiter', foreground: 'd4d4d4' },
+            { token: 'tag', foreground: '569cd6' },
+            { token: 'attribute.name', foreground: '9cdcfe' },
+            { token: 'attribute.value', foreground: 'ce9178' },
         ],
         colors: {
-            'editor.background': '#00000000', // Fully transparent
-            'editor.foreground': '#e5e5e5',
+            'editor.background': '#00000000',
+            'editor.foreground': '#d4d4d4',
             'editorGutter.background': '#00000000',
             'editorLineNumber.foreground': '#858585',
             'editorLineNumber.activeForeground': '#c6c6c6',
-            'editorCursor.foreground': 'var(--accent-secondary)',
-            'editor.selectionBackground': '#ffffff15',
+            'editorCursor.foreground': 'var(--accent)',
+            'editor.selectionBackground': 'rgba(79, 70, 229, 0.3)',
             'editorWidget.background': '#25252c',
             'minimap.background': '#00000000',
+            'editorHoverWidget.background': 'var(--background-secondary)',
+            'editorHoverWidget.border': 'var(--border-color)',
         }
       });
       
@@ -81,15 +87,14 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
         inlineSuggest: { enabled: true },
         contextmenu: true,
         glyphMargin: true,
+        padding: { top: 10 },
       });
       editorInstance.current = editor;
 
-      // --- Add Contextual AI Actions ---
       editor.addAction({ id: 'ai-explain-code', label: 'AI: Explain Selection', contextMenuGroupId: 'navigation', contextMenuOrder: 1.5, precondition: 'editorHasSelection', run: (ed: any) => { const sel = ed.getSelection(); if (sel) { const txt = ed.getModel().getValueInRange(sel); performEditorActionRef.current('explain', txt, ed.getModel().uri.path); } } });
       editor.addAction({ id: 'ai-refactor-code', label: 'AI: Refactor Selection', contextMenuGroupId: 'navigation', contextMenuOrder: 1.6, precondition: 'editorHasSelection', run: (ed: any) => { const sel = ed.getSelection(); if (sel) { const txt = ed.getModel().getValueInRange(sel); performEditorActionRef.current('refactor', txt, ed.getModel().uri.path); } } });
       editor.addAction({ id: 'ai-find-bugs', label: 'AI: Find Bugs in Selection', contextMenuGroupId: 'navigation', contextMenuOrder: 1.7, precondition: 'editorHasSelection', run: (ed: any) => { const sel = ed.getSelection(); if (sel) { const txt = ed.getModel().getValueInRange(sel); performEditorActionRef.current('find_bugs', txt, ed.getModel().uri.path); } } });
 
-      // --- Breakpoint click handler ---
       editor.onMouseDown((event: any) => {
         if (event.target.type === window.monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
           const modelPath = editor.getModel()?.uri.path;
@@ -107,7 +112,6 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
         onChangeRef.current(editor.getValue());
       });
 
-      // --- AI Inline Suggestions Provider ---
       suggestionProvider = window.monaco.languages.registerInlineCompletionsProvider({ pattern: '**/*' }, {
         async provideInlineCompletions(model: any, position: any, context: any, token: any) {
           if (suggestionTimeout.current) { clearTimeout(suggestionTimeout.current); }
@@ -133,7 +137,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
     }
 
     return () => {
-      if (!editorInstance.current) { // Prevent cleanup if editor was never created
+      if (!editorInstance.current) {
           resizeObserver?.disconnect();
           suggestionProvider?.dispose();
           if (suggestionTimeout.current) { clearTimeout(suggestionTimeout.current); }
@@ -141,14 +145,12 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
     };
   }, [isMonacoLoaded]);
 
-  // Effect to handle editor disposal
   useEffect(() => () => {
       editorInstance.current?.dispose();
       editorInstance.current = null;
   }, []);
 
 
-  // Effect to switch models and handle content changes
   useEffect(() => {
       if (editorInstance.current && path) {
           const uri = window.monaco.Uri.parse(path);
@@ -164,7 +166,6 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
       }
   }, [path, value, isMonacoLoaded]);
 
-  // --- Update Breakpoint Decorations ---
   useEffect(() => {
     if (editorInstance.current && window.monaco && editorInstance.current.getModel()?.uri.path === path) {
       const newDecorations = breakpoints.map(lineNumber => ({
@@ -173,20 +174,16 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
       }));
       decorations.current = editorInstance.current.deltaDecorations(decorations.current, newDecorations);
     } else {
-       // Clear old decorations when switching files if they are not part of the new model's state
        decorations.current = editorInstance.current?.deltaDecorations(decorations.current, []) || [];
     }
   }, [breakpoints, path]);
   
-  // Update theme - This is now handled at creation, but could be used for dynamic theme switching
   useEffect(() => {
     if (window.monaco) {
-      // For now, we stick to our glass theme
       window.monaco.editor.setTheme('glass-theme');
     }
   }, [theme]);
   
-  // Update diagnostics
   useEffect(() => {
     if (window.monaco && path) {
       const model = window.monaco.editor.getModel(window.monaco.Uri.parse(path));

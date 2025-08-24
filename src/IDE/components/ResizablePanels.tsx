@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 
 interface ResizablePanelsProps {
@@ -38,12 +39,10 @@ const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel,
         if (divider === 'left') {
           const dx = moveEvent.clientX - startX;
           const newWidth = startLeftWidth + (dx / containerRect.width) * 100;
-          // Prevent main panel from becoming too small
           setLeftWidth(Math.max(15, Math.min(newWidth, 100 - (isRightVisible ? rightWidth : 0) - 15)));
         } else if (divider === 'right') {
           const dx = startX - moveEvent.clientX;
           const newWidth = startRightWidth + (dx / containerRect.width) * 100;
-          // Prevent main panel from becoming too small
           setRightWidth(Math.max(15, Math.min(newWidth, 100 - (isLeftVisible ? leftWidth : 0) - 15)));
         } else if (divider === 'bottom') {
           const dy = startY - moveEvent.clientY;
@@ -76,15 +75,14 @@ const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel,
   const finalRightWidth = isRightVisible ? rightWidth : 0;
   const finalBottomHeight = isBottomVisible ? bottomHeight : 0;
   
-  const mainPanelWidth = 100 - finalLeftWidth - finalRightWidth;
-  const mainPanelHeight = 100 - finalBottomHeight;
+  const mainContentWidth = 100 - finalLeftWidth - finalRightWidth;
+  const mainContentHeight = 100 - finalBottomHeight;
 
   return (
-    <div ref={containerRef} className="w-full h-full flex overflow-hidden rounded-[var(--ui-border-radius)] shadow-lg">
-      {/* Left Panel */}
+    <div ref={containerRef} className="w-full h-full flex overflow-hidden">
       {isLeftVisible && (
         <>
-          <div style={{ width: `${finalLeftWidth}%` }} className="h-full overflow-auto">
+          <div style={{ width: `${finalLeftWidth}%` }} className="h-full overflow-auto bg-[var(--background-secondary)]/70 backdrop-blur-md rounded-lg border border-[var(--border-color)]">
             {leftPanel}
           </div>
           
@@ -92,27 +90,18 @@ const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel,
             onMouseDown={(e) => startDrag('left', e)}
             className="w-1.5 h-full bg-transparent cursor-col-resize group flex items-center justify-center"
           >
-            <div className="w-px h-full bg-[var(--ui-border)] group-hover:bg-[var(--accent-primary)] transition-colors duration-300"></div>
+            <div className="w-px h-full bg-transparent group-hover:bg-[var(--accent)] transition-colors duration-300"></div>
           </div>
         </>
       )}
 
-      {/* Center Panels (Main and Right) */}
-      <div style={{ width: `${mainPanelWidth}%` }} className="h-full flex flex-col">
-        {/* Main Content Area */}
-        <div style={{ height: `${mainPanelHeight}%` }} className="w-full overflow-hidden">
+      <div style={{ width: `${mainContentWidth}%` }} className="h-full flex flex-col gap-2">
+        <div style={{ height: `${mainContentHeight}%` }} className="w-full overflow-hidden">
            {mainPanel}
         </div>
         
         {isBottomVisible && (
           <>
-            <div
-              onMouseDown={(e) => startDrag('bottom', e)}
-              className="h-1.5 w-full bg-transparent cursor-row-resize group flex items-center justify-center"
-            >
-              <div className="h-px w-full bg-[var(--ui-border)] group-hover:bg-[var(--accent-primary)] transition-colors duration-300"></div>
-            </div>
-            
             <div style={{ height: `${finalBottomHeight}%` }} className="w-full overflow-hidden">
               {bottomPanel}
             </div>
@@ -126,7 +115,7 @@ const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel,
             onMouseDown={(e) => startDrag('right', e)}
             className="w-1.5 h-full bg-transparent cursor-col-resize group flex items-center justify-center"
           >
-            <div className="w-px h-full bg-[var(--ui-border)] group-hover:bg-[var(--accent-primary)] transition-colors duration-300"></div>
+             <div className="w-px h-full bg-transparent group-hover:bg-[var(--accent)] transition-colors duration-300"></div>
           </div>
 
           <div style={{ width: `${finalRightWidth}%` }} className="h-full overflow-auto">

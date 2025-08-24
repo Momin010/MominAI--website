@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { fetchGithubUser } from '../services/githubService';
@@ -79,7 +81,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         if (error) {
             addNotification({ type: 'error', message: `Sign out failed: ${error.message}` });
         }
-        // Also clear credentials
         setLocalSupabaseUrl('');
         setLocalSupabaseAnonKey('');
         setSupabaseUrl(null);
@@ -116,26 +117,25 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
 
     return (
-        <div className="text-gray-200 h-full flex flex-col bg-[var(--ui-panel-bg)] backdrop-blur-md">
-            <div className="p-2 border-b border-[var(--ui-border)]">
+        <div className="text-gray-200 h-full flex flex-col bg-transparent">
+            <div className="p-2 border-b border-[var(--border-color)] flex-shrink-0">
                 <h2 className="text-sm font-bold uppercase tracking-wider">Settings</h2>
             </div>
             <div className="flex-grow overflow-y-auto p-4 space-y-6">
-                {/* Gemini API Key Section */}
                 <div>
                     <h3 className="text-md font-semibold mb-2 text-white">Gemini API Key</h3>
                     {geminiApiKey ? (
-                        <div className="bg-black/20 p-4 rounded-lg flex items-center justify-between">
+                        <div className="bg-[var(--gray-dark)]/50 border border-[var(--border-color)] p-4 rounded-lg flex items-center justify-between">
                             <p className="text-sm text-green-400">API Key is set and active.</p>
                             <button onClick={handleClearGeminiKey} className="bg-red-500/80 hover:bg-red-500/70 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
                                 Clear Key
                             </button>
                         </div>
                     ) : (
-                        <div className="bg-black/20 p-4 rounded-lg">
+                        <div className="bg-[var(--gray-dark)]/50 border border-[var(--border-color)] p-4 rounded-lg">
                             <p className="text-sm text-gray-400 mb-3">
                                 Provide your own Gemini API key to enable all AI features. 
-                                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-primary)] hover:underline ml-1">
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:underline ml-1">
                                     Get a key from Google AI Studio.
                                 </a>
                             </p>
@@ -145,9 +145,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                                     placeholder="Enter your API Key..."
                                     value={localGeminiKey}
                                     onChange={(e) => setLocalGeminiKey(e.target.value)}
-                                    className="flex-grow bg-black/30 p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+                                    className="flex-grow bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] transition-colors"
                                 />
-                                <button onClick={handleSaveGeminiKey} className="bg-[var(--accent-primary)]/80 hover:bg-[var(--accent-primary)]/70 text-black font-bold px-4 rounded-lg transition-colors">
+                                <button onClick={handleSaveGeminiKey} className="bg-[var(--accent)]/80 hover:brightness-125 text-white font-semibold px-4 py-2 rounded-md transition-colors">
                                     Save
                                 </button>
                             </div>
@@ -155,103 +155,74 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     )}
                 </div>
 
-                 {/* Supabase Authentication Section */}
+                {/* GitHub Integration Section */}
                 <div>
-                    <h3 className="text-md font-semibold mb-2 text-white">Supabase Account</h3>
-                     {supabaseUser ? (
-                        <div className="bg-black/20 p-4 rounded-lg flex items-center justify-between">
-                            <p className="text-sm">Connected as <span className="font-bold text-white">{supabaseUser.email}</span></p>
-                            <button onClick={handleSupabaseDisconnect} className="bg-red-500/80 hover:bg-red-500/70 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
-                                Disconnect
-                            </button>
+                    <h3 className="text-md font-semibold mb-2 text-white">GitHub Integration</h3>
+                    {githubUser ? (
+                        <div className="bg-[var(--gray-dark)]/50 border border-[var(--border-color)] p-4 rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <img src={githubUser.avatar_url} alt="GitHub avatar" className="w-10 h-10 rounded-full" />
+                                    <div>
+                                        <p className="font-semibold">{githubUser.login}</p>
+                                        <a href={githubUser.html_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--accent)] hover:underline">View Profile</a>
+                                    </div>
+                                </div>
+                                <button onClick={handleGithubDisconnect} className="bg-red-500/80 hover:bg-red-500/70 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
+                                    Disconnect
+                                </button>
+                            </div>
                         </div>
                     ) : (
-                        <div className="bg-black/20 p-4 rounded-lg">
-                            <p className="text-sm text-gray-400 mb-4">
-                                Enter your Supabase project URL and Anon Key to enable cloud sync. You can find these in your project's API settings.
-                            </p>
-                            <div className="space-y-3 mb-4">
-                                <div>
-                                    <label className="text-xs text-gray-400 mb-1 block">Project URL</label>
-                                    <input type="text" placeholder="https://<project-id>.supabase.co" value={localSupabaseUrl} onChange={(e) => setLocalSupabaseUrl(e.target.value)} className="w-full bg-black/30 p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" />
-                                </div>
-                                <div>
-                                    <label className="text-xs text-gray-400 mb-1 block">Anon (Public) Key</label>
-                                    <input type="password" placeholder="Your anon key" value={localSupabaseAnonKey} onChange={(e) => setLocalSupabaseAnonKey(e.target.value)} className="w-full bg-black/30 p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent-primary)]" />
-                                </div>
-                                <button onClick={handleSaveSupabaseConfig} className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-3 rounded-lg transition-colors">
-                                    Save Configuration
-                                </button>
-                            </div>
-                            <div className="mt-4 pt-4 border-t border-white/10 text-center">
-                                <p className="text-gray-400 mb-3 text-sm">
-                                    {supabaseUrl && supabaseAnonKey ? 'Configuration saved. You can now connect.' : 'Save your configuration to enable connection.'}
-                                </p>
-                                <button
-                                    onClick={() => setIsSupabaseAuthModalOpen(true)}
-                                    disabled={!supabaseUrl || !supabaseAnonKey}
-                                    className="bg-green-500/80 hover:bg-green-500/70 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Connect with Magic Link
-                                </button>
-                            </div>
-                        </div>
+                        <button onClick={() => setIsGithubAuthModalOpen(true)} className="w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                            Connect to GitHub
+                        </button>
                     )}
                 </div>
 
-                {/* GitHub Authentication Section */}
+                {/* Supabase Integration Section */}
                 <div>
-                    <h3 className="text-md font-semibold mb-2 text-white">GitHub Account</h3>
-                    {isLoadingUser ? (
-                        <div className="bg-black/20 p-4 rounded-lg flex items-center justify-center">
-                            <p>Verifying token...</p>
-                        </div>
-                    ) : githubUser ? (
-                        <div className="bg-black/20 p-4 rounded-lg flex items-center justify-between">
-                            <div className="flex items-center">
-                                <img src={githubUser.avatar_url} alt={githubUser.login} className="w-10 h-10 rounded-full mr-3" />
-                                <div>
-                                    <p className="font-bold text-white">{githubUser.login}</p>
-                                    <a href={githubUser.html_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--accent-primary)] hover:underline">
-                                        View Profile
-                                    </a>
-                                </div>
-                            </div>
-                            <button onClick={handleGithubDisconnect} className="bg-red-500/80 hover:bg-red-500/70 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
+                    <h3 className="text-md font-semibold mb-2 text-white">Supabase Cloud Sync</h3>
+                    {supabaseUser ? (
+                        <div className="bg-[var(--gray-dark)]/50 border border-[var(--border-color)] p-4 rounded-lg flex items-center justify-between">
+                             <p className="text-sm">Connected as <span className="font-semibold">{supabaseUser.email}</span></p>
+                             <button onClick={handleSupabaseDisconnect} className="bg-red-500/80 hover:bg-red-500/70 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
                                 Disconnect
                             </button>
                         </div>
                     ) : (
-                        <div className="bg-black/20 p-4 rounded-lg text-center">
-                            <p className="text-gray-400 mb-3">Connect your GitHub account to use Gist-based Source Control features.</p>
-                            <button onClick={() => setIsGithubAuthModalOpen(true)} className="bg-[var(--accent-primary)]/80 hover:bg-[var(--accent-primary)]/70 text-black font-bold py-2 px-4 rounded-lg transition-colors">
-                                Connect to GitHub
-                            </button>
+                         <div className="bg-[var(--gray-dark)]/50 border border-[var(--border-color)] p-4 rounded-lg space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Supabase URL</label>
+                                <input type="text" value={localSupabaseUrl} onChange={(e) => setLocalSupabaseUrl(e.target.value)} placeholder="https://<project-ref>.supabase.co" className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]" />
+                            </div>
+                             <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Supabase Anon Key</label>
+                                <input type="password" value={localSupabaseAnonKey} onChange={(e) => setLocalSupabaseAnonKey(e.target.value)} placeholder="Your anon public key" className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]" />
+                            </div>
+                            <div className="flex justify-end space-x-2">
+                                <button onClick={handleSaveSupabaseConfig} className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1.5 rounded-lg text-sm font-semibold">Save Config</button>
+                                <button onClick={() => setIsSupabaseAuthModalOpen(true)} disabled={!supabaseUrl || !supabaseAnonKey} className="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm font-semibold disabled:opacity-50">Connect</button>
+                            </div>
                         </div>
                     )}
                 </div>
 
                 {/* Theme Selector Section */}
                 <div>
-                    <h3 className="text-md font-semibold mb-2 text-white">Appearance</h3>
-                    <div className="bg-black/20 p-4 rounded-lg">
-                        <label htmlFor="theme-select" className="block text-sm font-medium text-gray-300 mb-2">
-                            Color Theme
-                        </label>
-                        <select
-                            id="theme-select"
-                            value={theme}
-                            onChange={(e) => setTheme(e.target.value as any)}
-                            className="w-full bg-black/30 p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent-primary)]"
-                        >
-                            <option value="deep-space">Deep Space (Default)</option>
-                            <option value="nordic-light">Nordic Light</option>
-                        </select>
-                    </div>
+                    <h3 className="text-md font-semibold mb-2 text-white">Theme</h3>
+                    <select
+                        value={theme}
+                        onChange={(e) => setTheme(e.target.value as any)}
+                        className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                    >
+                        <option value="deep-space">Deep Space (Dark)</option>
+                        <option value="nordic-light">Nordic Light</option>
+                    </select>
                 </div>
             </div>
-            {isGithubAuthModalOpen && (
-                <GithubAuthModal 
+             {isGithubAuthModalOpen && (
+                <GithubAuthModal
                     onClose={() => setIsGithubAuthModalOpen(false)}
                     onConnect={(token) => {
                         setGithubToken(token);
@@ -260,10 +231,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     }}
                 />
             )}
-             {isSupabaseAuthModalOpen && (
-                <SupabaseAuthModal
-                    onClose={() => setIsSupabaseAuthModalOpen(false)}
-                    addNotification={addNotification}
+            {isSupabaseAuthModalOpen && (
+                <SupabaseAuthModal 
+                    onClose={() => setIsSupabaseAuthModalOpen(false)} 
+                    addNotification={addNotification} 
                 />
             )}
         </div>

@@ -16,7 +16,7 @@ interface ProblemsPanelProps {
 const ProblemIcon: React.FC<{ severity: Diagnostic['severity'] }> = ({ severity }) => {
     switch (severity) {
         case 'error':
-            return <Icons.AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />;
+            return <Icons.XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />;
         case 'warning':
             return <Icons.AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0" />;
         case 'info':
@@ -62,8 +62,8 @@ const ProblemsPanel: React.FC<ProblemsPanelProps> = ({ diagnostics, onProblemSel
     };
 
     return (
-        <div className="text-gray-200 h-full flex flex-col font-sans bg-[var(--ui-panel-bg)] backdrop-blur-md">
-            <div className="p-2 border-b border-[var(--ui-border)] flex-shrink-0">
+        <div className="text-gray-200 h-full flex flex-col font-sans bg-transparent">
+            <div className="p-2 border-b border-[var(--border-color)] flex-shrink-0">
                 <h2 className="text-sm font-bold uppercase tracking-wider">Problems ({problemsForActiveFile.length})</h2>
             </div>
             <div className="flex-grow overflow-y-auto p-1 text-sm">
@@ -74,7 +74,7 @@ const ProblemsPanel: React.FC<ProblemsPanelProps> = ({ diagnostics, onProblemSel
                         <h3 className="font-bold text-white px-2 py-1">{activeFile}</h3>
                         {problemsForActiveFile.map((problem, index) => (
                             <div key={index} className="border-b border-white/5 last:border-b-0">
-                                <div className="flex items-start p-2 pl-4 cursor-pointer hover:bg-white/10" onClick={() => onProblemSelect(activeFile!, problem.line)}>
+                                <div className="flex items-start p-2 pl-4 cursor-pointer hover:bg-[var(--gray-dark)]/50" onClick={() => onProblemSelect(activeFile!, problem.line)}>
                                     <div className="mr-2 pt-0.5"><ProblemIcon severity={problem.severity} /></div>
                                     <div className="flex-grow">
                                         <p>{problem.message} <span className="text-gray-500 ml-2">[{problem.source}]</span></p>
@@ -83,7 +83,7 @@ const ProblemsPanel: React.FC<ProblemsPanelProps> = ({ diagnostics, onProblemSel
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); handleSuggestFix(problem); }}
                                         disabled={isLoadingFix === problem.line}
-                                        className="text-xs bg-blue-600/50 hover:bg-blue-600 rounded px-2 py-0.5 ml-2 transition-colors disabled:opacity-50"
+                                        className="text-xs bg-[var(--accent)]/80 hover:brightness-125 text-white rounded px-2 py-0.5 ml-2 transition-colors disabled:opacity-50"
                                     >
                                         {isLoadingFix === problem.line ? '...' : 'Suggest Fix'}
                                     </button>
@@ -93,8 +93,8 @@ const ProblemsPanel: React.FC<ProblemsPanelProps> = ({ diagnostics, onProblemSel
                                         <pre className="text-red-400 whitespace-pre-wrap"><span className="select-none">- </span>{suggestion.original}</pre>
                                         <pre className="text-green-400 whitespace-pre-wrap"><span className="select-none">+ </span>{suggestion.fix}</pre>
                                         <div className="flex justify-end space-x-2 mt-2">
-                                            <button onClick={() => setSuggestion(null)} className="px-2 py-1 bg-gray-600 rounded">Cancel</button>
-                                            <button onClick={handleApplyFix} className="px-2 py-1 bg-green-600 rounded">Apply Fix</button>
+                                            <button onClick={() => setSuggestion(null)} className="px-2 py-1 bg-[var(--gray-light)] hover:bg-[var(--gray)] rounded text-xs font-semibold">Cancel</button>
+                                            <button onClick={handleApplyFix} className="px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-xs font-semibold">Apply Fix</button>
                                         </div>
                                     </div>
                                 )}

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useCommandPalette } from '../hooks/useCommandPalette';
 import type { Command } from '../types';
@@ -12,7 +13,6 @@ const CommandPalette: React.FC = () => {
     if (isOpen) {
       setSearchTerm('');
       setActiveIndex(0);
-      // Delay focus to allow modal animation
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
@@ -38,7 +38,6 @@ const CommandPalette: React.FC = () => {
       return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
   }, [filteredCommands]);
 
-  // Flatten the grouped commands for keyboard navigation
   const flatCommandList = useMemo(() => groupedCommands.flatMap(([, cmds]) => cmds), [groupedCommands]);
 
   useEffect(() => {
@@ -80,28 +79,29 @@ const CommandPalette: React.FC = () => {
       onClick={() => setIsOpen(false)}
     >
       <div 
-        className="bg-[var(--ui-panel-bg-heavy)] backdrop-blur-lg text-white rounded-lg shadow-xl w-full max-w-2xl border border-[var(--ui-border)] animate-float-in"
+        className="bg-[var(--background-secondary)]/90 backdrop-blur-lg text-white rounded-lg shadow-2xl w-full max-w-2xl border border-[var(--border-color)] animate-fade-in-up"
         onClick={e => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
-        <div className="p-2 border-b border-[var(--ui-border)]">
+        <div className="p-2 border-b border-[var(--border-color)]">
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a command..."
+            placeholder="Type a command or search..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
               setActiveIndex(0);
             }}
-            className="w-full bg-transparent p-2 text-lg outline-none"
+            className="w-full bg-transparent p-2 text-base outline-none placeholder:text-[var(--gray)]"
           />
         </div>
         <div className="max-h-[60vh] overflow-y-auto">
           {groupedCommands.length > 0 ? (
-             groupedCommands.map(([category, cmds]) => (
+             groupedCommands.map(([category, cmds], groupIndex) => (
                  <div key={category} className="p-2">
-                     <h3 className="text-xs font-bold uppercase text-gray-400 px-3 py-1">{category}</h3>
+                    {groupIndex > 0 && <div className="border-b border-[var(--border-color)] my-1"></div>}
+                     <h3 className="text-xs font-bold uppercase text-[var(--gray)] px-3 py-1">{category}</h3>
                      <ul>
                          {cmds.map((cmd) => {
                             const isSelected = flatCommandList[activeIndex]?.id === cmd.id;
@@ -109,8 +109,8 @@ const CommandPalette: React.FC = () => {
                                 <li
                                   key={cmd.id}
                                   onClick={() => handleCommandClick(cmd)}
-                                  className={`p-3 rounded-md cursor-pointer flex items-center justify-between text-base ${
-                                    isSelected ? 'bg-[var(--accent-primary)]/80 text-black' : 'hover:bg-white/10'
+                                  className={`p-3 rounded-md cursor-pointer flex items-center justify-between text-sm transition-colors ${
+                                    isSelected ? 'bg-[var(--accent)] text-white' : 'hover:bg-white/10'
                                   }`}
                                 >
                                   <span>{cmd.label}</span>

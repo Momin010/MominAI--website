@@ -43,13 +43,13 @@ const DebugConsolePanel: React.FC<DebugConsolePanelProps> = ({ messages, onClear
     }, [messages]);
 
     return (
-        <div className="text-gray-200 h-full flex flex-col font-sans bg-[var(--ui-panel-bg)] backdrop-blur-md">
-            <div className="p-2 border-b border-[var(--ui-border)] flex-shrink-0 flex justify-between items-center">
+        <div className="text-gray-200 h-full flex flex-col font-sans bg-transparent">
+            <div className="p-2 border-b border-[var(--border-color)] flex-shrink-0 flex justify-between items-center">
                 <h2 className="text-sm font-bold uppercase tracking-wider">Debug Console</h2>
                 <button 
                     onClick={onClear} 
                     title="Clear console" 
-                    className="p-1 rounded hover:bg-white/20 text-gray-400"
+                    className="p-1 rounded-full hover:bg-[var(--gray-dark)]/50 text-gray-400 transition-colors"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
                 </button>
@@ -59,7 +59,7 @@ const DebugConsolePanel: React.FC<DebugConsolePanelProps> = ({ messages, onClear
                     const fullMessageString = msg.message.join(' ');
                     const isThisMessageBeingFixed = isFixingWithAi === fullMessageString;
                     return (
-                        <div key={index} className={`flex items-start justify-between border-b border-white/5 py-1 px-2 ${getMessageStyle(msg.type)}`}>
+                        <div key={index} className={`flex items-start justify-between border-b border-white/5 py-1 px-2 hover:bg-white/5 ${getMessageStyle(msg.type)}`}>
                             <div className="flex items-start flex-grow min-w-0">
                                 <div className="mr-2 pt-0.5"><MessageIcon type={msg.type} /></div>
                                 <div className="whitespace-pre-wrap break-words">
@@ -71,7 +71,7 @@ const DebugConsolePanel: React.FC<DebugConsolePanelProps> = ({ messages, onClear
                                     <button
                                         onClick={() => onAiFixRequest(msg)}
                                         disabled={!!isFixingWithAi}
-                                        className="text-xs bg-blue-600 hover:bg-blue-500 rounded px-2 py-0.5 mr-2 transition-colors disabled:bg-gray-500 disabled:cursor-wait"
+                                        className="text-xs bg-[var(--accent)]/80 hover:brightness-125 text-white rounded px-2 py-0.5 mr-2 transition-all disabled:bg-gray-500 disabled:cursor-wait"
                                     >
                                         {isThisMessageBeingFixed ? 'Fixing...' : 'Fix with AI'}
                                     </button>

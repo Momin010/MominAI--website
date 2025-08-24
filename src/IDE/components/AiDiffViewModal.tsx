@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import type { FileAction, DiffLine } from '../types';
 import { useAI } from '../contexts/AIContext';
@@ -16,8 +17,8 @@ const DiffView: React.FC<{ original: string, modified: string }> = ({ original, 
     const diffLines = useMemo(() => generateDiff(original, modified), [original, modified]);
 
     return (
-        <div className="font-mono text-xs bg-[#0d1117] rounded-lg p-2 overflow-auto">
-            <pre>
+        <div className="font-mono text-xs bg-[var(--gray-dark)] rounded-lg p-2 overflow-auto border border-[var(--border-color)]">
+            <pre className='flex flex-col'>
                 {diffLines.map((line, index) => {
                     let lineClass = 'flex ';
                     let prefix = '';
@@ -95,17 +96,17 @@ const AiDiffViewModal: React.FC<AiDiffViewModalProps> = ({ isOpen, onClose, acti
 
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-[var(--ui-panel-bg-heavy)] text-white rounded-lg w-full max-w-4xl h-[80vh] flex flex-col p-6 border border-[var(--ui-border)] animate-float-in" onClick={e => e.stopPropagation()}>
+            <div className="bg-[var(--background-secondary)] text-white rounded-lg w-full max-w-4xl h-[80vh] flex flex-col p-6 border border-[var(--border-color)] shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
                 <h2 className="text-xl font-bold mb-4 flex-shrink-0">Review AI-Generated Changes</h2>
                 <div className="flex-grow overflow-y-auto space-y-4 pr-2">
                     {actions.map((action, index) => {
                         const originalFile = originalFiles.find(f => f.path === action.path);
                         const originalContent = originalFile?.content || '';
-                        const modifiedContent = action.content || ''; // FIX: Ensure content is a string
+                        const modifiedContent = action.content || '';
                         
                         return (
-                            <div key={index} className="bg-black/20 rounded-lg">
-                                <div className="p-2 border-b border-white/10 flex items-center">
+                            <div key={index} className="bg-[var(--gray-dark)]/50 rounded-lg border border-[var(--border-color)]">
+                                <div className="p-2 border-b border-[var(--border-color)] flex items-center">
                                     <span className={`px-1.5 py-0.5 text-xs rounded mr-2 font-semibold ${action.action === 'create' ? 'bg-green-600 text-white' : 'bg-yellow-600 text-black'}`}>
                                         {action.action.toUpperCase()}
                                     </span>
@@ -119,8 +120,8 @@ const AiDiffViewModal: React.FC<AiDiffViewModalProps> = ({ isOpen, onClose, acti
                     })}
                 </div>
                 <div className="flex justify-end space-x-3 mt-4 flex-shrink-0">
-                    <button onClick={onClose} className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-500">Cancel</button>
-                    <button onClick={handleApplyChanges} className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500">Confirm & Apply Changes</button>
+                    <button onClick={onClose} className="px-4 py-2 rounded-md bg-[var(--gray-light)] hover:bg-[var(--gray)] text-white font-semibold transition-colors">Cancel</button>
+                    <button onClick={handleApplyChanges} className="px-4 py-2 rounded-md bg-[var(--accent)] hover:brightness-125 text-white font-semibold transition-colors">Confirm & Apply Changes</button>
                 </div>
             </div>
         </div>

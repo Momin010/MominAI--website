@@ -1,15 +1,17 @@
 
 
-
-import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
 import { WebContainerProvider, useWebContainer } from './WebContainerProvider.tsx';
 import { useFileSystem } from './hooks/useFileSystem.ts';
-import { useLocalStorageState } from './hooks/useLocalStorageState.ts';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext.tsx';
-import { CommandPaletteProvider, useCommandPalette } from './hooks/useCommandPalette.ts';
-import { AIProvider, useAI } from './contexts/AIContext.tsx';
+import { useLocalStorageState } from '../hooks/useLocalStorageState.ts';
+import { ThemeProvider } from './contexts/ThemeContext.tsx';
+import { CommandPaletteProvider } from './hooks/useCommandPalette.tsx';
+import { AIProvider } from './contexts/AIContext.tsx';
+import { generateCodeForFile } from './services/aiService.ts';
+import { getAllFiles } from './utils/fsUtils.ts';
+
 
 // UI Components
 import Loader from './components/Loader.tsx';
@@ -25,6 +27,7 @@ import PreviewContainer from './components/PreviewContainer.tsx';
 import TabbedPanel from './components/TabbedPanel.tsx';
 import CommandPalette from './components/CommandPalette.tsx';
 import AiDiffViewModal from './components/AiDiffViewModal.tsx';
+import AiFileGeneratorModal from './components/AiFileGeneratorModal.tsx';
 
 // Panel Components
 import SearchPanel from './components/SearchPanel.tsx';
@@ -38,7 +41,7 @@ import FigmaPanel from './components/FigmaPanel.tsx';
 import ImageToCodePanel from './components/ImageToCodePanel.tsx';
 
 
-import type { Notification, BottomPanelView, FileAction, Diagnostic, ConsoleMessage, DependencyReport, StoryboardComponent } from './types.ts';
+import type { Notification, BottomPanelView, FileAction, Diagnostic, ConsoleMessage, DependencyReport, StoryboardComponent, SearchResult, FileSystemNode } from './types.ts';
 import { Icons } from './components/Icon.tsx';
 import { analyzeCode } from './services/languageService.ts';
 
@@ -117,32 +120,29 @@ const IDEWorkspace = () => {
     const [dependencyReport, setDependencyReport] = useState<DependencyReport | null>(null);
     const [storyboardComponents, setStoryboardComponents] = useState<StoryboardComponent[]>([]);
     const [diffModalState, setDiffModalState] = useState<{ isOpen: boolean; actions: FileAction[], originalFiles: { path: string, content: string }[], messageIndex?: number }>({ isOpen: false, actions: [], originalFiles: [] });
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isFileGeneratorOpen, setIsFileGeneratorOpen] = useState(false);
+    const [fileGenBasePath, setFileGenBasePath] = useState('/');
+    const { addNotification } = useNotifications();
     
     // Config State
-    const [githubToken, setGithubToken, clearGithubToken] = useLocalStorageState<string | null>('githubToken', null);
+    const [githubToken, setGithubToken] = useLocalStorageState<string | null>('githubToken', null);
 
     const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
-    const getFileContent = useCallback((path: string | null): string => {
+     const getFileContent = useCallback((path: string | null): string => {
         if (!path || !fs) return '';
         const parts = path.split('/').filter(p => p);
-        let node = fs;
+        let node: FileSystemNode = fs;
         for (const part of parts) {
             if (node.type === 'directory' && node.children[part]) {
-                const child = node.children[part];
-                 if(child.type === 'directory') {
-                     node = child;
-                 } else if (child.type === 'file' && parts.indexOf(part) === parts.length - 1) {
-                     return child.content;
-                 }
+                node = node.children[part];
             } else {
-                 const file = node.children[part];
-                 if(file?.type === 'file') {
-                    return file.content;
-                 }
+                return ''; // Not found
             }
         }
-        return '';
+        return node.type === 'file' ? node.content : '';
     }, [fs]);
     
     const runDiagnostics = useCallback((path: string | null) => {
@@ -181,6 +181,81 @@ const IDEWorkspace = () => {
         updateNode(path, content);
         runDiagnostics(path);
     }, [updateNode, runDiagnostics]);
+
+    const performSearch = useCallback((query: string, options: { isCaseSensitive: boolean; isRegex: boolean }) => {
+        if (!fs || !query) {
+          setSearchResults([]);
+          return;
+        }
+        setIsSearching(true);
+        const newResults: SearchResult[] = [];
+        const allFiles = getAllFiles(fs, "/");
+        
+        try {
+            const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), options.isCaseSensitive ? 'g' : 'gi');
+            
+            for (const file of allFiles) {
+                const lines = file.content.split('\n');
+                lines.forEach((line, lineIndex) => {
+                    let match;
+                    while ((match = regex.exec(line)) !== null) {
+                        newResults.push({
+                            path: file.path,
+                            line: lineIndex + 1,
+                            content: line,
+                            preMatch: line.substring(0, match.index),
+                            match: match[0],
+                            postMatch: line.substring(match.index + match[0].length),
+                        });
+                    }
+                });
+            }
+        } catch (e) {
+            addNotification({type: 'error', message: 'Invalid Search Query'});
+        }
+
+        setSearchResults(newResults);
+        setIsSearching(false);
+    }, [fs, addNotification]);
+
+    const replaceAll = useCallback(async (query: string, replaceWith: string, options: { isCaseSensitive: boolean; isRegex: boolean; }) => {
+        if (!fs || !query) return;
+
+        const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), options.isCaseSensitive ? 'g' : 'gi');
+        const allFiles = getAllFiles(fs, "/");
+        let changesMade = 0;
+
+        for (const file of allFiles) {
+            if (regex.test(file.content)) {
+                const newContent = file.content.replace(regex, replaceWith);
+                if (file.content !== newContent) {
+                    await updateNode(file.path, newContent);
+                    changesMade++;
+                }
+            }
+        }
+        addNotification({type: 'success', message: `Replaced all occurrences in ${changesMade} files.`});
+        setSearchResults([]);
+    }, [fs, updateNode, addNotification]);
+
+    const openAiFileGenerator = (path: string) => {
+        setFileGenBasePath(path || '/');
+        setIsFileGeneratorOpen(true);
+    };
+
+    const handleAiFileSubmit = async (basePath: string, filename: string, prompt: string) => {
+        const fullPath = basePath === '/' ? `/${filename}` : `${basePath}/${filename}`;
+        addNotification({ type: 'info', message: `Generating ${filename} with AI...` });
+        try {
+            const content = await generateCodeForFile(prompt, filename);
+            await createNode(fullPath, 'file', content);
+            addNotification({ type: 'success', message: `${filename} created successfully!` });
+            handleFileSelect(fullPath);
+        } catch (e) {
+            if (e instanceof Error) addNotification({ type: 'error', message: e.message });
+            throw e; // re-throw to keep modal open on error
+        }
+    };
     
     useEffect(() => {
         runDiagnostics(activeTab);
@@ -215,14 +290,21 @@ const IDEWorkspace = () => {
             fs={fs}
             setDiffModalState={setDiffModalState}
         >
-            <div className="w-full h-full bg-[var(--ui-panel-bg)] backdrop-blur-md flex flex-col gap-4">
+            <div className="w-full h-full bg-transparent flex flex-col p-2 gap-2">
                  <CommandPalette />
                  <AiDiffViewModal {...diffModalState} onClose={() => setDiffModalState(prev => ({ ...prev, isOpen: false }))} />
+                 <AiFileGeneratorModal
+                    isOpen={isFileGeneratorOpen}
+                    onClose={() => setIsFileGeneratorOpen(false)}
+                    onSubmit={handleAiFileSubmit}
+                    basePath={fileGenBasePath}
+                    addNotification={addNotification}
+                />
 
                 <TitleBar onTogglePanel={togglePanel} panelVisibility={panelVisibility} />
-                <div className="flex-grow flex min-h-0">
+                <div className="flex-grow flex min-h-0 gap-2">
                     {panelVisibility.left && <ActivityBar activeView={activeView} setActiveView={setActiveView} />}
-                    <div className={`flex-grow ${panelVisibility.left ? 'ml-4' : ''}`}>
+                    <div className="flex-grow">
                         <ResizablePanels
                             panelVisibility={panelVisibility}
                             leftPanel={
@@ -234,9 +316,15 @@ const IDEWorkspace = () => {
                                         deleteNode={deleteNode}
                                         renameNode={renameNode}
                                         moveNode={moveNode}
-                                        openAiFileGenerator={() => {}} // Placeholder
+                                        openAiFileGenerator={openAiFileGenerator}
                                     />
-                                    <SearchPanel performSearch={() => {}} isSearching={false} searchResults={[]} onResultClick={() => {}} replaceAll={async () => {}} />
+                                    <SearchPanel 
+                                        performSearch={performSearch} 
+                                        isSearching={isSearching} 
+                                        searchResults={searchResults} 
+                                        onResultClick={(path) => handleFileSelect(path)} 
+                                        replaceAll={replaceAll}
+                                     />
                                     <SourceControlPanel fs={fs!} replaceFs={() => {}} githubToken={githubToken} switchView={setActiveView} supabaseUser={null} />
                                     <StoryboardPanel components={storyboardComponents} readNode={getFileContent} />
                                     <FigmaPanel />
