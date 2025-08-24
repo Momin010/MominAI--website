@@ -14,9 +14,28 @@ const App = () => {
         }
     }, []);
     
-    // Manage body scroll based on the current view
+    // Manage root element styles to contain the view and control scrolling.
     useEffect(() => {
-        document.body.style.overflow = isIDEView ? 'hidden' : 'auto';
+        const rootEl = document.getElementById('root');
+        if (!rootEl) return;
+
+        if (isIDEView) {
+            // For the IDE, constrain the root to the viewport height and prevent overflow.
+            rootEl.style.height = '100vh';
+            rootEl.style.overflow = 'hidden';
+        } else {
+            // For the landing page, allow the root to grow with its content.
+            rootEl.style.height = 'auto';
+            rootEl.style.overflow = 'visible';
+        }
+
+        // Cleanup function to reset styles when the component unmounts.
+        return () => {
+            if (rootEl) {
+                rootEl.style.height = 'auto';
+                rootEl.style.overflow = 'visible';
+            }
+        };
     }, [isIDEView]);
 
 
