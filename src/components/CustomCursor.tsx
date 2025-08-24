@@ -6,7 +6,10 @@ const openHand = `data:image/svg+xml;utf8,%3Csvg width='48' height='48' viewBox=
 const closedHand = `data:image/svg+xml;utf8,%3Csvg width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 19.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5-1.5.67-1.5 1.5Z'/%3E%3Cpath d='M10 16.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5-1.5.67-1.5 1.5Z'/%3E%3Cpath d='M2 13.28V8.5c0-1.38 1.12-2.5 2.5-2.5h4c1.38 0 2.5 1.12 2.5 2.5v5.28'/%3E%3Cpath d='M14 11.28V8.5c0-1.38 1.12-2.5 2.5-2.5h1c1.38 0 2.5 1.12 2.5 2.5v2.78'/%3E%3Cpath d='M11 12.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5-1.5.67-1.5 1.5Z'/%3E%3Cpath d='M14 9.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5-1.5.67-1.5 1.5Z'/%3E%3C/svg%3E`;
 
 const CustomCursor = () => {
-    const [position, setPosition] = useState({ x: -100, y: -100 });
+    const [position, setPosition] = useState({ 
+        x: typeof window !== 'undefined' ? window.innerWidth / 2 : -100, 
+        y: typeof window !== 'undefined' ? window.innerHeight / 2 : -100 
+    });
     const [isHovering, setIsHovering] = useState(false);
     const [isMouseDown, setIsMouseDown] = useState(false);
     const [isFinePointer, setIsFinePointer] = useState(false);
@@ -23,9 +26,7 @@ const CustomCursor = () => {
 
     useEffect(() => {
         if (isFinePointer) {
-            const styleElement = document.createElement('style');
-            styleElement.innerHTML = '*, a, button { cursor: none !important; }';
-            document.head.appendChild(styleElement);
+            document.body.classList.add('custom-cursor-active');
 
             const updatePosition = (e: MouseEvent) => {
                 setPosition({ x: e.clientX, y: e.clientY });
@@ -43,9 +44,7 @@ const CustomCursor = () => {
             document.addEventListener('mouseup', handleMouseUp);
             
             return () => {
-                if (document.head.contains(styleElement)) {
-                    document.head.removeChild(styleElement);
-                }
+                document.body.classList.remove('custom-cursor-active');
                 document.removeEventListener('mousemove', updatePosition);
                 document.removeEventListener('mouseover', handleMouseOver);
                 document.removeEventListener('mousedown', handleMouseDown);
