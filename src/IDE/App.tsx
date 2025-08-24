@@ -1,8 +1,17 @@
 
-import React, { useState, useCallback, useRef, createContext, useContext, ReactNode } from 'react';
+
+import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect, useMemo } from 'react';
+
+// Providers & Hooks
 import { WebContainerProvider, useWebContainer } from './WebContainerProvider.tsx';
 import { useFileSystem } from './hooks/useFileSystem.ts';
-import Loader from '../../components/Loader.tsx';
+import { useLocalStorageState } from '../../hooks/useLocalStorageState.ts';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext.tsx';
+import { CommandPaletteProvider, useCommandPalette } from './hooks/useCommandPalette.ts';
+import { AIProvider, useAI } from './contexts/AIContext.tsx';
+
+// UI Components
+import Loader from './components/Loader.tsx';
 import ResizablePanels from './components/ResizablePanels.tsx';
 import { StatusBar } from './components/StatusBar.tsx';
 import { Terminal } from './components/Terminal.tsx';
@@ -12,8 +21,26 @@ import SideBar from './components/SideBar.tsx';
 import FileExplorer from './components/FileExplorer.tsx';
 import TitleBar from './components/TitleBar.tsx';
 import PreviewContainer from './components/PreviewContainer.tsx';
-import type { Notification } from './types.ts';
+import TabbedPanel from './components/TabbedPanel.tsx';
+import CommandPalette from './components/CommandPalette.tsx';
+import AiDiffViewModal from './components/AiDiffViewModal.tsx';
+
+// Panel Components
+import SearchPanel from './components/SearchPanel.tsx';
+import SourceControlPanel from './components/SourceControlPanel.tsx';
+import SettingsPanel from './components/SettingsPanel.tsx';
+import ProblemsPanel from './components/ProblemsPanel.tsx';
+import DebugConsolePanel from './components/DebugConsolePanel.tsx';
+import DependencyPanel from './components/DependencyPanel.tsx';
+import StoryboardPanel from './components/StoryboardPanel.tsx';
+import FigmaPanel from './components/FigmaPanel.tsx';
+import ImageToCodePanel from './components/ImageToCodePanel.tsx';
+
+
+import type { Notification, BottomPanelView, FileAction, Diagnostic, ConsoleMessage, DependencyReport, StoryboardComponent } from './types.ts';
 import { Icons } from './components/Icon.tsx';
+import { analyzeCode } from './services/languageService.ts';
+
 
 // --- NOTIFICATION SYSTEM ---
 const NotificationContext = createContext<{ addNotification: (notification: Omit<Notification, 'id'>) => void; } | undefined>(undefined);
@@ -72,37 +99,91 @@ const NotificationProvider: React.FC<{children: ReactNode}> = ({ children }) => 
 };
 
 
-const AppContent = () => {
+const IDEWorkspace = () => {
     const { isLoading: isWcLoading, error, serverUrl } = useWebContainer();
     const { fs, isLoading: isFsLoading, updateNode, createNode, deleteNode, renameNode, moveNode } = useFileSystem();
     
-    const [openFiles, setOpenFiles] = useState<string[]>([]);
-    const [activeTab, setActiveTab] = useState<string | null>(null);
+    // UI State
+    const [openFiles, setOpenFiles] = useState<string[]>(['/src/App.jsx']);
+    const [activeTab, setActiveTab] = useState<string | null>('/src/App.jsx');
     const [activeView, setActiveView] = useState('explorer');
+    const [activeBottomTab, setActiveBottomTab] = useState<BottomPanelView>('terminal');
     const [panelVisibility, setPanelVisibility] = useState({ left: true, right: true, bottom: true });
     
+    // Feature State
+    const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
+    const [consoleMessages, setConsoleMessages] = useState<ConsoleMessage[]>([]);
+    const [dependencyReport, setDependencyReport] = useState<DependencyReport | null>(null);
+    const [storyboardComponents, setStoryboardComponents] = useState<StoryboardComponent[]>([]);
+    const [diffModalState, setDiffModalState] = useState<{ isOpen: boolean; actions: FileAction[], originalFiles: { path: string, content: string }[], messageIndex?: number }>({ isOpen: false, actions: [], originalFiles: [] });
+    
+    // Config State
+    const [githubToken, setGithubToken, clearGithubToken] = useLocalStorageState<string | null>('githubToken', null);
+
     const previewIframeRef = useRef<HTMLIFrameElement>(null);
 
-    const handleFileSelect = useCallback((path: string) => {
+    const getFileContent = useCallback((path: string | null): string => {
+        if (!path || !fs) return '';
+        const parts = path.split('/').filter(p => p);
+        let node = fs;
+        for (const part of parts) {
+            if (node.type === 'directory' && node.children[part]) {
+                const child = node.children[part];
+                 if(child.type === 'directory') {
+                     node = child;
+                 } else if (child.type === 'file' && parts.indexOf(part) === parts.length - 1) {
+                     return child.content;
+                 }
+            } else {
+                 const file = node.children[part];
+                 if(file?.type === 'file') {
+                    return file.content;
+                 }
+            }
+        }
+        return '';
+    }, [fs]);
+    
+    const runDiagnostics = useCallback((path: string | null) => {
+        if (!path) {
+            setDiagnostics([]);
+            return;
+        }
+        const content = getFileContent(path);
+        const language = path.split('.').pop() || '';
+        const newDiagnostics = analyzeCode(content, language);
+        setDiagnostics(newDiagnostics);
+    }, [getFileContent]);
+    
+
+    const handleFileSelect = useCallback((path: string, line?: number) => {
         if (!openFiles.includes(path)) {
             setOpenFiles(prev => [...prev, path]);
         }
         setActiveTab(path);
-    }, [openFiles]);
+        runDiagnostics(path);
+    }, [openFiles, runDiagnostics]);
 
     const handleTabClose = useCallback((path: string) => {
         setOpenFiles(prev => {
             const newOpenFiles = prev.filter(p => p !== path);
             if (activeTab === path) {
-                setActiveTab(newOpenFiles.length > 0 ? newOpenFiles[newOpenFiles.length - 1] : null);
+                const newActiveTab = newOpenFiles.length > 0 ? newOpenFiles[newOpenFiles.length - 1] : null;
+                setActiveTab(newActiveTab);
+                runDiagnostics(newActiveTab);
             }
             return newOpenFiles;
         });
-    }, [activeTab]);
+    }, [activeTab, runDiagnostics]);
 
     const handleContentChange = useCallback((path: string, content: string) => {
         updateNode(path, content);
-    }, [updateNode]);
+        runDiagnostics(path);
+    }, [updateNode, runDiagnostics]);
+    
+    useEffect(() => {
+        runDiagnostics(activeTab);
+    }, [activeTab, runDiagnostics]);
 
     const togglePanel = (panel: 'left' | 'right' | 'bottom') => {
         setPanelVisibility(prev => ({ ...prev, [panel]: !prev[panel] }));
@@ -122,88 +203,97 @@ const AppContent = () => {
         );
     }
     
-    const getFileContent = (path: string | null): string => {
-        if (!path || !fs) return '';
-        const parts = path.split('/').filter(p => p);
-        let node = fs;
-        for (const part of parts) {
-            if (node.type === 'directory' && node.children[part]) {
-                const child = node.children[part];
-                if (child.type === 'directory') {
-                    node = child;
-                } else if (child.type === 'file' && parts.indexOf(part) === parts.length - 1) {
-                    return child.content;
-                }
-            } else {
-                 const file = node.children[part];
-                 if(file?.type === 'file') {
-                    return file.content;
-                 }
-            }
-        }
-        return '';
-    };
-
     return (
-        <div className="w-full h-full bg-[var(--ui-panel-bg)] backdrop-blur-md flex flex-col gap-4">
-            <TitleBar onTogglePanel={togglePanel} panelVisibility={panelVisibility} />
-            <div className="flex-grow flex min-h-0">
-                {panelVisibility.left && <ActivityBar activeView={activeView} setActiveView={setActiveView} />}
-                <div className={`flex-grow ${panelVisibility.left ? 'ml-4' : ''}`}>
-                    <ResizablePanels
-                        panelVisibility={panelVisibility}
-                        leftPanel={
-                            <SideBar activeView={activeView}>
-                                <FileExplorer 
-                                    fs={fs!}
-                                    onFileSelect={handleFileSelect}
-                                    createNode={createNode}
-                                    deleteNode={deleteNode}
-                                    renameNode={renameNode}
-                                    moveNode={moveNode}
-                                    openAiFileGenerator={() => {}} // Placeholder
+        <AIProvider
+            activeFile={activeTab}
+            getOpenFileContent={() => getFileContent(activeTab)}
+            createNode={createNode}
+            updateNode={handleContentChange}
+            getNode={(path) => null} // simplified
+            openFile={handleFileSelect}
+            fs={fs}
+            setDiffModalState={setDiffModalState}
+        >
+            <div className="w-full h-full bg-[var(--ui-panel-bg)] backdrop-blur-md flex flex-col gap-4">
+                 <CommandPalette />
+                 <AiDiffViewModal {...diffModalState} onClose={() => setDiffModalState(prev => ({ ...prev, isOpen: false }))} />
+
+                <TitleBar onTogglePanel={togglePanel} panelVisibility={panelVisibility} />
+                <div className="flex-grow flex min-h-0">
+                    {panelVisibility.left && <ActivityBar activeView={activeView} setActiveView={setActiveView} />}
+                    <div className={`flex-grow ${panelVisibility.left ? 'ml-4' : ''}`}>
+                        <ResizablePanels
+                            panelVisibility={panelVisibility}
+                            leftPanel={
+                                <SideBar activeView={activeView}>
+                                    <FileExplorer 
+                                        fs={fs!}
+                                        onFileSelect={handleFileSelect}
+                                        createNode={createNode}
+                                        deleteNode={deleteNode}
+                                        renameNode={renameNode}
+                                        moveNode={moveNode}
+                                        openAiFileGenerator={() => {}} // Placeholder
+                                    />
+                                    <SearchPanel performSearch={() => {}} isSearching={false} searchResults={[]} onResultClick={() => {}} replaceAll={async () => {}} />
+                                    <SourceControlPanel fs={fs!} replaceFs={() => {}} githubToken={githubToken} switchView={setActiveView} supabaseUser={null} />
+                                    <StoryboardPanel components={storyboardComponents} readNode={getFileContent} />
+                                    <FigmaPanel />
+                                    <div/>
+                                    <ImageToCodePanel />
+                                    <SettingsPanel githubToken={githubToken} setGithubToken={setGithubToken} supabaseUser={null} supabaseUrl={null} setSupabaseUrl={() => {}} supabaseAnonKey={null} setSupabaseAnonKey={() => {}} geminiApiKey={null} setGeminiApiKey={() => {}} />
+                                </SideBar>
+                            }
+                            mainPanel={
+                                <EditorPane
+                                    openFiles={openFiles}
+                                    activeTab={activeTab}
+                                    onTabSelect={setActiveTab}
+                                    onTabClose={handleTabClose}
+                                    fileContent={getFileContent(activeTab)}
+                                    onContentChange={handleContentChange}
+                                    editorActions={[]} diagnostics={diagnostics} breakpoints={[]}
+                                    onBreakpointsChange={() => {}} pluginViews={{}}
                                 />
-                                <div/> <div/> <div/> <div/> <div/> <div/>
-                            </SideBar>
-                        }
-                        mainPanel={
-                            <EditorPane
-                                openFiles={openFiles}
-                                activeTab={activeTab}
-                                onTabSelect={setActiveTab}
-                                onTabClose={handleTabClose}
-                                fileContent={getFileContent(activeTab)}
-                                onContentChange={handleContentChange}
-                                editorActions={[]} diagnostics={[]} breakpoints={[]}
-                                onBreakpointsChange={() => {}} pluginViews={{}}
-                            />
-                        }
-                        rightPanel={
-                            <PreviewContainer 
-                                isVisible={true} title="Live Preview" onClose={() => togglePanel('right')}
-                                previewContext={null} iframeRef={previewIframeRef}
-                                onToggleInspector={()=>{}} isInspectorActive={false}
-                            >
-                               <iframe src={serverUrl || ''} className="w-full h-full rounded-b-lg border-none bg-white" />
-                            </PreviewContainer>
-                        }
-                        bottomPanel={ <Terminal /> }
-                    />
+                            }
+                            rightPanel={
+                                <PreviewContainer 
+                                    isVisible={true} title="Live Preview" onClose={() => togglePanel('right')}
+                                    previewContext={null} iframeRef={previewIframeRef}
+                                    onToggleInspector={()=>{}} isInspectorActive={false}
+                                >
+                                   <iframe src={serverUrl || ''} className="w-full h-full rounded-b-lg border-none bg-white" />
+                                </PreviewContainer>
+                            }
+                            bottomPanel={
+                                <TabbedPanel activeTab={activeBottomTab} onTabChange={setActiveBottomTab} diagnostics={diagnostics} dependencyReport={dependencyReport}>
+                                    <Terminal />
+                                    <ProblemsPanel diagnostics={diagnostics} onProblemSelect={handleFileSelect} activeFile={activeTab} readNode={getFileContent} updateNode={handleContentChange} addNotification={() => {}} />
+                                    <DebugConsolePanel messages={consoleMessages} onClear={() => setConsoleMessages([])} onAiFixRequest={() => {}} isFixingWithAi={null} />
+                                    <DependencyPanel report={dependencyReport} />
+                                </TabbedPanel>
+                            }
+                        />
+                    </div>
                 </div>
+                <StatusBar activeFile={activeTab} customItems={[]} diagnostics={diagnostics} collaborators={[]} voiceStatus='idle' onVoiceToggle={()=>{}} supabaseUser={null} />
             </div>
-            <StatusBar activeFile={activeTab} customItems={[]} diagnostics={[]} collaborators={[]} voiceStatus='idle' onVoiceToggle={()=>{}} supabaseUser={null} />
-        </div>
+        </AIProvider>
     );
 };
 
 
 const App = () => {
     return (
-        <NotificationProvider>
-            <WebContainerProvider>
-                <AppContent />
-            </WebContainerProvider>
-        </NotificationProvider>
+        <ThemeProvider>
+            <CommandPaletteProvider>
+                <NotificationProvider>
+                    <WebContainerProvider>
+                        <IDEWorkspace />
+                    </WebContainerProvider>
+                </NotificationProvider>
+            </CommandPaletteProvider>
+        </ThemeProvider>
     );
 };
 
