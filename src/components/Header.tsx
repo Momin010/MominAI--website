@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
         ...(isOpen && position === 'bottom' && { transform: 'translateY(-7px) rotate(-45deg)' }),
     });
     
-    const NavLink = ({ href, children }: { href: string, children: React.ReactNode}) => (
+    const NavLink: React.FC<{ href: string; children: React.ReactNode }> = ({ href, children }) => (
         <a href={href} className="text-[var(--gray)] hover:text-[var(--foreground)] transition-colors duration-200 text-sm no-underline">
             {children}
         </a>
@@ -93,7 +93,7 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
                     <button onClick={() => { onLoginClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border border-[var(--border-color)] text-2xl bg-transparent text-white">
                         Login
                     </button>
-                    <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border-none text-2xl bg-[var(--accent)] text-white">
+                    <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border-none text-2xl bg-[var(--accent)] text-[var(--accent-text)]">
                         Build Now
                     </button>
                 </div>
