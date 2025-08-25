@@ -9,9 +9,39 @@ interface PricingCardProps {
         features: string[];
         popular: boolean;
     };
+    onHobbyClick: () => void;
 }
 
-const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
+const PricingCard: React.FC<PricingCardProps> = ({ plan, onHobbyClick }) => {
+    const renderButton = () => {
+        const commonClasses = "w-full mt-4 p-3 rounded-lg cursor-pointer font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-100 flex items-center justify-center no-underline";
+        const popularClasses = `bg-transparent border-2 border-[var(--accent)] text-white hover:bg-[var(--accent)]`;
+        const defaultClasses = `bg-transparent border border-[var(--border-color)] text-[var(--foreground)] hover:bg-white/10`;
+
+        switch (plan.name) {
+            case 'Hobby':
+                return (
+                    <button onClick={onHobbyClick} className={`${commonClasses} ${plan.popular ? popularClasses : defaultClasses}`}>
+                        Get Started
+                    </button>
+                );
+            case 'Pro':
+                return (
+                    <a href="/?checkout=pro" className={`${commonClasses} ${plan.popular ? popularClasses : defaultClasses}`}>
+                        Get Started
+                    </a>
+                );
+            case 'Enterprise':
+                return (
+                    <a href="mailto:sales@momin.ai" className={`${commonClasses} ${plan.popular ? popularClasses : defaultClasses}`}>
+                        Contact Sales
+                    </a>
+                );
+            default:
+                return null;
+        }
+    };
+    
     return (
         <div className={`relative h-full bg-[var(--background-secondary)] p-8 rounded-xl border text-left flex flex-col ${plan.popular ? 'border-[var(--accent)]' : 'border-[var(--border-color)]'}`}>
             {plan.popular && <div className="absolute -top-4 right-6 bg-[var(--accent)] text-[var(--accent-text)] px-3 py-1 rounded-full text-xs font-semibold">Most Popular</div>}
@@ -25,14 +55,16 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
                     ))}
                 </ul>
             </div>
-            <button className={`w-full mt-4 p-3 rounded-lg cursor-pointer font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-100 ${plan.popular ? 'bg-transparent border-2 border-[var(--accent)] text-white hover:bg-[var(--accent)]' : 'bg-transparent border border-[var(--border-color)] text-[var(--foreground)] hover:bg-white/10'}`}>
-                Get Started
-            </button>
+            {renderButton()}
         </div>
     );
 };
 
-const Pricing = () => {
+interface PricingProps {
+    onHobbyClick: () => void;
+}
+
+const Pricing: React.FC<PricingProps> = ({ onHobbyClick }) => {
     const plans = [
         { name: 'Hobby', price: '$0', description: 'For personal projects & experiments.', features: ['1 User', '1 App Deployment', 'Community Support'], popular: false },
         { name: 'Pro', price: '$20', description: 'For professional developers & teams.', features: ['5 Users', 'Unlimited App Deployments', 'Email Support', 'Advanced Analytics'], popular: true },
@@ -45,7 +77,7 @@ const Pricing = () => {
             <p className="text-[var(--gray)] max-w-xl mx-auto mb-16">Choose the plan that's right for you. Start for free, and scale to millions.</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch">
                 {plans.map((plan, index) => (
-                    <PricingCard key={index} plan={plan} />
+                    <PricingCard key={index} plan={plan} onHobbyClick={onHobbyClick} />
                 ))}
             </div>
         </section>
