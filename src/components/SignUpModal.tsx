@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { GoogleIcon } from './icons.tsx';
+
+declare const window: any;
 
 interface SignUpModalProps {
     isOpen: boolean;
@@ -18,6 +19,29 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
+    useEffect(() => {
+        if (!isOpen || !window.google) return;
+
+        window.google.accounts.id.initialize({
+            // IMPORTANT: This is a placeholder. Replace with your actual Google Client ID.
+            client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+            callback: (response: any) => {
+                console.log("Google Sign-In successful, token:", response.credential);
+                // In a real app, you would send this token to your backend for verification
+                onSuccess();
+            }
+        });
+
+        const googleButtonContainer = document.getElementById('google-signin-button');
+        if (googleButtonContainer) {
+            window.google.accounts.id.renderButton(
+                googleButtonContainer,
+                { theme: 'filled_black', size: 'large', type: 'standard', text: 'signup_with', shape: 'pill', width: '320' }
+            );
+        }
+    }, [isOpen, onSuccess]);
+
+
     if (!isOpen) return null;
 
     const handleSubmit = (event: React.FormEvent) => {
@@ -28,12 +52,12 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
     return createPortal(
         <div 
             className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1000] backdrop-blur-sm p-4"
-            style={{ animation: 'fadeIn 0.3s ease' }}
+            style={{ animation: 'fadeIn 0.6s ease' }}
             onClick={onClose}
         >
             <div 
                 className="bg-[#101010] p-8 rounded-2xl w-full max-w-sm relative shadow-2xl text-center"
-                style={{ animation: 'scaleIn 0.3s ease' }}
+                style={{ animation: 'scaleIn 0.6s ease' }}
                 onClick={e => e.stopPropagation()}
             >
                 <button 
@@ -45,13 +69,7 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
                 <h2 className="mb-2 text-2xl font-bold">Create Your Account</h2>
                 <p className="text-[var(--gray)] mb-6 text-sm">Join millions of developers building the future.</p>
                 
-                <button 
-                    className="flex items-center justify-center gap-3 w-full p-2.5 rounded-lg border border-[var(--border-color)] font-semibold text-sm transition-all duration-200 bg-white text-black hover:bg-gray-200"
-                    onClick={onSuccess}
-                >
-                   <GoogleIcon />
-                   <span>Sign up with Google</span>
-                </button>
+                <div id="google-signin-button" className="flex justify-center w-full"></div>
 
                 <div className="flex items-center text-center text-[var(--gray)] my-6 text-xs uppercase">
                     <div className="flex-1 border-b border-[var(--border-color)]" />

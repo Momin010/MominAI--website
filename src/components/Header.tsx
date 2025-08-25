@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
                     <button onClick={onLoginClick} className="px-4 py-1.5 rounded-full border-none font-semibold text-sm cursor-pointer transition-all duration-200 bg-transparent text-[var(--gray)] hover:text-[var(--foreground)]">
                         Login
                     </button>
-                    <button onClick={onBuildNowClick} className="px-4 py-1.5 rounded-full border-none font-semibold text-sm cursor-pointer transition-all duration-200 bg-[var(--accent)] text-[var(--accent-text)] hover:brightness-110">
+                    <button onClick={onBuildNowClick} className="px-4 py-1.5 rounded-full border-none font-semibold text-sm cursor-pointer transition-all duration-200 bg-white text-[var(--background)] hover:scale-105 active:scale-100">
                         Build Now
                     </button>
                 </div>
@@ -93,7 +93,7 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
                     <button onClick={() => { onLoginClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border border-[var(--border-color)] text-2xl bg-transparent text-white">
                         Login
                     </button>
-                    <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border-none text-2xl bg-[var(--accent)] text-[var(--accent-text)]">
+                    <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border-none text-2xl bg-white text-[var(--background)]">
                         Build Now
                     </button>
                 </div>

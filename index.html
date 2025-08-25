@@ -12,7 +12,7 @@
             /* Theme variables */
             --background: #0B0818;
             --background-secondary: #120F24;
-            --border-color: rgba(255, 255, 255, 0.07); /* More subtle borders */
+            --border-color: rgba(255, 255, 255, 0.1); /* Slimmer, grey-toned borders */
             --gray: #8B949E;
             --foreground: #F0F2F5;
             --accent: #a970e8; /* Updated accent */
@@ -85,7 +85,7 @@
             z-index: -1;
             opacity: 1; /* Adjusted for visibility */
             pointer-events: none;
-            animation: aurora 15s ease-in-out infinite alternate;
+            animation: aurora 30s ease-in-out infinite alternate;
         }
 
         .xterm {
@@ -117,6 +117,17 @@
                 transform: scale(1);
             }
         }
+        
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         @keyframes aurora {
             0% { transform: translate(0, 0) rotate(0deg) scale(1); filter: hue-rotate(0deg); }
@@ -127,7 +138,7 @@
         .reveal {
             opacity: 0;
             transform: translateY(30px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            transition: opacity 1.2s ease-out, transform 1.2s ease-out;
         }
 
         .reveal.visible {
