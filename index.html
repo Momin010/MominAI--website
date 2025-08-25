@@ -54,9 +54,12 @@
         }
 
         /* Remove all borders within the IDE view */
-        body.ide-view {
-            --border-color: transparent;
-            --ui-border: transparent;
+        body.ide-view .border,
+        body.ide-view .border-t,
+        body.ide-view .border-b,
+        body.ide-view .border-l,
+        body.ide-view .border-r {
+            border-width: 0px;
         }
         
         /* Hide the native cursor when our custom cursor is active */
