@@ -52,6 +52,12 @@
             overflow-x: hidden;
             transition: background 0.5s ease;
         }
+
+        /* Remove all borders within the IDE view */
+        body.ide-view {
+            --border-color: transparent;
+            --ui-border: transparent;
+        }
         
         /* Hide the native cursor when our custom cursor is active */
         .custom-cursor-active, .custom-cursor-active * {

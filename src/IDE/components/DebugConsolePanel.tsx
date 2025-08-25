@@ -59,7 +59,7 @@ const DebugConsolePanel: React.FC<DebugConsolePanelProps> = ({ messages, onClear
                     const fullMessageString = msg.message.join(' ');
                     const isThisMessageBeingFixed = isFixingWithAi === fullMessageString;
                     return (
-                        <div key={index} className={`flex items-start justify-between border-b border-white/5 py-1 px-2 hover:bg-white/5 ${getMessageStyle(msg.type)}`}>
+                        <div key={index} className={`flex items-start justify-between py-1 px-2 hover:bg-white/5 ${getMessageStyle(msg.type)}`}>
                             <div className="flex items-start flex-grow min-w-0">
                                 <div className="mr-2 pt-0.5"><MessageIcon type={msg.type} /></div>
                                 <div className="whitespace-pre-wrap break-words">

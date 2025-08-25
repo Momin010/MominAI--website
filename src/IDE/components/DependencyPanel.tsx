@@ -18,7 +18,7 @@ const DependencyTable: React.FC<{ title: string; dependencies: DependencyInfo[] 
     <div className="mb-4">
         <h3 className="font-bold text-white px-2 py-1">{title} ({dependencies.length})</h3>
         {dependencies.map(dep => (
-            <div key={dep.name} className="p-2 border-b border-white/5 hover:bg-white/5">
+            <div key={dep.name} className="p-2 hover:bg-white/5">
                 <div className="flex justify-between items-center">
                     <span className="font-mono text-[var(--accent)]">{dep.name}</span>
                     <div>

@@ -73,7 +73,7 @@ const ProblemsPanel: React.FC<ProblemsPanelProps> = ({ diagnostics, onProblemSel
                     <div>
                         <h3 className="font-bold text-white px-2 py-1">{activeFile}</h3>
                         {problemsForActiveFile.map((problem, index) => (
-                            <div key={index} className="border-b border-white/5 last:border-b-0">
+                            <div key={index}>
                                 <div className="flex items-start p-2 pl-4 cursor-pointer hover:bg-[var(--gray-dark)]/50" onClick={() => onProblemSelect(activeFile!, problem.line)}>
                                     <div className="mr-2 pt-0.5"><ProblemIcon severity={problem.severity} /></div>
                                     <div className="flex-grow">

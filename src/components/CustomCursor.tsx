@@ -4,8 +4,8 @@ import { createPortal } from 'react-dom';
 // --- CURSOR DEFINITIONS ---
 const CURSORS = {
   default: { uri: '/cursor/pointinghand.svg', hotspot: { x: 0, y: 0 } },
-  pointer: { uri: '/cursor/openhand.svg', hotspot: { x: 16, y: 16 } },
-  grabbing: { uri: '/cursor/closedhand.svg', hotspot: { x: 16, y: 16 } },
+  pointer: { uri: '/cursor/openhand.svg', hotspot: { x: 22, y: 22 } },
+  grabbing: { uri: '/cursor/closedhand.svg', hotspot: { x: 22, y: 22 } },
 };
 
 const CustomCursor = () => {
@@ -69,8 +69,8 @@ const CustomCursor = () => {
             position: 'fixed',
             top: '0px',
             left: '0px',
-            width: '32px',
-            height: '32px',
+            width: '44px',
+            height: '44px',
             backgroundImage: `url('${currentCursor.uri}')`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
@@ -81,27 +81,10 @@ const CustomCursor = () => {
             willChange: 'transform',
             transition: 'transform 0.05s ease-out', // Faster transition for responsiveness
         } as React.CSSProperties,
-        follower: {
-            position: 'fixed',
-            top: '0px',
-            left: '0px',
-            width: '8px',
-            height: '8px',
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            borderRadius: '50%',
-            // Center the follower dot on the cursor position
-            transform: `translate3d(${position.x - 4}px, ${position.y - 4}px, 0) scale(${isInteracting ? 0 : 1})`,
-            pointerEvents: 'none',
-            zIndex: 99998, // Below the main cursor
-            willChange: 'transform, opacity',
-            opacity: isInteracting ? 0 : 1,
-            transition: 'transform 0.2s ease-out, opacity 0.2s ease-out', // Smoother, trailing transition
-        } as React.CSSProperties,
     };
     
     return createPortal(
         <>
-            <div style={styles.follower} aria-hidden="true" />
             <div style={styles.cursor} aria-hidden="true" />
         </>,
         document.body
