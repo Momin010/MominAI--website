@@ -39,7 +39,7 @@ const LandingPage = ({ onLoginSuccess }: LandingPageProps) => {
                 <Logos />
                 <Features />
                 <Testimonials />
-                <Pricing />
+                <Pricing onHobbyClick={() => setIsModalOpen(true)} />
             </main>
             
             <Footer />
