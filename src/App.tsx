@@ -3,10 +3,11 @@ import CustomCursor from './components/CustomCursor.tsx';
 import LandingPage from './components/LandingPage.tsx';
 import IDE from './IDE/App.tsx';
 import Loader from './components/Loader.tsx';
+import Dashboard from './components/Dashboard.tsx';
 
 const App = () => {
-    // A single state to manage which view is active: landing page, loader, or the IDE.
-    const [view, setView] = useState<'landing' | 'loading' | 'ide'>('landing');
+    // A single state to manage which view is active: landing, dashboard, loader, or the IDE.
+    const [view, setView] = useState<'landing' | 'dashboard' | 'loading' | 'ide'>('landing');
 
     useEffect(() => {
         // This effect runs once on initial load to determine the correct view from the URL.
@@ -18,11 +19,14 @@ const App = () => {
                 // After 4 seconds, switch from the loader to the IDE.
                 setView('ide');
             }, 4000);
-
             // Clean up the timer if the component unmounts.
             return () => clearTimeout(timer);
-        } else {
-            // If the URL doesn't specify the IDE, show the landing page immediately.
+        } else if (params.get('dashboard') === 'true') {
+            // If '?dashboard=true' is in the URL, show the user's dashboard.
+            setView('dashboard');
+        }
+        else {
+            // If the URL doesn't specify a view, show the landing page.
             setView('landing');
         }
     }, []);
@@ -38,8 +42,8 @@ const App = () => {
             document.body.classList.remove('ide-view');
         }
 
-        if (view === 'ide' || view === 'loading') {
-            // For the IDE and its loader, constrain the root to the viewport height and prevent overflow.
+        if (view === 'ide' || view === 'loading' || view === 'dashboard') {
+            // For the IDE, loader, and dashboard, constrain the root to the viewport height and prevent overflow.
             rootEl.style.height = '100vh';
             rootEl.style.overflow = 'hidden';
         } else {
@@ -58,9 +62,9 @@ const App = () => {
         };
     }, [view]);
 
-    // Navigate to the IDE view on successful login. This causes a full page reload.
+    // Navigate to the dashboard view on successful login. This causes a full page reload.
     const handleLoginSuccess = () => {
-        window.location.href = '/?ide=true';
+        window.location.href = '/?dashboard=true';
     };
 
     // Navigate back to the landing page on logout. This also reloads the page.
@@ -75,6 +79,8 @@ const App = () => {
                 return <Loader />;
             case 'ide':
                 return <IDE onLogout={handleLogout} />;
+            case 'dashboard':
+                return <Dashboard onLogout={handleLogout} />;
             case 'landing':
             default:
                 return <LandingPage onLoginSuccess={handleLoginSuccess} />;
