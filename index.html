@@ -68,26 +68,27 @@
         }
 
         #root {
-            isolation: isolate;
-            position: relative;
-        }
-        
-        #root::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: 
-                radial-gradient(ellipse 50% 50% at 10% 20%, rgba(236, 72, 153, 0.7), transparent),
-                radial-gradient(ellipse 40% 40% at 80% 30%, rgba(6, 182, 212, 0.7), transparent),
-                radial-gradient(ellipse 60% 60% at 50% 90%, rgba(245, 158, 11, 0.6), transparent);
-            z-index: -1;
-            opacity: 0.7; /* Increased for a much brighter effect */
-            pointer-events: none;
-            animation: aurora 15s ease-in-out infinite alternate; /* Faster animation */
-        }
+  isolation: isolate;
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0F2027, #2C5364); /* Base gradient */
+  overflow: hidden;
+}
+
+#root::before {
+  content: '';
+  position: fixed;
+  inset: 0; /* shorthand for top/left/right/bottom = 0 */
+  background: 
+    radial-gradient(ellipse 50% 50% at 10% 20%, rgba(236, 72, 153, 0.6), transparent),
+    radial-gradient(ellipse 40% 40% at 80% 30%, rgba(6, 182, 212, 0.6), transparent),
+    radial-gradient(ellipse 60% 60% at 50% 90%, rgba(245, 158, 11, 0.5), transparent);
+  z-index: -1;
+  opacity: 0.8;
+  pointer-events: none;
+  animation: aurora 18s ease-in-out infinite alternate;
+}
+
 
         .xterm {
             padding: 10px;
