@@ -1,18 +1,24 @@
 
+
 import React, { useState, useEffect } from 'react';
 import CustomCursor from './components/CustomCursor.tsx';
 import LandingPage from './components/LandingPage.tsx';
 import IDE from './IDE/App.tsx';
 import Loader from './components/Loader.tsx';
 import Dashboard from './components/Dashboard.tsx';
+import CheckoutPage from './components/CheckoutPage.tsx';
 
 const App = () => {
-    // A single state to manage which view is active: landing, dashboard, loader, or the IDE.
-    const [view, setView] = useState<'landing' | 'dashboard' | 'loading' | 'ide'>('landing');
+    // A single state to manage which view is active.
+    const [view, setView] = useState<'landing' | 'dashboard' | 'loading' | 'ide' | 'checkout'>('landing');
+    // State to hold the plan selected for checkout.
+    const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
 
     useEffect(() => {
         // This effect runs once on initial load to determine the correct view from the URL.
         const params = new URLSearchParams(window.location.search);
+        const plan = params.get('checkout');
+
         if (params.get('ide') === 'true') {
             // If '?ide=true' is in the URL, start the loading sequence for the IDE.
             setView('loading');
@@ -25,6 +31,10 @@ const App = () => {
         } else if (params.get('dashboard') === 'true') {
             // If '?dashboard=true' is in the URL, show the user's dashboard.
             setView('dashboard');
+        } else if (plan) {
+            // If '?checkout=[plan]' is in the URL, show the checkout page.
+            setCheckoutPlan(plan);
+            setView('checkout');
         }
         else {
             // If the URL doesn't specify a view, show the landing page.
@@ -43,8 +53,8 @@ const App = () => {
             document.body.classList.remove('ide-view');
         }
 
-        if (view === 'ide' || view === 'loading' || view === 'dashboard') {
-            // For the IDE, loader, and dashboard, constrain the root to the viewport height and prevent overflow.
+        if (view === 'ide' || view === 'loading' || view === 'dashboard' || view === 'checkout') {
+            // For constrained views, lock the root to the viewport height.
             rootEl.style.height = '100vh';
             rootEl.style.overflow = 'hidden';
         } else {
@@ -82,6 +92,8 @@ const App = () => {
                 return <IDE onLogout={handleLogout} />;
             case 'dashboard':
                 return <Dashboard onLogout={handleLogout} />;
+            case 'checkout':
+                return <CheckoutPage plan={checkoutPlan} />;
             case 'landing':
             default:
                 return <LandingPage onLoginSuccess={handleLoginSuccess} />;
