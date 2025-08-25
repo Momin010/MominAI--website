@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -7,7 +8,7 @@ import { WebContainerProvider, useWebContainer } from './WebContainerProvider.ts
 import { useFileSystem } from './hooks/useFileSystem.ts';
 import { useLocalStorageState } from '../hooks/useLocalStorageState.ts';
 import { ThemeProvider } from './contexts/ThemeContext.tsx';
-import { CommandPaletteProvider } from './hooks/useCommandPalette.ts';
+import { CommandPaletteProvider } from './hooks/useCommandPalette.tsx';
 import { AIProvider } from './contexts/AIContext.tsx';
 import { generateCodeForFile } from './services/aiService.ts';
 import { getAllFiles } from './utils/fsUtils.ts';
@@ -333,7 +334,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                                     <FigmaPanel />
                                     <div/>
                                     <ImageToCodePanel />
-                                    <SettingsPanel githubToken={githubToken} setGithubToken={setGithubToken} supabaseUser={null} supabaseUrl={null} setSupabaseUrl={() => {}} supabaseAnonKey={null} setSupabaseAnonKey={() => {}} geminiApiKey={null} setGeminiApiKey={() => {}} />
+                                    <SettingsPanel githubToken={githubToken} setGithubToken={setGithubToken} supabaseUser={null} supabaseUrl={null} setSupabaseUrl={() => {}} supabaseAnonKey={null} setSupabaseAnonKey={() => {}} />
                                 </SideBar>
                             }
                             mainPanel={

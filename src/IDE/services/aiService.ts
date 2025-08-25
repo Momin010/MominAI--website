@@ -1,38 +1,13 @@
 
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { FileSystemNode, Diagnostic, DependencyReport, InspectedElement } from '../types';
 
-let ai: GoogleGenAI | null = null;
-let initError: string | null = "AI not configured. Please add your Gemini API Key in the Settings panel.";
-
-/**
- * Initializes or updates the AI client with a new API key.
- * This function should be called from the main application component
- * whenever the API key changes.
- * @param key The Gemini API key, or null to deconfigure.
- */
-export function setApiKey(key: string | null) {
-  if (key) {
-    try {
-      ai = new GoogleGenAI({ apiKey: key });
-      initError = null;
-      // The key is managed in React state, which can persist to localStorage.
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Unknown error during AI initialization.";
-      initError = `Failed to initialize AI with the provided key: ${message}`;
-      ai = null;
-    }
-  } else {
-    ai = null;
-    initError = "AI not configured. Please add your Gemini API Key in the Settings panel.";
-  }
-}
-
 const getAI = (): GoogleGenAI => {
-  if (!ai || initError) {
-    throw new Error(initError || "AI client is not available.");
+  if (!process.env.API_KEY) {
+    throw new Error("API Key not found. Please ensure the API_KEY environment variable is set.");
   }
-  return ai;
+  return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
 
 

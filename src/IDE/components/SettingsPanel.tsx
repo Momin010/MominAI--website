@@ -1,13 +1,14 @@
 
 
+
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-import { fetchGithubUser } from '../services/githubService';
-import GithubAuthModal from './GithubAuthModal';
-import { useNotifications } from '../App';
-import type { SupabaseUser } from '../types';
-import * as supabaseService from '../services/supabaseService';
-import SupabaseAuthModal from './SupabaseAuthModal';
+import { useTheme } from '../contexts/ThemeContext.tsx';
+import { fetchGithubUser } from '../services/githubService.ts';
+import GithubAuthModal from './GithubAuthModal.tsx';
+import { useNotifications } from '../App.tsx';
+import type { SupabaseUser } from '../types.ts';
+import * as supabaseService from '../services/supabaseService.ts';
+import SupabaseAuthModal from './SupabaseAuthModal.tsx';
 
 interface SettingsPanelProps {
   githubToken: string | null;
@@ -17,8 +18,6 @@ interface SettingsPanelProps {
   setSupabaseUrl: (url: string | null) => void;
   supabaseAnonKey: string | null;
   setSupabaseAnonKey: (key: string | null) => void;
-  geminiApiKey: string | null;
-  setGeminiApiKey: (key: string | null) => void;
 }
 
 interface GithubUser {
@@ -35,8 +34,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setSupabaseUrl,
     supabaseAnonKey,
     setSupabaseAnonKey,
-    geminiApiKey,
-    setGeminiApiKey
 }) => {
     const { theme, setTheme } = useTheme();
     const [isGithubAuthModalOpen, setIsGithubAuthModalOpen] = useState(false);
@@ -47,7 +44,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     
     const [localSupabaseUrl, setLocalSupabaseUrl] = useState(supabaseUrl || '');
     const [localSupabaseAnonKey, setLocalSupabaseAnonKey] = useState(supabaseAnonKey || '');
-    const [localGeminiKey, setLocalGeminiKey] = useState('');
 
 
     useEffect(() => {
@@ -102,59 +98,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         addNotification({ type: 'success', message: 'Supabase configuration saved. You can now connect.' });
     };
 
-    const handleSaveGeminiKey = () => {
-        if (localGeminiKey.trim()) {
-            setGeminiApiKey(localGeminiKey.trim());
-            addNotification({ type: 'success', message: 'Gemini API Key saved.' });
-            setLocalGeminiKey('');
-        }
-    };
-    
-    const handleClearGeminiKey = () => {
-        setGeminiApiKey(null);
-        addNotification({ type: 'info', message: 'Gemini API Key cleared.' });
-    };
-
-
     return (
         <div className="text-gray-200 h-full flex flex-col bg-transparent">
             <div className="p-2 border-b border-[var(--border-color)] flex-shrink-0">
                 <h2 className="text-sm font-bold uppercase tracking-wider">Settings</h2>
             </div>
             <div className="flex-grow overflow-y-auto p-4 space-y-6">
-                <div>
-                    <h3 className="text-md font-semibold mb-2 text-white">Gemini API Key</h3>
-                    {geminiApiKey ? (
-                        <div className="bg-[var(--gray-dark)]/50 border border-[var(--border-color)] p-4 rounded-lg flex items-center justify-between">
-                            <p className="text-sm text-green-400">API Key is set and active.</p>
-                            <button onClick={handleClearGeminiKey} className="bg-red-500/80 hover:bg-red-500/70 text-white text-sm px-3 py-1.5 rounded-lg transition-colors">
-                                Clear Key
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="bg-[var(--gray-dark)]/50 border border-[var(--border-color)] p-4 rounded-lg">
-                            <p className="text-sm text-gray-400 mb-3">
-                                Provide your own Gemini API key to enable all AI features. 
-                                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:underline ml-1">
-                                    Get a key from Google AI Studio.
-                                </a>
-                            </p>
-                            <div className="flex space-x-2">
-                                <input
-                                    type="password"
-                                    placeholder="Enter your API Key..."
-                                    value={localGeminiKey}
-                                    onChange={(e) => setLocalGeminiKey(e.target.value)}
-                                    className="flex-grow bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)] transition-colors"
-                                />
-                                <button onClick={handleSaveGeminiKey} className="bg-[var(--accent)]/80 hover:brightness-125 text-white font-semibold px-4 py-2 rounded-md transition-colors">
-                                    Save
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
                 {/* GitHub Integration Section */}
                 <div>
                     <h3 className="text-md font-semibold mb-2 text-white">GitHub Integration</h3>
