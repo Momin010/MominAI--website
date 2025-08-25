@@ -22,7 +22,7 @@ const Hero: React.FC<HeroProps> = ({ onBuildNowClick }) => {
             <div 
                 className="flex flex-col sm:flex-row gap-4"
             >
-                <button onClick={onBuildNowClick} className="px-6 py-3 rounded-lg border-none font-semibold text-base transition-all duration-200 bg-white text-[var(--background)] hover:scale-105 active:scale-100">
+                <button onClick={onBuildNowClick} className="px-6 py-3 rounded-lg font-semibold text-base transition-all duration-200 bg-transparent text-white hover:bg-[var(--accent)] border-2 border-[var(--accent)] hover:scale-105 active:scale-100">
                     Build Now
                 </button>
                 <a href="#pricing" className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-base transition-all duration-200 bg-transparent text-[var(--foreground)] border border-[var(--border-color)] no-underline hover:bg-[var(--background-secondary)] hover:scale-105 active:scale-100">

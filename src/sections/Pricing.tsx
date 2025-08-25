@@ -25,7 +25,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ plan }) => {
                     ))}
                 </ul>
             </div>
-            <button className={`w-full mt-4 p-3 rounded-lg border-none cursor-pointer font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-100 ${plan.popular ? 'bg-[var(--accent)] text-[var(--accent-text)]' : 'bg-white text-[var(--background)]'}`}>
+            <button className={`w-full mt-4 p-3 rounded-lg cursor-pointer font-semibold text-sm transition-all duration-200 hover:scale-105 active:scale-100 ${plan.popular ? 'bg-transparent border-2 border-[var(--accent)] text-white hover:bg-[var(--accent)]' : 'bg-transparent border border-[var(--border-color)] text-[var(--foreground)] hover:bg-white/10'}`}>
                 Get Started
             </button>
         </div>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export const MominAILogo = ({ width = 124, height = 28 }: { width?: number, height?: number }) => (

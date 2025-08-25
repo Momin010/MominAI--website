@@ -23,8 +23,8 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
         if (!isOpen || !window.google) return;
 
         window.google.accounts.id.initialize({
-            // IMPORTANT: This is a placeholder. Replace with your actual Google Client ID.
-            client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+            // Replaced the demo Client ID with the user's provided one.
+            client_id: "601307193094-i9r4kscn6tqkilon3g9c352igtt9ta40.apps.googleusercontent.com",
             callback: (response: any) => {
                 console.log("Google Sign-In successful, token:", response.credential);
                 // In a real app, you would send this token to your backend for verification
@@ -51,7 +51,7 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
 
     return createPortal(
         <div 
-            className="fixed inset-0 bg-black/70 flex justify-center items-center z-[1000] backdrop-blur-sm p-4"
+            className="fixed inset-0 bg-[rgba(11,8,24,0.8)] flex justify-center items-center z-[1000] backdrop-blur-md p-4"
             style={{ animation: 'fadeIn 0.6s ease' }}
             onClick={onClose}
         >
@@ -80,7 +80,7 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
                 <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
                     <input className="p-3 rounded-lg border border-[var(--border-color)] bg-[var(--background-secondary)] text-[var(--foreground)] text-sm placeholder:text-gray-500 focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none" type="email" placeholder="Email Address" required aria-label="Email Address" />
                     <input className="p-3 rounded-lg border border-[var(--border-color)] bg-[var(--background-secondary)] text-[var(--foreground)] text-sm placeholder:text-gray-500 focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] outline-none" type="password" placeholder="Password" required aria-label="Password"/>
-                    <button type="submit" className="p-3 rounded-lg border-none font-semibold text-sm transition-all duration-200 bg-[var(--accent)] text-[var(--accent-text)] mt-2 hover:brightness-110">
+                    <button type="submit" className="p-3 rounded-lg font-semibold text-sm transition-all duration-200 bg-transparent border border-[var(--accent)] text-[var(--accent)] mt-2 hover:bg-[var(--accent)] hover:text-white">
                         Continue with Email
                     </button>
                 </form>
