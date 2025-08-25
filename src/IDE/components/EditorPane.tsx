@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import MonacoEditor from './MonacoEditor';
 import type { EditorAction, Diagnostic } from '../types';
@@ -47,7 +48,7 @@ const EditorPane: React.FC<EditorPaneProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md rounded-lg border border-[var(--border-color)]">
+    <div className="flex flex-col h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md rounded-lg border border-[var(--border-color)] shadow-xl">
       <div className="flex-shrink-0 bg-[var(--gray-dark)]/50 flex justify-between items-center rounded-t-lg">
         <div className="flex items-center overflow-x-auto">
           {openFiles.map(path => {

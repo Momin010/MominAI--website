@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Icons } from './Icon';
 
@@ -38,7 +39,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
 
   const containerClasses = isMaximized
     ? 'fixed inset-2 bg-[var(--background-secondary)]/90 backdrop-blur-lg z-50 flex flex-col rounded-lg shadow-2xl border border-[var(--border-color)]'
-    : 'h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md flex flex-col rounded-lg border border-[var(--border-color)]';
+    : 'h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md flex flex-col rounded-lg border border-[var(--border-color)] shadow-xl';
     
   return (
     <div className={containerClasses}>

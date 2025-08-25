@@ -32,7 +32,7 @@ const SignUpModal = ({ isOpen, onClose, onSuccess }: SignUpModalProps) => {
             onClick={onClose}
         >
             <div 
-                className="bg-[#101010] p-8 rounded-2xl border border-[var(--border-color)] w-full max-w-sm relative shadow-2xl text-center"
+                className="bg-[#101010] p-8 rounded-2xl w-full max-w-sm relative shadow-2xl text-center"
                 style={{ animation: 'scaleIn 0.3s ease' }}
                 onClick={e => e.stopPropagation()}
             >

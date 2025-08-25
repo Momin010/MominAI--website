@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useRef } from 'react';
 import { Terminal as XtermTerminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
@@ -71,7 +72,7 @@ export const Terminal: React.FC = () => {
     }, [webContainer]);
 
     return (
-        <div className="bg-[var(--ui-panel-bg)] backdrop-blur-md h-full w-full">
+        <div className="h-full w-full">
             <div ref={terminalRef} className="h-full w-full" />
         </div>
     );

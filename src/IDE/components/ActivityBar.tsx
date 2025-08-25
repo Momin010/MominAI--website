@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Icons } from './Icon';
 
@@ -20,7 +21,7 @@ const ActivityBar: React.FC<ActivityBarProps> = ({ activeView, setActiveView }) 
     ];
     
     return (
-        <div className="bg-[var(--background-secondary)]/70 backdrop-blur-md h-full w-12 flex flex-col items-center py-4 space-y-2 border border-[var(--border-color)] rounded-lg shadow-lg">
+        <div className="bg-[var(--background-secondary)]/70 backdrop-blur-md h-full w-12 flex flex-col items-center py-4 space-y-2 border border-[var(--border-color)] rounded-lg shadow-xl">
             {views.map(view => (
                 <button
                     key={view.id}

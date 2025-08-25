@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useCallback } from 'react';
 
 interface ResizablePanelsProps {
@@ -82,7 +83,7 @@ const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel,
     <div ref={containerRef} className="w-full h-full flex overflow-hidden">
       {isLeftVisible && (
         <>
-          <div style={{ width: `${finalLeftWidth}%` }} className="h-full overflow-auto bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg border border-[var(--ui-border)]">
+          <div style={{ width: `${finalLeftWidth}%` }} className="h-full overflow-auto bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg border border-[var(--ui-border)] shadow-xl">
             {leftPanel}
           </div>
           
@@ -102,7 +103,7 @@ const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel,
         
         {isBottomVisible && (
           <>
-            <div style={{ height: `${finalBottomHeight}%` }} className="w-full overflow-hidden">
+            <div style={{ height: `${finalBottomHeight}%` }} className="w-full overflow-hidden bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg shadow-xl">
               {bottomPanel}
             </div>
           </>
