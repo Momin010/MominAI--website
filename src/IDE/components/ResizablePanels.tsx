@@ -82,7 +82,7 @@ const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel,
     <div ref={containerRef} className="w-full h-full flex overflow-hidden">
       {isLeftVisible && (
         <>
-          <div style={{ width: `${finalLeftWidth}%` }} className="h-full overflow-auto bg-[var(--background-secondary)]/70 backdrop-blur-md rounded-lg border border-[var(--border-color)]">
+          <div style={{ width: `${finalLeftWidth}%` }} className="h-full overflow-auto bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg border border-[var(--ui-border)]">
             {leftPanel}
           </div>
           

@@ -14,31 +14,24 @@ const ReactIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 const HTMLIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", ...props, color: "#E34F26" },
-        React.createElement('path', { d: "M12 2 3 4.5v12L12 22l9-5.5v-12L12 2z" }),
-        React.createElement('path', { d: "M12 22V12" }),
-        React.createElement('path', { d: "m21 9-9 4.5-9-4.5" }),
-        React.createElement('path', { d: "m3 14 9 4.5 9-4.5" }),
-        React.createElement('path', { d: "M12 12 6 9" }),
-        React.createElement('path', { d: "m12 12 6-3" })
+        React.createElement('path', { d: "m10 16-2-2 2-2"}),
+        React.createElement('path', { d: "m14 16 2-2-2-2"})
     )
 );
 
 
 const CSSIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", ...props, color: "#1572B6" },
-        React.createElement('path', { d: "M12 2 3 4.5v12L12 22l9-5.5v-12L12 2z" }),
-        React.createElement('path', { d: "M12 22V12" }),
-        React.createElement('path', { d: "m21 9-9 4.5-9-4.5" }),
-        React.createElement('path', { d: "M12 12 6 9" }),
-        React.createElement('path', { d: "M16 14.5s-1-2-4-2-4 2-4 2" })
+        React.createElement('path', { d: "M10.33 18.5 8 16l2.33-2.5"}),
+        React.createElement('path', { d: "M13.67 18.5 16 16l-2.33-2.5"})
     )
 );
 
 const TSIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", ...props, color: "#3178C6" },
-        React.createElement('path', { d: "M12 22a4 4 0 0 0 4-4v-2h-8v2a4 4 0 0 0 4 4z" }),
-        React.createElement('path', { d: "M18 4H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" }),
-        React.createElement('path', { d: "M10 12h4" })
+        React.createElement('path', { d: "M12.25 19.25 9.75 14l-2.5 5.25"}),
+        React.createElement('path', { d: "m14.5 14-1.5 2.75"}),
+        React.createElement('path', { d: "M10.25 16.5h3"})
     )
 );
 
@@ -61,6 +54,15 @@ const JSONIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   )
 );
 
+const MarkdownIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", ...props, color: "#FFFFFF" },
+        React.createElement('path', { d: "M12 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-2" }),
+        React.createElement('path', { d: "M4 4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" }),
+        React.createElement('path', { d: "m10 12-2 2 2 2" }),
+        React.createElement('path', { d: "m14 8 2 2-2 2" })
+    )
+);
+
 
 const fileIcons: Record<string, React.FC<any>> = {
   js: JSIcon,
@@ -70,7 +72,7 @@ const fileIcons: Record<string, React.FC<any>> = {
   html: HTMLIcon,
   css: CSSIcon,
   json: JSONIcon,
-  md: Icons.File, // Placeholder
+  md: MarkdownIcon,
 };
 
 export const getIconForFile = (filename: string): React.FC<any> => {

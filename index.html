@@ -9,14 +9,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
+            /* Theme variables */
             --background: #0B0818;
             --background-secondary: #120F24;
             --border-color: rgba(255, 255, 255, 0.1);
             --gray: #8B949E;
             --foreground: #F0F2F5;
-            --accent: #6366F1;
-            --accent-glow: rgba(99, 102, 241, 0.5);
+            --accent: #a970e8; /* Updated accent */
+            --accent-glow: rgba(169, 112, 232, 0.5);
             --accent-text: #FFFFFF;
+
+            /* IDE-specific variables */
+            --ui-panel-bg: rgba(30, 32, 47, 0.7);
+            --ui-panel-bg-heavy: #141623;
+            --ui-border: rgba(255, 255, 255, 0.1);
+            --gray-light: #4a4a4a;
+            --gray-dark: #2a2a2a;
+            --ui-border-radius: 0.5rem;
         }
 
         *, *::before, *::after {
@@ -41,6 +50,11 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+
+        body.ide-view {
+            background: linear-gradient(168deg, rgba(41,22,55,1) 0%, rgba(35,38,82,1) 35%, rgba(45,80,95,1) 72%, rgba(20,53,63,1) 100%);
         }
 
         #root {
@@ -59,9 +73,13 @@
                 radial-gradient(ellipse 80% 80% at 20% 20%, var(--accent-glow), transparent),
                 radial-gradient(ellipse 50% 50% at 80% 90%, rgba(120, 113, 224, 0.3), transparent);
             z-index: -1;
-            opacity: 20;
+            opacity: 0.1;
             pointer-events: none;
             animation: aurora 15s ease-in-out infinite alternate;
+        }
+
+        body.ide-view #root::before {
+            display: none;
         }
 
         .xterm {

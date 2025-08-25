@@ -56,7 +56,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ activeFile, customItems, d
   const warningCount = diagnostics.filter(d => d.severity === 'warning').length;
 
   return (
-    <footer className="bg-[var(--ui-panel-bg)] backdrop-blur-md text-[var(--text-secondary)] px-4 py-1 text-xs flex items-center justify-between border border-[var(--ui-border)] flex-shrink-0 rounded-[var(--ui-border-radius)] shadow-lg">
+    <footer className="bg-[var(--ui-panel-bg-heavy)] text-[var(--text-secondary)] px-4 py-1 text-xs flex items-center justify-between border-t border-[var(--ui-border)] flex-shrink-0 rounded-b-[var(--ui-border-radius)] shadow-lg">
       <div className="flex items-center space-x-4">
         <span>main*</span>
         <div className="flex items-center space-x-2" title="Problems">
@@ -80,7 +80,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ activeFile, customItems, d
         <span>Spaces: 2</span>
         <span>UTF-8</span>
         <span>{getLanguage(activeFile)}</span>
-        <span className="text-[var(--text-primary)]">Ready</span>
+        <span className="text-[var(--foreground)]">Ready</span>
       </div>
     </footer>
   );
