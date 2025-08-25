@@ -59,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
         <>
             <header 
                 className={`fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-6xl px-4 py-3 flex justify-between items-center z-[100] transition-all duration-300
-                ${isScrolled ? 'bg-[rgba(18,15,36,0.7)] backdrop-blur-lg shadow-lg' : 'bg-transparent'} rounded-full`}
+                ${isScrolled ? 'bg-[rgba(18,15,36,0.5)] backdrop-blur-lg shadow-lg' : 'bg-transparent'} rounded-full`}
             >
                 <a href="#" className="flex items-center font-semibold text-[var(--foreground)] no-underline">
                     <MominAILogo width={150} height={33} />
