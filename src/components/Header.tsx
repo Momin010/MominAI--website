@@ -59,10 +59,10 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
         <>
             <header 
                 className={`fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-6xl px-4 py-3 flex justify-between items-center z-[100] transition-all duration-300
-                ${isScrolled ? 'bg-[rgba(18,15,36,0.7)] backdrop-blur-lg border border-[var(--border-color)] shadow-lg' : 'bg-transparent border-transparent'} rounded-full`}
+                ${isScrolled ? 'bg-[rgba(18,15,36,0.7)] backdrop-blur-lg shadow-lg' : 'bg-transparent'} rounded-full`}
             >
                 <a href="#" className="flex items-center font-semibold text-[var(--foreground)] no-underline">
-                    <MominAILogo width={100} height={22} />
+                    <MominAILogo width={150} height={33} />
                 </a>
                 
                 {/* Desktop Navigation */}
@@ -70,10 +70,10 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
                     {navLinks.map(link => <NavLink key={link.href} href={link.href}>{link.label}</NavLink>)}
                 </nav>
                  <div className="hidden lg:flex gap-4 items-center">
-                    <button onClick={onLoginClick} className="px-5 py-2 rounded-full border font-semibold text-sm cursor-pointer transition-all duration-200 bg-transparent text-[var(--gray)] hover:text-white border-[var(--border-color)] hover:border-white/80">
+                    <button onClick={onLoginClick} className="px-5 py-2 rounded-full font-semibold text-sm cursor-pointer transition-all duration-200 bg-transparent text-[var(--gray)] hover:text-white hover:bg-white/10">
                         Login
                     </button>
-                    <button onClick={onBuildNowClick} className="px-5 py-2 rounded-full border font-semibold text-sm cursor-pointer transition-all duration-200 bg-transparent border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white hover:scale-105 active:scale-100">
+                    <button onClick={onBuildNowClick} className="px-5 py-2 rounded-full font-semibold text-sm cursor-pointer transition-all duration-200 bg-[var(--accent)] text-white hover:brightness-110 hover:scale-105 active:scale-100">
                         Build Now
                     </button>
                 </div>
@@ -90,10 +90,10 @@ const Header: React.FC<HeaderProps> = ({ onBuildNowClick, onLoginClick }) => {
             <div className={`fixed inset-0 bg-black/90 backdrop-blur-lg z-[999] flex flex-col justify-center items-center gap-8 lg:hidden transition-opacity duration-300 ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
                 {navLinks.map(link => <a key={link.href} href={link.href} className="text-white no-underline text-3xl font-semibold" onClick={handleLinkClick}>{link.label}</a>)}
                 <div className="flex flex-col gap-6 items-center mt-8">
-                    <button onClick={() => { onLoginClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border border-[var(--border-color)] text-2xl bg-transparent text-white hover:bg-white/10">
+                    <button onClick={() => { onLoginClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full text-2xl bg-transparent text-white hover:bg-white/10">
                         Login
                     </button>
-                    <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full border border-[var(--accent)] text-2xl bg-transparent text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white">
+                    <button onClick={() => { onBuildNowClick(); handleLinkClick(); }} className="px-8 py-4 rounded-full text-2xl bg-[var(--accent)] text-white hover:brightness-110">
                         Build Now
                     </button>
                 </div>
