@@ -2,26 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 // --- CURSOR DEFINITIONS ---
-
-// Maps cursor state to the correct SVG file and its hotspot (the active point of the cursor)
 const CURSORS = {
-  default: { // The normal state
-    uri: '/cursor/pointinghand.svg',
-    hotspot: { x: 0, y: 0 }, // Assumes the hotspot is the top-left corner (tip of the finger)
-  },
-  pointer: { // Hovering over interactive elements
-    uri: '/cursor/openhand.svg',
-    hotspot: { x: 16, y: 16 }, // Center of the open hand for a balanced feel
-  },
-  grabbing: { // When the mouse is clicked down
-    uri: '/cursor/closedhand.svg',
-    hotspot: { x: 16, y: 16 }, // Center of the closed hand
-  },
+  default: { uri: '/cursor/pointinghand.svg', hotspot: { x: 0, y: 0 } },
+  pointer: { uri: '/cursor/openhand.svg', hotspot: { x: 16, y: 16 } },
+  grabbing: { uri: '/cursor/closedhand.svg', hotspot: { x: 16, y: 16 } },
 };
 
 const CustomCursor = () => {
     const [position, setPosition] = useState({ x: -100, y: -100 });
-    // 'default' is the pointing hand, 'pointer' is the open hand for hovering
     const [cursorType, setCursorType] = useState<'default' | 'pointer' | 'grabbing'>('default');
     const [isMouseDown, setIsMouseDown] = useState(false);
     const [isGloballyHidden, setIsGloballyHidden] = useState(false);
@@ -36,7 +24,7 @@ const CustomCursor = () => {
         const handleMouseOver = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
             // When hovering buttons, etc., show the open hand ('pointer' state)
-            if (target.closest('a, button, input, [role="button"], [onclick]')) {
+            if (target.closest('a, button, input, [role="button"], [onclick], .monaco-editor')) {
                 setCursorType('pointer');
             } else {
                 // Otherwise, show the default pointing hand
@@ -81,7 +69,7 @@ const CustomCursor = () => {
             position: 'fixed',
             top: '0px',
             left: '0px',
-            width: '32px', // Standard cursor size
+            width: '32px',
             height: '32px',
             backgroundImage: `url('${currentCursor.uri}')`,
             backgroundSize: 'contain',
@@ -91,12 +79,31 @@ const CustomCursor = () => {
             pointerEvents: 'none',
             zIndex: 99999,
             willChange: 'transform',
-            transition: 'transform 0.1s cubic-bezier(0.25, 1, 0.5, 1)',
+            transition: 'transform 0.05s ease-out', // Faster transition for responsiveness
+        } as React.CSSProperties,
+        follower: {
+            position: 'fixed',
+            top: '0px',
+            left: '0px',
+            width: '8px',
+            height: '8px',
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            borderRadius: '50%',
+            // Center the follower dot on the cursor position
+            transform: `translate3d(${position.x - 4}px, ${position.y - 4}px, 0) scale(${isInteracting ? 0 : 1})`,
+            pointerEvents: 'none',
+            zIndex: 99998, // Below the main cursor
+            willChange: 'transform, opacity',
+            opacity: isInteracting ? 0 : 1,
+            transition: 'transform 0.2s ease-out, opacity 0.2s ease-out', // Smoother, trailing transition
         } as React.CSSProperties,
     };
     
     return createPortal(
-        <div style={styles.cursor} aria-hidden="true" />,
+        <>
+            <div style={styles.follower} aria-hidden="true" />
+            <div style={styles.cursor} aria-hidden="true" />
+        </>,
         document.body
     );
 };

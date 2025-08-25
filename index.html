@@ -52,6 +52,11 @@
             overflow-x: hidden;
             transition: background 0.5s ease;
         }
+        
+        /* Hide the native cursor when our custom cursor is active */
+        .custom-cursor-active, .custom-cursor-active * {
+            cursor: none !important;
+        }
 
         #root {
             isolation: isolate;
