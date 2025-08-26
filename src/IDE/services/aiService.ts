@@ -1,5 +1,6 @@
 
 
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { FileSystemNode, Diagnostic, DependencyReport, InspectedElement } from '../types';
 
@@ -542,4 +543,56 @@ User's request: "${prompt}"`;
     });
 
     return response.text.trim();
+};
+
+export const generateComponentSet = async (componentName: string, description: string): Promise<{ files: { name: string, content: string }[] }> => {
+    const ai = getAI();
+    const prompt = `You are an expert full-stack developer specializing in creating React components with TypeScript and Tailwind CSS.
+A user wants to generate a new component set. Based on their description, you must create three files:
+1. The React component file (\`${componentName}.tsx\`). It should be a functional component with props typed using TypeScript. Use Tailwind CSS for styling.
+2. A test file for the component (\`${componentName}.test.tsx\`) using React Testing Library and Vitest/Jest. It should include basic rendering tests and interaction tests if applicable.
+3. A Markdown documentation file (\`${componentName}.md\`) explaining how to use the component, its props (with types and descriptions), and showing a usage example in a JSX code block.
+
+Component Name: "${componentName}"
+Description: "${description}"
+
+You MUST respond with a single JSON object with a single key "files", which is an array of file objects. Each file object must have two keys: "name" (the full filename) and "content" (the full file content as a string).
+Ensure the code is complete, well-formatted, and production-ready.
+`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    files: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                name: { type: Type.STRING },
+                                content: { type: Type.STRING }
+                            },
+                            required: ['name', 'content']
+                        }
+                    }
+                },
+                required: ['files']
+            }
+        }
+    });
+
+    try {
+        const result = JSON.parse(response.text.trim());
+        if (!result.files || !Array.isArray(result.files)) {
+            throw new Error("AI response is missing the 'files' array.");
+        }
+        return result;
+    } catch (e) {
+        console.error("Failed to parse AI component set response:", response.text, e);
+        throw new Error("AI returned an invalid response. Could not generate component set.");
+    }
 };

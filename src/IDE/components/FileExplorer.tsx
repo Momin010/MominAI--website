@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { FileSystemNode, Directory, File } from '../types';
 import { Icons } from './Icon';
@@ -14,14 +15,16 @@ interface FileExplorerProps {
   renameNode: (oldPath: string, newName: string) => void;
   moveNode: (sourcePath: string, destDir: string) => void;
   openAiFileGenerator: (path: string) => void;
+  openAiComponentGenerator: (path: string) => void;
 }
 
 const FileExplorer: React.FC<FileExplorerProps> = (props) => {
-  const { createNode, openAiFileGenerator } = props;
+  const { createNode, openAiFileGenerator, openAiComponentGenerator } = props;
   const { menu, handleContextMenu, closeMenu } = useContextMenu();
 
   const handleRootContextMenu = (e: React.MouseEvent) => {
     handleContextMenu(e, [
+      { label: 'New Component with AI...', action: () => openAiComponentGenerator('/src/components'), icon: <Icons.FileSparkle className="w-4 h-4 text-purple-400" /> },
       { label: 'New File with AI...', action: () => openAiFileGenerator('/'), icon: <Icons.FileSparkle className="w-4 h-4 text-purple-400" /> },
       { label: 'New File', action: () => {
           const name = prompt("Enter new file name:");
@@ -134,7 +137,7 @@ const FileView: React.FC<FileViewProps> = ({ file, path, onFileSelect, handleCon
 const DirectoryView: React.FC<DirectoryViewProps> = ({ directory, path, handleContextMenu, depth, ...props }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [isDragOver, setIsDragOver] = useState(false);
-  const { createNode, deleteNode, renameNode, moveNode, openAiFileGenerator } = props;
+  const { createNode, deleteNode, renameNode, moveNode, openAiFileGenerator, openAiComponentGenerator } = props;
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(path.split('/').pop() || '');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -158,6 +161,7 @@ const DirectoryView: React.FC<DirectoryViewProps> = ({ directory, path, handleCo
     const newFilePath = (name: string) => currentPath === '/' ? `/${name}` : `${currentPath}/${name}`;
 
     handleContextMenu(e, [
+        { label: 'New Component with AI...', action: () => openAiComponentGenerator(currentPath), icon: <Icons.FileSparkle className="w-4 h-4 text-purple-400" /> },
         { label: 'New File with AI...', action: () => openAiFileGenerator(currentPath), icon: <Icons.FileSparkle className="w-4 h-4 text-purple-400" /> },
         { label: 'New File', action: () => {
             const name = prompt("File name in " + (path.split('/').pop() || '/'));

@@ -1,10 +1,5 @@
 
 
-
-
-
-
-
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -12,9 +7,9 @@ import { WebContainerProvider, useWebContainer } from './WebContainerProvider.ts
 import { useFileSystem } from './hooks/useFileSystem.ts';
 import { useLocalStorageState } from '../hooks/useLocalStorageState.ts';
 import { ThemeProvider } from './contexts/ThemeContext.tsx';
-import { CommandPaletteProvider } from './hooks/useCommandPalette.tsx';
+import { CommandPaletteProvider, useCommandPalette } from './hooks/useCommandPalette.ts';
 import { AIProvider } from './contexts/AIContext.tsx';
-import { generateCodeForFile } from './services/aiService.ts';
+import { generateCodeForFile, generateComponentSet } from './services/aiService.ts';
 import { getAllFiles } from './utils/fsUtils.ts';
 
 
@@ -34,6 +29,7 @@ import CommandPalette from './components/CommandPalette.tsx';
 import AiDiffViewModal from './components/AiDiffViewModal.tsx';
 import AiFileGeneratorModal from './components/AiFileGeneratorModal.tsx';
 import MobileIDEView from './components/MobileIDEView.tsx';
+import AiComponentGeneratorModal from './components/AiComponentGeneratorModal.tsx';
 
 
 // Panel Components
@@ -140,6 +136,10 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     const [githubToken, setGithubToken] = useLocalStorageState<string | null>('githubToken', null);
 
     const previewIframeRef = useRef<HTMLIFrameElement>(null);
+    const { registerCommand } = useCommandPalette();
+    
+    const [isComponentGeneratorOpen, setIsComponentGeneratorOpen] = useState(false);
+    const [componentGenBasePath, setComponentGenBasePath] = useState('/');
 
      const getFileContent = useCallback((path: string | null): string => {
         if (!path || !fs) return '';
@@ -267,6 +267,47 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
         }
     };
     
+    const openAiComponentGenerator = (path: string) => {
+        setComponentGenBasePath(path || '/');
+        setIsComponentGeneratorOpen(true);
+    };
+
+    const handleAiComponentSubmit = async (basePath: string, componentName: string, description: string) => {
+        addNotification({ type: 'info', message: `Generating component set for ${componentName}...` });
+        try {
+            const { files } = await generateComponentSet(componentName, description);
+            
+            const componentDir = basePath === '/' ? `/${componentName}` : `${basePath}/${componentName}`;
+            await createNode(componentDir, 'directory');
+
+            for (const file of files) {
+                const fullPath = `${componentDir}/${file.name}`;
+                await createNode(fullPath, 'file', file.content);
+            }
+            addNotification({ type: 'success', message: `${componentName} component set created successfully!` });
+            
+            const componentFile = files.find(f => f.name.endsWith('.tsx') && !f.name.endsWith('.test.tsx'));
+            if (componentFile) {
+                const mainFilePath = `${componentDir}/${componentFile.name}`;
+                handleFileSelect(mainFilePath);
+            }
+        } catch (e) {
+            if (e instanceof Error) addNotification({ type: 'error', message: e.message });
+            throw e; // re-throw to keep modal open on error
+        }
+    };
+
+    useEffect(() => {
+        if(registerCommand) {
+            registerCommand({
+                id: 'ai.component.generate',
+                label: 'AI: New Component from Prompt...',
+                category: 'AI',
+                action: () => openAiComponentGenerator('/src/components'),
+            });
+        }
+    }, [registerCommand]);
+    
     useEffect(() => {
         runDiagnostics(activeTab);
     }, [activeTab, runDiagnostics]);
@@ -310,6 +351,13 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                     basePath={fileGenBasePath}
                     addNotification={addNotification}
                 />
+                <AiComponentGeneratorModal
+                    isOpen={isComponentGeneratorOpen}
+                    onClose={() => setIsComponentGeneratorOpen(false)}
+                    onSubmit={handleAiComponentSubmit}
+                    basePath={componentGenBasePath}
+                    addNotification={addNotification}
+                />
 
                 <TitleBar onTogglePanel={togglePanel} panelVisibility={panelVisibility} onLogout={onLogout} />
                 <div className="flex-grow flex min-h-0 gap-2">
@@ -327,6 +375,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                                         renameNode={renameNode}
                                         moveNode={moveNode}
                                         openAiFileGenerator={openAiFileGenerator}
+                                        openAiComponentGenerator={openAiComponentGenerator}
                                     />
                                     <SearchPanel 
                                         performSearch={performSearch} 
