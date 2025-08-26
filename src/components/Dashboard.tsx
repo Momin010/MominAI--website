@@ -8,6 +8,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     const [activeView, setActiveView] = useState('projects');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleOpenIDE = () => {
         window.location.href = '/?ide=true';
@@ -28,10 +29,24 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     
     return (
         <div className="flex h-screen w-screen bg-[var(--background)] text-[var(--foreground)] font-sans">
-            <Sidebar activeView={activeView} setActiveView={setActiveView} />
+            {/* Mobile Sidebar */}
+            <div 
+                className={`fixed inset-0 z-40 transform transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+            >
+                <div className="w-64 h-full" onClick={e => e.stopPropagation()}>
+                    <Sidebar activeView={activeView} setActiveView={setActiveView} />
+                </div>
+            </div>
+
+            {/* Desktop Sidebar */}
+            <div className="w-64 hidden md:block">
+                 <Sidebar activeView={activeView} setActiveView={setActiveView} />
+            </div>
+            
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header onLogout={onLogout} />
-                <main className="flex-1 overflow-y-auto p-8 bg-[rgba(11,8,24,0.8)]" style={{ animation: 'fadeIn 0.5s ease-out' }}>
+                <Header onLogout={onLogout} onMenuClick={() => setIsMobileMenuOpen(prev => !prev)} />
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[rgba(11,8,24,0.8)]" style={{ animation: 'fadeIn 0.5s ease-out' }}>
                    {renderView()}
                 </main>
             </div>
@@ -47,7 +62,7 @@ const Sidebar: React.FC<{activeView: string, setActiveView: (view: string) => vo
     ];
 
     return (
-        <aside className="w-64 bg-[rgba(18,15,36,0.5)] flex flex-col p-4 shadow-2xl">
+        <aside className="w-full h-full bg-[rgba(18,15,36,0.8)] backdrop-blur-lg flex flex-col p-4 shadow-2xl">
             <div className="px-2 mb-10">
                 <MominAILogo />
             </div>
@@ -87,7 +102,7 @@ const UserProfileDropdown: React.FC<{onLogout: () => void}> = ({ onLogout }) => 
                 <img src="https://avatar.vercel.sh/momin" alt="User Avatar" className="w-8 h-8 rounded-full"/>
             </button>
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-[var(--background-secondary)] rounded-lg shadow-2xl py-2" style={{animation: 'scaleIn 0.1s ease-out'}}>
+                <div className="absolute right-0 mt-2 w-48 bg-[var(--background-secondary)] rounded-lg shadow-2xl py-2 z-50" style={{animation: 'scaleIn 0.1s ease-out'}}>
                     <a href="#" className="flex items-center gap-3 px-4 py-2 text-sm text-[var(--gray)] hover:bg-white/5 hover:text-white transition-colors"><AppIcons.User className="w-4 h-4" /> Account</a>
                     <a href="#" className="flex items-center gap-3 px-4 py-2 text-sm text-[var(--gray)] hover:bg-white/5 hover:text-white transition-colors"><AppIcons.Settings className="w-4 h-4" /> Settings</a>
                     <div className="my-2 h-px bg-[var(--border-color)]"></div>
@@ -101,9 +116,14 @@ const UserProfileDropdown: React.FC<{onLogout: () => void}> = ({ onLogout }) => 
     );
 };
 
-const Header: React.FC<{onLogout: () => void}> = ({ onLogout }) => (
-    <header className="flex-shrink-0 h-20 flex items-center justify-between px-8 bg-transparent">
-        <h1 className="text-xl font-semibold">Welcome Back, Momin</h1>
+const Header: React.FC<{onLogout: () => void; onMenuClick: () => void}> = ({ onLogout, onMenuClick }) => (
+    <header className="flex-shrink-0 h-20 flex items-center justify-between px-4 md:px-8 bg-transparent">
+        <div className="flex items-center gap-4">
+            <button onClick={onMenuClick} className="p-2 -ml-2 text-gray-300 md:hidden bg-transparent border-none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <h1 className="text-lg md:text-xl font-semibold">Welcome Back, Momin</h1>
+        </div>
         <div className="flex items-center gap-4">
             <UserProfileDropdown onLogout={onLogout} />
         </div>
@@ -112,7 +132,7 @@ const Header: React.FC<{onLogout: () => void}> = ({ onLogout }) => (
 
 const ProjectsView: React.FC<{onOpenIDE: () => void}> = ({ onOpenIDE }) => (
     <div>
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <h2 className="text-3xl font-bold">Projects</h2>
             <button className="flex items-center gap-2 bg-[var(--accent)] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:brightness-110 transition-all transform hover:scale-105 shadow-lg shadow-[var(--accent-glow)] border-none">
                 <AppIcons.Plus className="w-5 h-5" />
@@ -164,16 +184,16 @@ const SettingsView: React.FC = () => {
     return (
         <div>
             <h2 className="text-3xl font-bold mb-8">Settings</h2>
-            <div className="flex gap-8 items-start">
-                <div className="w-48 flex-shrink-0 flex flex-col gap-2">
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="w-full md:w-48 flex-shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto">
                    {tabs.map(tab => (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full flex items-center gap-3 p-3 rounded-lg text-sm font-medium transition-colors duration-200 bg-transparent border-none ${activeTab === tab.id ? 'bg-[rgba(255,255,255,0.1)] text-white' : 'text-[var(--gray)] hover:bg-[rgba(255,255,255,0.05)]'}`}>
+                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full flex items-center gap-3 p-3 rounded-lg text-sm font-medium transition-colors duration-200 bg-transparent border-none whitespace-nowrap ${activeTab === tab.id ? 'bg-[rgba(255,255,255,0.1)] text-white' : 'text-[var(--gray)] hover:bg-[rgba(255,255,255,0.05)]'}`}>
                            <tab.icon className="w-5 h-5"/>
                            <span>{tab.label}</span>
                         </button>
                    ))}
                 </div>
-                <div className="flex-1 bg-gradient-to-br from-[rgba(255,255,255,0.05)] to-transparent backdrop-blur-sm p-8 rounded-xl shadow-lg" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+                <div className="flex-1 w-full bg-gradient-to-br from-[rgba(255,255,255,0.05)] to-transparent backdrop-blur-sm p-8 rounded-xl shadow-lg" style={{ animation: 'fadeIn 0.3s ease-out' }}>
                    {renderContent()}
                 </div>
             </div>
@@ -189,7 +209,7 @@ const ProfileSettings = () => (
                  <img src="https://avatar.vercel.sh/momin" alt="User Avatar" className="w-16 h-16 rounded-full"/>
                  <button className="bg-transparent border border-[var(--border-color)] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors">Upload new picture</button>
              </div>
-             <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label className="text-sm text-[var(--gray)] mb-1 block">First Name</label>
                     <input type="text" value="Momin" className="w-full p-2 bg-[var(--background)] rounded-md outline-none focus:ring-2 ring-[var(--accent)] border border-[var(--border-color)]" />

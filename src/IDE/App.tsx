@@ -3,6 +3,8 @@
 
 
 
+
+
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -10,7 +12,7 @@ import { WebContainerProvider, useWebContainer } from './WebContainerProvider.ts
 import { useFileSystem } from './hooks/useFileSystem.ts';
 import { useLocalStorageState } from '../hooks/useLocalStorageState.ts';
 import { ThemeProvider } from './contexts/ThemeContext.tsx';
-import { CommandPaletteProvider } from './hooks/useCommandPalette.ts';
+import { CommandPaletteProvider } from './hooks/useCommandPalette.tsx';
 import { AIProvider } from './contexts/AIContext.tsx';
 import { generateCodeForFile } from './services/aiService.ts';
 import { getAllFiles } from './utils/fsUtils.ts';
@@ -31,6 +33,8 @@ import TabbedPanel from './components/TabbedPanel.tsx';
 import CommandPalette from './components/CommandPalette.tsx';
 import AiDiffViewModal from './components/AiDiffViewModal.tsx';
 import AiFileGeneratorModal from './components/AiFileGeneratorModal.tsx';
+import MobileIDEView from './components/MobileIDEView.tsx';
+
 
 // Panel Components
 import SearchPanel from './components/SearchPanel.tsx';
@@ -382,12 +386,26 @@ interface AppProps {
 }
 
 const App: React.FC<AppProps> = ({ onLogout }) => {
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobileView(window.innerWidth < 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const ideContent = isMobileView 
+        ? <MobileIDEView onLogout={onLogout} />
+        : <IDEWorkspace onLogout={onLogout} />;
+
     return (
         <ThemeProvider>
             <CommandPaletteProvider>
                 <NotificationProvider>
                     <WebContainerProvider>
-                        <IDEWorkspace onLogout={onLogout} />
+                        {ideContent}
                     </WebContainerProvider>
                 </NotificationProvider>
             </CommandPaletteProvider>
