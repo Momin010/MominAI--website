@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from 'react';
 import { Icons } from './Icon';
 
@@ -8,6 +9,7 @@ interface PreviewContainerProps {
   title: string;
   children: React.ReactNode;
   onClose: () => void;
+  serverUrl: string | null;
   previewContext: { html: string } | null;
   iframeRef: React.RefObject<HTMLIFrameElement>;
   onToggleInspector: () => void;
@@ -19,6 +21,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
   title, 
   children, 
   onClose, 
+  serverUrl,
   previewContext, 
   iframeRef,
   onToggleInspector,
@@ -27,10 +30,13 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
   const [isMaximized, setIsMaximized] = useState(false);
 
   const handleOpenInNewTab = () => {
-    if (!previewContext) return;
-    const blob = new Blob([previewContext.html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    if (serverUrl) {
+      window.open(serverUrl, '_blank');
+    } else if (previewContext) {
+      const blob = new Blob([previewContext.html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
   };
 
   if (!isVisible) {
@@ -39,7 +45,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
 
   const containerClasses = isMaximized
     ? 'fixed inset-2 bg-[var(--background-secondary)]/90 backdrop-blur-lg z-50 flex flex-col rounded-lg shadow-2xl border border-[var(--border-color)]'
-    : 'h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md flex flex-col rounded-lg border border-[var(--border-color)] shadow-xl';
+    : 'h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md flex flex-col rounded-lg shadow-xl';
     
   return (
     <div className={containerClasses}>
@@ -56,7 +62,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
           <button
             title="Open in new tab"
             onClick={handleOpenInNewTab}
-            disabled={!previewContext}
+            disabled={!serverUrl && !previewContext}
             className="p-1.5 rounded-md hover:bg-[var(--gray-light)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Icons.ExternalLink className="w-4 h-4" />
@@ -77,7 +83,11 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
           </button>
         </div>
       </div>
-      <div className="flex-grow overflow-auto">
+      <div 
+        className="flex-grow overflow-auto"
+        onMouseEnter={() => document.body.classList.add('native-cursor-active')}
+        onMouseLeave={() => document.body.classList.remove('native-cursor-active')}
+      >
         {React.Children.map(children, child =>
             React.isValidElement(child) ? React.cloneElement(child, { ref: iframeRef } as any) : child
         )}

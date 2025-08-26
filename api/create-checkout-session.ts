@@ -14,9 +14,14 @@ export default async function handler(req: Request) {
     });
   }
 
-  // NOTE: In a real application, the secret key should be stored in an environment
-  // variable (e.g., process.env.STRIPE_SECRET_KEY) for security.
-  const stripe = new Stripe('sk_test_51RVscnRqAgvOqPUL4W6xQ42XHo3BovYxqRcLDgIeLe3ZzeqkmZdkR5A3jJHdtVnpvotdiWtr93c8vZclEQS9oFyg00rXxPCcE8');
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return new Response(JSON.stringify({ error: 'Stripe secret key not configured.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
   // Get the origin URL from the request headers.
   const origin = req.headers.get('origin') || 'http://localhost:3000';

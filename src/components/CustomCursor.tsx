@@ -13,8 +13,13 @@ const CustomCursor = () => {
     const [cursorType, setCursorType] = useState<'default' | 'pointer' | 'grabbing'>('default');
     const [isMouseDown, setIsMouseDown] = useState(false);
     const [isGloballyHidden, setIsGloballyHidden] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
 
     useEffect(() => {
+        const touchCheck = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        setIsTouchDevice(touchCheck);
+        if (touchCheck) return;
+
         document.body.classList.add('custom-cursor-active');
 
         const updatePosition = (e: MouseEvent) => {
@@ -23,11 +28,9 @@ const CustomCursor = () => {
 
         const handleMouseOver = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            // When hovering buttons, etc., show the open hand ('pointer' state)
             if (target.closest('a, button, input, [role="button"], [onclick], .monaco-editor')) {
                 setCursorType('pointer');
             } else {
-                // Otherwise, show the default pointing hand
                 setCursorType('default');
             }
         };
@@ -55,11 +58,10 @@ const CustomCursor = () => {
         };
     }, []);
     
-    if (isGloballyHidden) {
+    if (isTouchDevice || isGloballyHidden) {
         return null;
     }
 
-    // On mouse down, always show the grabbing (closed hand) cursor
     const finalCursorType = isMouseDown ? 'grabbing' : cursorType;
     const currentCursor = CURSORS[finalCursorType];
     const isInteracting = finalCursorType !== 'default';
@@ -74,12 +76,11 @@ const CustomCursor = () => {
             backgroundImage: `url('${currentCursor.uri}')`,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
-            // Position using the cursor's hotspot for pixel-perfect alignment
             transform: `translate3d(${position.x - currentCursor.hotspot.x}px, ${position.y - currentCursor.hotspot.y}px, 0) scale(${isInteracting ? 1.1 : 1})`,
             pointerEvents: 'none',
             zIndex: 99999,
             willChange: 'transform',
-            transition: 'transform 0.05s ease-out', // Faster transition for responsiveness
+            transition: 'transform 0.05s ease-out',
         } as React.CSSProperties,
     };
     

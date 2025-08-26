@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useRef, useCallback } from 'react';
 
 interface ResizablePanelsProps {
@@ -83,7 +84,7 @@ const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel,
     <div ref={containerRef} className="w-full h-full flex overflow-hidden">
       {isLeftVisible && (
         <>
-          <div style={{ width: `${finalLeftWidth}%` }} className="h-full overflow-auto bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg border border-[var(--ui-border)] shadow-xl">
+          <div style={{ width: `${finalLeftWidth}%` }} className="h-full overflow-auto bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg shadow-xl">
             {leftPanel}
           </div>
           
@@ -96,14 +97,20 @@ const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel,
         </>
       )}
 
-      <div style={{ width: `${mainContentWidth}%` }} className="h-full flex flex-col gap-2">
-        <div style={{ height: `${mainContentHeight}%` }} className="w-full overflow-hidden">
+      <div style={{ width: `${mainContentWidth}%` }} className="h-full flex flex-col">
+        <div style={{ height: `calc(${mainContentHeight}% - ${isBottomVisible ? '0.375rem' : '0px'})` }} className="w-full overflow-hidden">
            {mainPanel}
         </div>
         
         {isBottomVisible && (
           <>
-            <div style={{ height: `${finalBottomHeight}%` }} className="w-full overflow-hidden bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg shadow-xl">
+             <div
+                onMouseDown={(e) => startDrag('bottom', e)}
+                className="w-full h-1.5 bg-transparent cursor-row-resize group flex items-center justify-center my-1"
+              >
+                <div className="w-full h-px bg-transparent group-hover:bg-[var(--accent)] transition-colors duration-300"></div>
+              </div>
+            <div style={{ height: `calc(${finalBottomHeight}% - ${isBottomVisible ? '0.375rem' : '0px'})` }} className="w-full overflow-hidden bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg shadow-xl">
               {bottomPanel}
             </div>
           </>

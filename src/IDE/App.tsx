@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -11,6 +12,7 @@ import { CommandPaletteProvider, useCommandPalette } from './hooks/useCommandPal
 import { AIProvider } from './contexts/AIContext.tsx';
 import { generateCodeForFile, generateComponentSet } from './services/aiService.ts';
 import { getAllFiles } from './utils/fsUtils.ts';
+import { allPlugins } from './plugins/index.ts';
 
 
 // UI Components
@@ -28,7 +30,6 @@ import TabbedPanel from './components/TabbedPanel.tsx';
 import CommandPalette from './components/CommandPalette.tsx';
 import AiDiffViewModal from './components/AiDiffViewModal.tsx';
 import AiFileGeneratorModal from './components/AiFileGeneratorModal.tsx';
-import MobileIDEView from './components/MobileIDEView.tsx';
 import AiComponentGeneratorModal from './components/AiComponentGeneratorModal.tsx';
 
 
@@ -42,6 +43,7 @@ import DependencyPanel from './components/DependencyPanel.tsx';
 import StoryboardPanel from './components/StoryboardPanel.tsx';
 import FigmaPanel from './components/FigmaPanel.tsx';
 import ImageToCodePanel from './components/ImageToCodePanel.tsx';
+import PluginPanel from './components/PluginPanel.tsx';
 
 
 import type { Notification, BottomPanelView, FileAction, Diagnostic, ConsoleMessage, DependencyReport, StoryboardComponent, SearchResult, FileSystemNode } from './types.ts';
@@ -387,7 +389,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                                     <SourceControlPanel fs={fs!} replaceFs={() => {}} githubToken={githubToken} switchView={setActiveView} supabaseUser={null} />
                                     <StoryboardPanel components={storyboardComponents} readNode={getFileContent} />
                                     <FigmaPanel />
-                                    <div/>
+                                    <PluginPanel plugins={allPlugins} />
                                     <ImageToCodePanel />
                                     <SettingsPanel githubToken={githubToken} setGithubToken={setGithubToken} supabaseUser={null} supabaseUrl={null} setSupabaseUrl={() => {}} supabaseAnonKey={null} setSupabaseAnonKey={() => {}} />
                                 </SideBar>
@@ -407,6 +409,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                             rightPanel={
                                 <PreviewContainer 
                                     isVisible={true} title="Live Preview" onClose={() => togglePanel('right')}
+                                    serverUrl={serverUrl}
                                     previewContext={null} iframeRef={previewIframeRef}
                                     onToggleInspector={()=>{}} isInspectorActive={false}
                                 >
@@ -435,26 +438,12 @@ interface AppProps {
 }
 
 const App: React.FC<AppProps> = ({ onLogout }) => {
-    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
-
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobileView(window.innerWidth < 768);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const ideContent = isMobileView 
-        ? <MobileIDEView onLogout={onLogout} />
-        : <IDEWorkspace onLogout={onLogout} />;
-
     return (
         <ThemeProvider>
             <CommandPaletteProvider>
                 <NotificationProvider>
                     <WebContainerProvider>
-                        {ideContent}
+                        <IDEWorkspace onLogout={onLogout} />
                     </WebContainerProvider>
                 </NotificationProvider>
             </CommandPaletteProvider>

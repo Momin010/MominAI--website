@@ -66,7 +66,8 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
         setMessages(prev => [...prev, userMessage, aiMessagePlaceholder]);
         
         let fullResponse = '';
-        const stream = streamAIResponse(fullPrompt);
+        // FIX: streamAIResponse expects an array of message objects, not a single string.
+        const stream = streamAIResponse([{ role: 'user', text: fullPrompt }]);
 
         for await (const chunk of stream) {
             fullResponse += chunk;
@@ -165,7 +166,8 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
         }
 
         const userMessage: Message = { sender: 'user', text: userMessageText };
-        const stream = streamAIResponse(prompt);
+        // FIX: streamAIResponse expects an array of message objects, not a single string.
+        const stream = streamAIResponse([{ role: 'user', text: prompt }]);
         await processStream(userMessage, stream);
 
     }, [processStream]);
