@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useNotifications } from '../App';
 import { useAI } from '../contexts/AIContext';
@@ -7,7 +8,8 @@ import { Icons } from './Icon';
 
 const FigmaPanel: React.FC = () => {
     const { addNotification } = useNotifications();
-    const { createNode, openFile } = useAI();
+    // FIX: Get geminiApiKey from the useAI hook.
+    const { createNode, openFile, geminiApiKey } = useAI();
     const [figmaUrl, setFigmaUrl] = useState('');
     const [figmaToken, setFigmaToken] = useState('');
     const [prompt, setPrompt] = useState('');
@@ -27,7 +29,8 @@ const FigmaPanel: React.FC = () => {
         }
         setIsLoading(true);
         try {
-            const generatedCode = await generateCodeFromFigma(figmaUrl, figmaToken, prompt);
+            // FIX: Pass the geminiApiKey to the AI service function.
+            const generatedCode = await generateCodeFromFigma(figmaUrl, figmaToken, prompt, geminiApiKey);
             const path = '/figma-imports/import.html';
             createNode(path, 'file', generatedCode);
             addNotification({ type: 'success', message: `Figma design imported to ${path}` });

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Plugin, IDEApi } from '../types';
 import { generateTestFile } from '../services/aiService';
@@ -17,7 +18,9 @@ export const testGeneratorPlugin: Plugin = {
             action: async (filePath, content) => {
                 api.showNotification({ type: 'info', message: `Generating tests for ${filePath.split('/').pop()}...` });
                 try {
-                    const testContent = await generateTestFile(content, filePath);
+                    // FIX: Get API key from localStorage and pass it to the service function.
+                    const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+                    const testContent = await generateTestFile(content, filePath, apiKey);
                     const extension = filePath.substring(filePath.lastIndexOf('.'));
                     const testPath = filePath.replace(extension, `.test${extension}`);
                     

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Plugin, IDEApi } from '../types';
 import { optimizeCss } from '../services/aiService';
@@ -17,7 +18,9 @@ export const cssOptimizerPlugin: Plugin = {
             action: async (filePath, content) => {
                 api.showNotification({ type: 'info', message: 'Optimizing CSS...' });
                 try {
-                    const optimizedContent = await optimizeCss(content);
+                    // FIX: Get API key from localStorage and pass it to the service function.
+                    const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+                    const optimizedContent = await optimizeCss(content, apiKey);
                     api.updateActiveFileContent(optimizedContent);
                     api.showNotification({ type: 'success', message: 'CSS optimized successfully.' });
                 } catch (error) {

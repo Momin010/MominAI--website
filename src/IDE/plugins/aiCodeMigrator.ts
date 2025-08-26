@@ -1,4 +1,5 @@
 
+
 import type { Plugin, IDEApi } from '../types';
 import { migrateCode } from '../services/aiService';
 
@@ -11,7 +12,9 @@ const handleMigration = async (api: IDEApi, from: string, to: string, supportedE
     const content = api.getOpenFileContent();
     api.showNotification({ type: 'info', message: `Migrating from ${from} to ${to}...` });
     try {
-        const newCode = await migrateCode(content, from, to);
+        // FIX: Get API key from localStorage and pass it to the service function.
+        const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+        const newCode = await migrateCode(content, from, to, apiKey);
         api.updateActiveFileContent(newCode);
         api.showNotification({ type: 'success', message: 'Migration complete!' });
     } catch (error) {

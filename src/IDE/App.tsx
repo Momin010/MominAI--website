@@ -1,6 +1,9 @@
 
 
 
+
+
+
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -10,7 +13,7 @@ import { useLocalStorageState } from '../hooks/useLocalStorageState.ts';
 import { ThemeProvider } from './contexts/ThemeContext.tsx';
 import { CommandPaletteProvider, useCommandPalette } from './hooks/useCommandPalette.ts';
 import { AIProvider } from './contexts/AIContext.tsx';
-import { generateCodeForFile, generateComponentSet } from './services/aiService.ts';
+import { generateCodeForFile, generateComponentSet, fixCodeWithAI } from './services/aiService.ts';
 import { getAllFiles } from './utils/fsUtils.ts';
 import { allPlugins } from './plugins/index.ts';
 
@@ -133,9 +136,12 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     const [isFileGeneratorOpen, setIsFileGeneratorOpen] = useState(false);
     const [fileGenBasePath, setFileGenBasePath] = useState('/');
     const { addNotification } = useNotifications();
+    const [isFixingWithAi, setIsFixingWithAi] = useState<string | null>(null);
     
     // Config State
     const [githubToken, setGithubToken] = useLocalStorageState<string | null>('githubToken', null);
+    const [geminiApiKey, setGeminiApiKey] = useLocalStorageState<string | null>('geminiApiKey', null);
+
 
     const previewIframeRef = useRef<HTMLIFrameElement>(null);
     const { registerCommand } = useCommandPalette();
@@ -256,10 +262,15 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     };
 
     const handleAiFileSubmit = async (basePath: string, filename: string, prompt: string) => {
+        if (!geminiApiKey) {
+            addNotification({ type: 'error', message: 'Please set your Gemini API key in the settings to use this feature.' });
+            setActiveView('settings');
+            throw new Error('API Key not set');
+        }
         const fullPath = basePath === '/' ? `/${filename}` : `${basePath}/${filename}`;
         addNotification({ type: 'info', message: `Generating ${filename} with AI...` });
         try {
-            const content = await generateCodeForFile(prompt, filename);
+            const content = await generateCodeForFile(prompt, filename, geminiApiKey);
             await createNode(fullPath, 'file', content);
             addNotification({ type: 'success', message: `${filename} created successfully!` });
             handleFileSelect(fullPath);
@@ -275,9 +286,14 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     };
 
     const handleAiComponentSubmit = async (basePath: string, componentName: string, description: string) => {
+         if (!geminiApiKey) {
+            addNotification({ type: 'error', message: 'Please set your Gemini API key in the settings to use this feature.' });
+            setActiveView('settings');
+            throw new Error('API Key not set');
+        }
         addNotification({ type: 'info', message: `Generating component set for ${componentName}...` });
         try {
-            const { files } = await generateComponentSet(componentName, description);
+            const { files } = await generateComponentSet(componentName, description, geminiApiKey);
             
             const componentDir = basePath === '/' ? `/${componentName}` : `${basePath}/${componentName}`;
             await createNode(componentDir, 'directory');
@@ -299,6 +315,37 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
         }
     };
 
+    const handleAiFixRequest = useCallback(async (error: ConsoleMessage) => {
+        if (!fs) return;
+        if (!geminiApiKey) {
+            addNotification({ type: 'error', message: 'Please set your Gemini API key in the settings to use this feature.' });
+            setActiveView('settings');
+            return;
+        }
+        const errorMessage = error.message.join(' ');
+        setIsFixingWithAi(errorMessage);
+        addNotification({ type: 'info', message: 'Asking AI to analyze the error...' });
+
+        try {
+            const allFiles = getAllFiles(fs, "/");
+            const result = await fixCodeWithAI(errorMessage, allFiles, geminiApiKey);
+
+            if (result.actions && result.actions.length > 0) {
+                 setDiffModalState({
+                    isOpen: true,
+                    actions: result.actions,
+                    originalFiles: allFiles
+                });
+            } else {
+                addNotification({ type: 'info', message: result.explanation || 'AI could not find a fix.' });
+            }
+        } catch (e) {
+            if (e instanceof Error) addNotification({ type: 'error', message: `AI Fix failed: ${e.message}` });
+        } finally {
+            setIsFixingWithAi(null);
+        }
+    }, [fs, addNotification, setDiffModalState, geminiApiKey, setActiveView]);
+
     useEffect(() => {
         if(registerCommand) {
             registerCommand({
@@ -307,8 +354,21 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                 category: 'AI',
                 action: () => openAiComponentGenerator('/src/components'),
             });
+            registerCommand({
+                id: 'ai.debug.last-error',
+                label: 'AI: Fix last console error...',
+                category: 'AI',
+                action: () => {
+                    const lastError = [...consoleMessages].reverse().find(m => m.type === 'error');
+                    if (lastError) {
+                        handleAiFixRequest(lastError);
+                    } else {
+                        addNotification({ type: 'warning', message: 'No errors found in the console.' });
+                    }
+                },
+            });
         }
-    }, [registerCommand]);
+    }, [registerCommand, consoleMessages, handleAiFixRequest, addNotification]);
     
     useEffect(() => {
         runDiagnostics(activeTab);
@@ -342,6 +402,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
             openFile={handleFileSelect}
             fs={fs}
             setDiffModalState={setDiffModalState}
+            geminiApiKey={geminiApiKey}
         >
             <div className="w-full h-full bg-transparent flex flex-col p-2 gap-2">
                  <CommandPalette />
@@ -391,7 +452,17 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                                     <FigmaPanel />
                                     <PluginPanel plugins={allPlugins} />
                                     <ImageToCodePanel />
-                                    <SettingsPanel githubToken={githubToken} setGithubToken={setGithubToken} supabaseUser={null} supabaseUrl={null} setSupabaseUrl={() => {}} supabaseAnonKey={null} setSupabaseAnonKey={() => {}} />
+                                    <SettingsPanel 
+                                        githubToken={githubToken} 
+                                        setGithubToken={setGithubToken} 
+                                        geminiApiKey={geminiApiKey}
+                                        setGeminiApiKey={setGeminiApiKey}
+                                        supabaseUser={null} 
+                                        supabaseUrl={null} 
+                                        setSupabaseUrl={() => {}} 
+                                        supabaseAnonKey={null} 
+                                        setSupabaseAnonKey={() => {}} 
+                                    />
                                 </SideBar>
                             }
                             mainPanel={
@@ -420,7 +491,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                                 <TabbedPanel activeTab={activeBottomTab} onTabChange={setActiveBottomTab} diagnostics={diagnostics} dependencyReport={dependencyReport}>
                                     <Terminal />
                                     <ProblemsPanel diagnostics={diagnostics} onProblemSelect={handleFileSelect} activeFile={activeTab} readNode={getFileContent} updateNode={handleContentChange} addNotification={() => {}} />
-                                    <DebugConsolePanel messages={consoleMessages} onClear={() => setConsoleMessages([])} onAiFixRequest={() => {}} isFixingWithAi={null} />
+                                    <DebugConsolePanel messages={consoleMessages} onClear={() => setConsoleMessages([])} onAiFixRequest={handleAiFixRequest} isFixingWithAi={isFixingWithAi} />
                                     <DependencyPanel report={dependencyReport} />
                                 </TabbedPanel>
                             }

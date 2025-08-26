@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 export interface File {
@@ -129,6 +130,12 @@ export interface FileAction {
     action: 'create' | 'update';
     path: string;
     content: string;
+}
+
+// FIX: Added missing AIFixResponse type definition.
+export interface AIFixResponse {
+    explanation: string;
+    actions: FileAction[];
 }
 
 export interface Message {

@@ -1,6 +1,10 @@
 
 
 
+
+
+
+
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext.tsx';
 import { fetchGithubUser } from '../services/githubService.ts';
@@ -9,10 +13,14 @@ import { useNotifications } from '../App.tsx';
 import type { SupabaseUser } from '../types.ts';
 import * as supabaseService from '../services/supabaseService.ts';
 import SupabaseAuthModal from './SupabaseAuthModal.tsx';
+// FIX: Changed import from AppIcons to Icons.
+import { Icons } from './Icon.tsx';
 
 interface SettingsPanelProps {
   githubToken: string | null;
   setGithubToken: (token: string | null) => void;
+  geminiApiKey: string | null;
+  setGeminiApiKey: (key: string | null) => void;
   supabaseUser: SupabaseUser | null;
   supabaseUrl: string | null;
   setSupabaseUrl: (url: string | null) => void;
@@ -29,6 +37,8 @@ interface GithubUser {
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
     githubToken,
     setGithubToken,
+    geminiApiKey,
+    setGeminiApiKey,
     supabaseUser,
     supabaseUrl,
     setSupabaseUrl,
@@ -44,7 +54,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     
     const [localSupabaseUrl, setLocalSupabaseUrl] = useState(supabaseUrl || '');
     const [localSupabaseAnonKey, setLocalSupabaseAnonKey] = useState(supabaseAnonKey || '');
+    const [localApiKey, setLocalApiKey] = useState(geminiApiKey || '');
 
+    useEffect(() => {
+        setLocalApiKey(geminiApiKey || '');
+    }, [geminiApiKey]);
+
+    const handleSaveApiKey = () => {
+        setGeminiApiKey(localApiKey);
+        addNotification({ type: 'success', message: 'API Key saved!' });
+    };
 
     useEffect(() => {
         const getUser = async () => {
@@ -104,6 +123,29 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <h2 className="text-sm font-bold uppercase tracking-wider">Settings</h2>
             </div>
             <div className="flex-grow overflow-y-auto p-4 space-y-6">
+                {/* Gemini AI Section */}
+                <div>
+                    <h3 className="text-md font-semibold mb-2 text-white flex items-center gap-2">
+                        {/* FIX: Use Icons.Key instead of AppIcons.Key */}
+                        <Icons.Key className="w-4 h-4 text-purple-400" />
+                        <span>Gemini AI</span>
+                    </h3>
+                    <div className="bg-[var(--gray-dark)]/50 border border-[var(--border-color)] p-4 rounded-lg">
+                        <label className="block text-sm font-medium text-gray-300 mb-1">API Key</label>
+                        <div className="flex items-center space-x-2">
+                            <input 
+                                type="password" 
+                                value={localApiKey} 
+                                onChange={(e) => setLocalApiKey(e.target.value)} 
+                                placeholder="Enter your Google AI API Key"
+                                className="w-full bg-[var(--gray-dark)] border border-[var(--border-color)] p-2 rounded-md text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                            />
+                            <button onClick={handleSaveApiKey} className="bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap">Save Key</button>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2">Your API key is stored locally in your browser and never sent to our servers.</p>
+                    </div>
+                </div>
+
                 {/* GitHub Integration Section */}
                 <div>
                     <h3 className="text-md font-semibold mb-2 text-white">GitHub Integration</h3>

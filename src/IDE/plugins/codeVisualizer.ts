@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Plugin, IDEApi } from '../types';
 import { generateMermaidDiagram } from '../services/aiService';
@@ -19,7 +20,9 @@ export const codeVisualizerPlugin: Plugin = {
                 // In a real app, we'd use the selected text. For now, we use the whole file.
                 api.showNotification({ type: 'info', message: 'Generating diagram...' });
                  try {
-                    const mermaidCode = await generateMermaidDiagram(content);
+                    // FIX: Get API key from localStorage and pass it to the service function.
+                    const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+                    const mermaidCode = await generateMermaidDiagram(content, apiKey);
                     const previewComponent = React.createElement(MermaidPreview, { chart: mermaidCode });
                     api.showInPreview(`Visualization: ${filePath.split('/').pop()}`, previewComponent);
                 } catch (error) {

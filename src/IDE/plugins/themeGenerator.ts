@@ -1,3 +1,4 @@
+
 import type { Plugin, IDEApi } from '../types';
 import { generateTheme } from '../services/aiService';
 
@@ -17,7 +18,9 @@ export const themeGeneratorPlugin: Plugin = {
 
                 api.showNotification({ type: 'info', message: 'Generating theme...' });
                 try {
-                    const themeVariables = await generateTheme(description);
+                    // FIX: Get API key from localStorage and pass it to the service function.
+                    const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+                    const themeVariables = await generateTheme(description, apiKey);
                     Object.entries(themeVariables).forEach(([key, value]) => {
                         document.body.style.setProperty(key, value);
                     });

@@ -1,3 +1,4 @@
+
 import type { Plugin, IDEApi } from '../types';
 import { getCodeExplanation } from '../services/aiService';
 
@@ -40,7 +41,9 @@ export const aiDocCommentsPlugin: Plugin = {
                 if (lineContent.trim().length < 10) return;
                 
                 try {
-                    const explanation = await debouncedGetCodeExplanation(lineContent);
+                    // FIX: Get API key from localStorage and pass it to the service function.
+                    const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+                    const explanation = await debouncedGetCodeExplanation(lineContent, apiKey);
                     return {
                         range: range,
                         contents: [{ value: explanation }]

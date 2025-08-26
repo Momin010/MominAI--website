@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import type { Directory, FileSystemNode, GistCommit, SupabaseUser } from '../types';
 import { useNotifications } from '../App';
@@ -9,6 +10,7 @@ import GitHistoryVisualizer from './GitHistoryVisualizer';
 import * as supabaseService from '../services/supabaseService';
 import JSZip from 'jszip';
 import { Icons } from './Icon';
+import { useAI } from '../contexts/AIContext';
 
 interface SourceControlPanelProps {
     fs: Directory;
@@ -42,6 +44,8 @@ const SourceControlPanel: React.FC<SourceControlPanelProps> = ({ fs, replaceFs, 
     const [activeTab, setActiveTab] = React.useState('github');
     const [commitHistory, setCommitHistory] = React.useState<GistCommit[]>([]);
     const [lastSync, setLastSync] = React.useState<string | null>(null);
+    // FIX: Get geminiApiKey from the useAI hook.
+    const { geminiApiKey } = useAI();
 
     React.useEffect(() => {
         const savedHistory = localStorage.getItem('gistCommitHistory');
@@ -106,7 +110,8 @@ const SourceControlPanel: React.FC<SourceControlPanelProps> = ({ fs, replaceFs, 
         setIsLoading('commit');
         try {
             const allFiles = getAllFiles(fs, '');
-            const message = await generateCommitMessage(allFiles);
+            // FIX: Pass the geminiApiKey to the AI service function.
+            const message = await generateCommitMessage(allFiles, geminiApiKey);
             setCommitMessage(message);
         } catch (error) {
              if (error instanceof Error) addNotification({ type: 'error', message: error.message });

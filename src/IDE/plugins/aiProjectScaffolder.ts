@@ -1,4 +1,5 @@
 
+
 import type { Plugin, IDEApi } from '../types';
 import { scaffoldProject } from '../services/aiService';
 
@@ -18,7 +19,9 @@ export const aiProjectScaffolderPlugin: Plugin = {
                 
                 api.showNotification({ type: 'info', message: 'Scaffolding project...' });
                 try {
-                    const files = await scaffoldProject(prompt);
+                    // FIX: Get API key from localStorage and pass it to the service function.
+                    const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+                    const files = await scaffoldProject(prompt, apiKey);
                     api.scaffoldProject(files);
                     api.showNotification({ type: 'success', message: 'Project scaffolded successfully!' });
                 } catch (error) {

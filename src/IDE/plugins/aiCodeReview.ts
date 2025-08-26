@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import type { Plugin, IDEApi, Diagnostic } from '../types';
 import { reviewCode } from '../services/aiService';
@@ -24,7 +25,9 @@ export const aiCodeReviewPlugin: Plugin = {
             action: async (filePath, content) => {
                 api.showNotification({ type: 'info', message: 'Starting AI code review...' });
                 try {
-                    const results = await reviewCode(content);
+                    // FIX: Get API key from localStorage and pass it to the service function.
+                    const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+                    const results = await reviewCode(content, apiKey);
                     const diagnostics: Diagnostic[] = results.map(r => ({ ...r, source: AI_REVIEW_SOURCE }));
                     api.setAiDiagnostics(AI_REVIEW_SOURCE, diagnostics);
                     api.showNotification({ type: 'success', message: `AI review complete. Found ${diagnostics.length} issues.` });

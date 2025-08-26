@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useNotifications } from '../App';
 import { useAI } from '../contexts/AIContext';
@@ -6,7 +7,8 @@ import { generateCodeFromImage } from '../services/aiService';
 
 const ImageToCodePanel: React.FC = () => {
     const { addNotification } = useNotifications();
-    const { createNode, openFile } = useAI();
+    // FIX: Get geminiApiKey from the useAI hook.
+    const { createNode, openFile, geminiApiKey } = useAI();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +72,8 @@ const ImageToCodePanel: React.FC = () => {
         setIsLoading(true);
         try {
             const base64Image = imageSrc.split(',')[1];
-            const code = await generateCodeFromImage(base64Image, prompt);
+            // FIX: Pass the geminiApiKey to the AI service function.
+            const code = await generateCodeFromImage(base64Image, prompt, geminiApiKey);
             const path = '/components/GeneratedUI.html';
             createNode(path, 'file', code);
             addNotification({type: 'success', message: `UI generated at ${path}`});

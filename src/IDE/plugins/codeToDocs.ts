@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Plugin, IDEApi } from '../types';
 import { generateDocsForCode } from '../services/aiService';
@@ -17,7 +18,9 @@ export const codeToDocsPlugin: Plugin = {
             action: async (filePath, content) => {
                 api.showNotification({ type: 'info', message: 'Generating documentation...' });
                 try {
-                    const docContent = await generateDocsForCode(content, filePath);
+                    // FIX: Get API key from localStorage and pass it to the service function.
+                    const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+                    const docContent = await generateDocsForCode(content, filePath, apiKey);
                     const docPath = filePath.substring(0, filePath.lastIndexOf('.')) + '.md';
                     api.createNode(docPath, 'file', docContent);
                     api.showNotification({ type: 'success', message: `Documentation created at ${docPath}` });

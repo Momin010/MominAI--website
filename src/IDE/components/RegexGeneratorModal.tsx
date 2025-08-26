@@ -1,7 +1,9 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { Notification } from '../types';
 import { generateRegex } from '../services/aiService';
+import { useAI } from '../contexts/AIContext';
 
 interface RegexGeneratorModalProps {
   isOpen: boolean;
@@ -14,6 +16,8 @@ const RegexGeneratorModal: React.FC<RegexGeneratorModalProps> = ({ isOpen, onClo
   const [result, setResult] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  // FIX: Get geminiApiKey from the useAI hook.
+  const { geminiApiKey } = useAI();
 
   useEffect(() => {
     if (isOpen) {
@@ -32,7 +36,8 @@ const RegexGeneratorModal: React.FC<RegexGeneratorModalProps> = ({ isOpen, onClo
     setIsGenerating(true);
     setResult('');
     try {
-      const regex = await generateRegex(description);
+      // FIX: Pass the geminiApiKey to the AI service function.
+      const regex = await generateRegex(description, geminiApiKey);
       setResult(regex);
     } catch (error) {
       const message = error instanceof Error ? error.message : "An unknown error occurred.";

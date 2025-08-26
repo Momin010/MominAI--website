@@ -1,4 +1,6 @@
 
+
+
 import React, { useRef, useEffect, useState } from 'react';
 import { getInlineCodeSuggestion } from '../services/aiService';
 import { useAI } from '../contexts/AIContext';
@@ -22,7 +24,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
   const suggestionTimeout = useRef<number | null>(null);
   const decorations = useRef<string[]>([]);
   const [isMonacoLoaded, setIsMonacoLoaded] = useState(false);
-  const { performEditorAction } = useAI();
+  const { performEditorAction, geminiApiKey } = useAI();
   const { theme } = useTheme();
 
   const onChangeRef = useRef(onChange);
@@ -120,7 +122,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
               if (token.isCancellationRequested) { resolve({ items: [] }); return; }
               const textBefore = model.getValueInRange({ startLineNumber: 1, startColumn: 1, endLineNumber: position.lineNumber, endColumn: position.column });
               try {
-                const suggestion = await getInlineCodeSuggestion(textBefore);
+                const suggestion = await getInlineCodeSuggestion(textBefore, geminiApiKey);
                 if (token.isCancellationRequested || !suggestion) { resolve({ items: [] }); return; }
                 resolve({ items: [{ insertText: suggestion }] });
               } catch (e) { console.error("Code suggestion error:", e); resolve({ items: [] }); }
@@ -143,7 +145,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
           if (suggestionTimeout.current) { clearTimeout(suggestionTimeout.current); }
       }
     };
-  }, [isMonacoLoaded]);
+  }, [isMonacoLoaded, geminiApiKey]);
 
   useEffect(() => () => {
       editorInstance.current?.dispose();

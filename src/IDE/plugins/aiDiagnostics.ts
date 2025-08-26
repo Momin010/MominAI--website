@@ -1,3 +1,4 @@
+
 import type { Plugin, IDEApi, Diagnostic } from '../types';
 import { analyzeCodeForBugs } from '../services/aiService';
 
@@ -23,7 +24,9 @@ const runAnalysis = (api: IDEApi) => {
 
     analysisTimeout = window.setTimeout(async () => {
         try {
-            const results = await analyzeCodeForBugs(content);
+            // FIX: Get API key from localStorage and pass it to the service function.
+            const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+            const results = await analyzeCodeForBugs(content, apiKey);
             const diagnostics: Diagnostic[] = results.map(r => ({ ...r, source: AI_LINTER_SOURCE }));
             api.setAiDiagnostics(AI_LINTER_SOURCE, diagnostics);
         } catch (e) {

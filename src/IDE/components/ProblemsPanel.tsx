@@ -1,8 +1,10 @@
 
+
 import React, { useState } from 'react';
 import type { Diagnostic, Notification } from '../types';
 import { Icons } from './Icon';
 import { getSuggestedFix } from '../services/aiService';
+import { useAI } from '../contexts/AIContext';
 
 interface ProblemsPanelProps {
     diagnostics: Diagnostic[];
@@ -28,6 +30,8 @@ const ProblemIcon: React.FC<{ severity: Diagnostic['severity'] }> = ({ severity 
 
 const ProblemsPanel: React.FC<ProblemsPanelProps> = ({ diagnostics, onProblemSelect, activeFile, readNode, updateNode, addNotification }) => {
     
+    // FIX: Get geminiApiKey from the useAI hook.
+    const { geminiApiKey } = useAI();
     const problemsForActiveFile = activeFile ? diagnostics : [];
     const [suggestion, setSuggestion] = useState<{ forLine: number, original: string, fix: string } | null>(null);
     const [isLoadingFix, setIsLoadingFix] = useState<number | null>(null);
@@ -39,7 +43,8 @@ const ProblemsPanel: React.FC<ProblemsPanelProps> = ({ diagnostics, onProblemSel
         try {
             const content = readNode(activeFile);
             if (!content) throw new Error("Could not read active file content.");
-            const fix = await getSuggestedFix(content, problem, activeFile);
+            // FIX: Pass the geminiApiKey to the AI service function.
+            const fix = await getSuggestedFix(content, problem, activeFile, geminiApiKey);
             const originalLine = content.split('\n')[problem.line - 1];
             setSuggestion({ forLine: problem.line, original: originalLine, fix });
         } catch (error) {

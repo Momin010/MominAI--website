@@ -1,4 +1,5 @@
 
+
 import type { Plugin, IDEApi } from '../types';
 import { analyzeDependencies } from '../services/aiService';
 
@@ -20,7 +21,9 @@ export const dependencyCheckerPlugin: Plugin = {
                 }
                 api.showNotification({ type: 'info', message: 'Analyzing dependencies...' });
                 try {
-                    const report = await analyzeDependencies(packageJsonContent);
+                    // FIX: Get API key from localStorage and pass it to the service function.
+                    const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
+                    const report = await analyzeDependencies(packageJsonContent, apiKey);
                     api.setDependencyReport(report);
                     api.showNotification({ type: 'success', message: 'Dependency analysis complete.' });
                 } catch (error) {

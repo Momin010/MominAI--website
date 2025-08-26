@@ -1,4 +1,6 @@
 
+
+
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import type { Message, EditorAIAction, FileAction, FileSystemNode } from '../types';
 import { streamAIResponse } from '../services/aiService';
@@ -16,6 +18,7 @@ interface AIContextType {
     getNode: (path: string) => FileSystemNode | null;
     openFile: (path: string, line?: number) => void;
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+    geminiApiKey: string | null;
 }
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
@@ -38,9 +41,10 @@ interface AIProviderProps {
     openFile: (path: string, line?: number) => void;
     fs: FileSystemNode | null;
     setDiffModalState: (state: { isOpen: boolean, actions: FileAction[], originalFiles: { path: string, content: string }[], messageIndex?: number }) => void;
+    geminiApiKey: string | null;
 }
 
-export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, getOpenFileContent, createNode, updateNode, getNode, openFile, fs, setDiffModalState }) => {
+export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, getOpenFileContent, createNode, updateNode, getNode, openFile, fs, setDiffModalState, geminiApiKey }) => {
     const [messages, setMessages] = useState<Message[]>([
         { sender: 'ai', text: "Hello! I'm your AI assistant. I have full context of your project and can help with multi-file changes. Ask away!" }
     ]);
@@ -49,6 +53,10 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
 
     const sendMessage = useCallback(async (prompt: string) => {
         if (isLoading || !fs) return;
+        if (!geminiApiKey) {
+            addNotification({ type: 'error', message: 'Please set your Gemini API key in the settings to use AI features.' });
+            return;
+        }
         setIsLoading(true);
 
         const allFiles = getAllFiles(fs, '/');
@@ -56,18 +64,22 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
             ? `\n\nHere is the full project structure and content for context:\n` + allFiles.map(f => `--- FILE: ${f.path} ---\n${f.content}`).join('\n\n')
             : '';
         
-        const fullPrompt = `${prompt}${projectContext}`;
-        
         const userMessage: Message = { sender: 'user', text: prompt };
-        // Store the original contents of the files the AI might change
         userMessage.originalFileContents = allFiles;
 
+        const historyForAI = [...messages, userMessage].map((m, i) => ({
+            // Use 'model' role for AI responses as expected by the SDK
+            role: m.sender === 'ai' ? 'model' : 'user',
+            text: (m.sender === 'user' && i === messages.length) 
+                ? `${m.text}${projectContext}` // Append full context to the latest user message
+                : m.text 
+        }));
+        
         const aiMessagePlaceholder: Message = { sender: 'ai', text: '', isStreaming: true };
         setMessages(prev => [...prev, userMessage, aiMessagePlaceholder]);
         
         let fullResponse = '';
-        // FIX: streamAIResponse expects an array of message objects, not a single string.
-        const stream = streamAIResponse([{ role: 'user', text: fullPrompt }]);
+        const stream = streamAIResponse(historyForAI, geminiApiKey);
 
         for await (const chunk of stream) {
             fullResponse += chunk;
@@ -83,11 +95,10 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
 
         // Stream finished, now process the full response
         let finalAiMessage: Message = { sender: 'ai', text: fullResponse, isStreaming: false };
-        const jsonStart = fullResponse.indexOf('{');
-        const jsonEnd = fullResponse.lastIndexOf('}');
+        const jsonMatch = fullResponse.match(/```json\s*([\s\S]*?)\s*```|({[\s\S]*})/);
 
-        if (jsonStart !== -1 && jsonEnd > jsonStart) {
-            const jsonString = fullResponse.substring(jsonStart, jsonEnd + 1);
+        if (jsonMatch) {
+            const jsonString = jsonMatch[1] || jsonMatch[2];
             try {
                 const parsed = JSON.parse(jsonString);
                 if (parsed.explanation && parsed.actions && Array.isArray(parsed.actions)) {
@@ -100,7 +111,6 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
                     };
                 }
             } catch (e) {
-                // It wasn't a valid JSON action object, so we'll just treat it as a text response.
                 console.warn("AI response contained JSON-like characters but failed to parse:", e);
             }
         }
@@ -113,7 +123,7 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
 
         setIsLoading(false);
 
-    }, [isLoading, fs]);
+    }, [isLoading, fs, geminiApiKey, messages, addNotification]);
 
     const processStream = useCallback(async (userMessage: Message, stream: AsyncGenerator<string>) => {
         if (isLoading) return;
@@ -147,6 +157,11 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
     }, [isLoading]);
 
     const performEditorAction = useCallback(async (action: EditorAIAction, code: string, filePath: string) => {
+        if (!geminiApiKey) {
+            addNotification({ type: 'error', message: 'Please set your Gemini API key in the settings to use AI features.' });
+            return;
+        }
+        
         let prompt = '';
         let userMessageText = '';
 
@@ -166,11 +181,10 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
         }
 
         const userMessage: Message = { sender: 'user', text: userMessageText };
-        // FIX: streamAIResponse expects an array of message objects, not a single string.
-        const stream = streamAIResponse([{ role: 'user', text: prompt }]);
+        const stream = streamAIResponse([{ role: 'user', text: prompt }], geminiApiKey);
         await processStream(userMessage, stream);
 
-    }, [processStream]);
+    }, [processStream, geminiApiKey, addNotification]);
 
     const applyChanges = useCallback((messageIndex: number, actions: FileAction[]) => {
         const message = messages[messageIndex];
@@ -187,7 +201,7 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
         });
     }, [messages, addNotification, setDiffModalState]);
 
-    const value = { messages, isLoading, sendMessage, performEditorAction, applyChanges, createNode, updateNode, getNode, openFile, setMessages };
+    const value = { messages, isLoading, sendMessage, performEditorAction, applyChanges, createNode, updateNode, getNode, openFile, setMessages, geminiApiKey };
 
     return <AIContext.Provider value={value}>{children}</AIContext.Provider>;
 };
