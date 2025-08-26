@@ -4,6 +4,8 @@
 
 
 
+
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { GenerateContentResponse } from "@google/genai";
 import type { Diagnostic, DependencyReport, FileAction, AIFixResponse } from '../types';
@@ -25,10 +27,13 @@ const getAiClient = (apiKey: string | null): GoogleGenAI => {
 export async function* streamAIResponse(history: {role: string, text: string}[], apiKey: string | null): AsyncGenerator<string> {
     const ai = getAiClient(apiKey);
 
-    const systemInstruction = `You are an expert pair programming assistant in a web-based IDE. Your response format depends entirely on the user's request.
+    const systemInstruction = `You are an expert pair programming assistant in a web-based IDE.
+You do not have direct access to the user's file system. To see file contents, you must ask the user to provide them for you.
 
-**Scenario 1: The user asks to write, create, update, or modify code.**
-In this case, you MUST ONLY output a single, raw JSON object. Do not include markdown fences (\`\`\`json) or any other text, conversation, or explanation before or after the JSON object. Your entire response must be the JSON object.
+Your response format depends on the user's request.
+
+**Scenario 1: The user asks you to write, create, update, or modify code.**
+If you have enough information, you MUST ONLY output a single, raw JSON object. Do not include markdown fences (\`\`\`json) or any other text before or after the JSON.
 
 The JSON object must have this exact structure:
 {
@@ -42,8 +47,8 @@ The JSON object must have this exact structure:
   ]
 }
 
-**Scenario 2: The user asks a general question, for an explanation, or anything that does not involve changing files.**
-In this case, respond with a helpful, friendly answer in standard Markdown format. Do NOT use the JSON format for these requests.`;
+**Scenario 2: The user asks a general question or for an explanation.**
+Respond with a helpful, friendly answer in standard Markdown format. Do NOT use the JSON format for these requests.`;
 
     try {
         const contents = history.map(m => ({ role: m.role, parts: [{ text: m.text }] }));

@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import type { Message, EditorAIAction, FileAction, FileSystemNode } from '../types';
 import { streamAIResponse } from '../services/aiService';
@@ -60,19 +62,13 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children, activeFile, ge
         setIsLoading(true);
 
         const allFiles = getAllFiles(fs, '/');
-        const projectContext = allFiles.length > 0
-            ? `\n\nHere is the full project structure and content for context:\n` + allFiles.map(f => `--- FILE: ${f.path} ---\n${f.content}`).join('\n\n')
-            : '';
         
         const userMessage: Message = { sender: 'user', text: prompt };
         userMessage.originalFileContents = allFiles;
 
-        const historyForAI = [...messages, userMessage].map((m, i) => ({
-            // Use 'model' role for AI responses as expected by the SDK
+        const historyForAI = [...messages, userMessage].map(m => ({
             role: m.sender === 'ai' ? 'model' : 'user',
-            text: (m.sender === 'user' && i === messages.length) 
-                ? `${m.text}${projectContext}` // Append full context to the latest user message
-                : m.text 
+            text: m.text
         }));
         
         const aiMessagePlaceholder: Message = { sender: 'ai', text: '', isStreaming: true };
