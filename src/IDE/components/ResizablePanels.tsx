@@ -1,7 +1,5 @@
 
-
-
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 interface ResizablePanelsProps {
   leftPanel: React.ReactNode;
@@ -11,125 +9,108 @@ interface ResizablePanelsProps {
   panelVisibility: { left: boolean; right: boolean; bottom: boolean };
 }
 
+const Divider: React.FC<{ onMouseDown: (e: React.MouseEvent) => void; orientation: 'vertical' | 'horizontal' }> = ({ onMouseDown, orientation }) => {
+  const isVertical = orientation === 'vertical';
+  const classes = isVertical
+    ? 'w-1.5 h-full cursor-col-resize'
+    : 'w-full h-1.5 cursor-row-resize';
+  const innerClasses = isVertical
+    ? 'w-px h-full'
+    : 'w-full h-px';
+  
+  return (
+    <div onMouseDown={onMouseDown} className={`bg-transparent group flex items-center justify-center transition-colors duration-200 hover:bg-[var(--accent)]/20 flex-shrink-0 ${classes}`}>
+      <div className={`bg-[var(--border-color)] group-hover:bg-[var(--accent)] ${innerClasses}`}></div>
+    </div>
+  );
+};
+
+
 const ResizablePanels: React.FC<ResizablePanelsProps> = ({ leftPanel, mainPanel, rightPanel, bottomPanel, panelVisibility }) => {
-  const [leftWidth, setLeftWidth] = useState(25); // percentage
-  const [rightWidth, setRightWidth] = useState(25); // percentage
-  const [bottomHeight, setBottomHeight] = useState(30); // percentage
+  const [leftWidth, setLeftWidth] = useState(25);
+  const [rightWidth, setRightWidth] = useState(25);
+  const [bottomHeight, setBottomHeight] = useState(30);
   const { left: isLeftVisible, right: isRightVisible, bottom: isBottomVisible } = panelVisibility;
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationFrameRef = useRef<number | null>(null);
+  const isDragging = useRef<string | null>(null);
 
-  const startDrag = useCallback((divider: 'left' | 'right' | 'bottom', startEvent: React.MouseEvent) => {
-    startEvent.preventDefault();
+  const onDrag = useCallback((e: MouseEvent) => {
+    if (!isDragging.current || !containerRef.current) return;
     
-    const startX = startEvent.clientX;
-    const startY = startEvent.clientY;
-    const startLeftWidth = leftWidth;
-    const startRightWidth = rightWidth;
-    const startBottomHeight = bottomHeight;
+    const containerRect = containerRef.current.getBoundingClientRect();
 
-    const doDrag = (moveEvent: MouseEvent) => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      
-      animationFrameRef.current = requestAnimationFrame(() => {
-        const containerRect = containerRef.current?.getBoundingClientRect();
-        if (!containerRect) return;
-
-        if (divider === 'left') {
-          const dx = moveEvent.clientX - startX;
-          const newWidth = startLeftWidth + (dx / containerRect.width) * 100;
-          setLeftWidth(Math.max(15, Math.min(newWidth, 100 - (isRightVisible ? rightWidth : 0) - 15)));
-        } else if (divider === 'right') {
-          const dx = startX - moveEvent.clientX;
-          const newWidth = startRightWidth + (dx / containerRect.width) * 100;
-          setRightWidth(Math.max(15, Math.min(newWidth, 100 - (isLeftVisible ? leftWidth : 0) - 15)));
-        } else if (divider === 'bottom') {
-          const dy = startY - moveEvent.clientY;
-          const newHeight = startBottomHeight + (dy / containerRect.height) * 100;
-          setBottomHeight(Math.max(15, Math.min(newHeight, 85)));
+    requestAnimationFrame(() => {
+        if (!isDragging.current) return;
+        if (isDragging.current === 'left') {
+          const newLeftWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+          setLeftWidth(Math.max(15, Math.min(newLeftWidth, 50)));
+        } else if (isDragging.current === 'right') {
+          const newRightWidth = ((containerRect.right - e.clientX) / containerRect.width) * 100;
+          setRightWidth(Math.max(15, Math.min(newRightWidth, 50)));
+        } else if (isDragging.current === 'bottom') {
+          const newBottomHeight = ((containerRect.bottom - e.clientY) / containerRect.height) * 100;
+          setBottomHeight(Math.max(15, Math.min(newBottomHeight, 85)));
         }
-      });
+    });
+  }, []);
+
+  const onDragEnd = useCallback(() => {
+    isDragging.current = null;
+    document.body.style.cursor = '';
+    document.body.classList.remove('select-none');
+    window.removeEventListener('mousemove', onDrag);
+    window.removeEventListener('mouseup', onDragEnd);
+  }, [onDrag]);
+
+  const onDragStart = useCallback((divider: 'left' | 'right' | 'bottom', e: React.MouseEvent) => {
+    e.preventDefault();
+    isDragging.current = divider;
+    document.body.style.cursor = divider === 'bottom' ? 'row-resize' : 'col-resize';
+    document.body.classList.add('select-none');
+    window.addEventListener('mousemove', onDrag);
+    window.addEventListener('mouseup', onDragEnd);
+  }, [onDrag, onDragEnd]);
+
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('mousemove', onDrag);
+      window.removeEventListener('mouseup', onDragEnd);
     };
-
-    const stopDrag = () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      document.removeEventListener('mousemove', doDrag);
-      document.removeEventListener('mouseup', stopDrag);
-      document.body.style.cursor = '';
-    };
-
-    document.addEventListener('mousemove', doDrag);
-    document.addEventListener('mouseup', stopDrag);
-    
-    if (divider === 'bottom') {
-      document.body.style.cursor = 'row-resize';
-    } else {
-      document.body.style.cursor = 'col-resize';
-    }
-  }, [leftWidth, rightWidth, bottomHeight, isLeftVisible, isRightVisible]);
-
+  }, [onDrag, onDragEnd]);
+  
   const finalLeftWidth = isLeftVisible ? leftWidth : 0;
   const finalRightWidth = isRightVisible ? rightWidth : 0;
-  const finalBottomHeight = isBottomVisible ? bottomHeight : 0;
-  
-  const mainContentWidth = 100 - finalLeftWidth - finalRightWidth;
-  const mainContentHeight = 100 - finalBottomHeight;
+  const mainHorizontalWidth = 100 - finalLeftWidth - finalRightWidth;
 
   return (
     <div ref={containerRef} className="w-full h-full flex overflow-hidden">
       {isLeftVisible && (
-        <>
-          <div style={{ width: `${finalLeftWidth}%` }} className="h-full overflow-auto bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg shadow-xl">
+          <div style={{ width: `${leftWidth}%` }} className="h-full min-w-0">
             {leftPanel}
           </div>
-          
-          <div
-            onMouseDown={(e) => startDrag('left', e)}
-            className="w-1.5 h-full bg-transparent cursor-col-resize group flex items-center justify-center"
-          >
-            <div className="w-px h-full bg-transparent group-hover:bg-[var(--accent)] transition-colors duration-300"></div>
-          </div>
-        </>
       )}
+      {isLeftVisible && <Divider onMouseDown={(e) => onDragStart('left', e)} orientation="vertical" />}
 
-      <div style={{ width: `${mainContentWidth}%` }} className="h-full flex flex-col">
-        <div style={{ height: `calc(${mainContentHeight}% - ${isBottomVisible ? '0.375rem' : '0px'})` }} className="w-full overflow-hidden">
+      <div style={{ width: `${mainHorizontalWidth}%` }} className="h-full flex flex-col min-w-0">
+        <div style={{ height: `${isBottomVisible ? 100 - bottomHeight : 100}%` }} className="w-full overflow-hidden min-h-0">
            {mainPanel}
         </div>
         
+        {isBottomVisible && <Divider onMouseDown={(e) => onDragStart('bottom', e)} orientation="horizontal" />}
+        
         {isBottomVisible && (
-          <>
-             <div
-                onMouseDown={(e) => startDrag('bottom', e)}
-                className="w-full h-1.5 bg-transparent cursor-row-resize group flex items-center justify-center my-1"
-              >
-                <div className="w-full h-px bg-transparent group-hover:bg-[var(--accent)] transition-colors duration-300"></div>
-              </div>
-            <div style={{ height: `calc(${finalBottomHeight}% - ${isBottomVisible ? '0.375rem' : '0px'})` }} className="w-full overflow-hidden bg-[var(--ui-panel-bg)] backdrop-blur-md rounded-lg shadow-xl">
+            <div style={{ height: `${bottomHeight}%` }} className="w-full overflow-hidden min-h-0">
               {bottomPanel}
             </div>
-          </>
         )}
       </div>
       
+      {isRightVisible && <Divider onMouseDown={(e) => onDragStart('right', e)} orientation="vertical" />}
       {isRightVisible && (
-        <>
-          <div
-            onMouseDown={(e) => startDrag('right', e)}
-            className="w-1.5 h-full bg-transparent cursor-col-resize group flex items-center justify-center"
-          >
-             <div className="w-px h-full bg-transparent group-hover:bg-[var(--accent)] transition-colors duration-300"></div>
-          </div>
-
-          <div style={{ width: `${finalRightWidth}%` }} className="h-full overflow-auto">
+          <div style={{ width: `${rightWidth}%` }} className="h-full min-w-0">
             {rightPanel}
           </div>
-        </>
       )}
     </div>
   );

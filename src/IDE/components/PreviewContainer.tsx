@@ -1,6 +1,4 @@
 
-
-
 import React, { useState } from 'react';
 import { Icons } from './Icon';
 
@@ -39,6 +37,12 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
     }
   };
 
+  const handleRefresh = () => {
+    if (iframeRef.current) {
+        iframeRef.current.src = iframeRef.current.src;
+    }
+  };
+
   if (!isVisible) {
     return null;
   }
@@ -58,6 +62,13 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
             className={`p-1.5 rounded-md ${isInspectorActive ? 'bg-[var(--accent)] text-white' : 'hover:bg-[var(--gray-light)]'}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.59a2 2 0 0 1-2.83-2.83l.79-.79"></path></svg>
+          </button>
+           <button
+            title="Refresh Preview"
+            onClick={handleRefresh}
+            className="p-1.5 rounded-md hover:bg-[var(--gray-light)]"
+          >
+            <Icons.RefreshCw className="w-4 h-4" />
           </button>
           <button
             title="Open in new tab"
