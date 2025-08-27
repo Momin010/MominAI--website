@@ -1,14 +1,6 @@
 
-
-
-
-
-
-
-
-import { GoogleGenAI, Type } from "@google/genai";
-import type { GenerateContentResponse } from "@google/genai";
-import type { Diagnostic, DependencyReport, FileAction, AIFixResponse } from '../types';
+import { GoogleGenAI } from "@google/genai";
+import type { Diagnostic, DependencyReport, AIFixResponse, EditorActionCommand } from '../types';
 
 const getAiClient = (apiKey: string | null): GoogleGenAI => {
     if (!apiKey) {
@@ -22,57 +14,110 @@ const getAiClient = (apiKey: string | null): GoogleGenAI => {
     }
 };
 
+const AGENT_SYSTEM_INSTRUCTION = `You are an expert, autonomous pair programming assistant, "MominAI", integrated directly into a web-based IDE. Your goal is to fulfill the user's request by generating a precise sequence of actions that will be executed programmatically. You must think step-by-step and use the available tools to modify the user's codebase.
 
-// Handler for streaming chat responses
-export async function* streamAIResponse(history: {role: string, text: string}[], apiKey: string | null): AsyncGenerator<string> {
+**CONTEXT**
+- You have access to the entire file system of the project.
+- The user can see your actions happen in real-time, so be logical and efficient.
+- You operate by outputting a stream of JSON "action" objects.
+
+**RESPONSE FORMAT**
+- Your ENTIRE output must be a stream of raw JSON objects.
+- Do NOT use markdown fences (e.g., \`\`\`json).
+- Do NOT add any conversational text, greetings, or explanations before, after, or outside of the JSON objects.
+- Each JSON object must be a single, complete action.
+
+**AVAILABLE ACTIONS TOOLBOX**
+You must use the following JSON objects for your actions:
+
+1.  **comment(text: string)**: Communicate your thought process to the user. Use this to explain what you're about to do.
+    \`{ "action": "comment", "text": "Okay, I will start by adding the new state variable to the App component." }\`
+
+2.  **createFile(path: string, content: string)**: Create a new file. The path must be absolute (e.g., \`/src/components/MyComponent.tsx\`).
+    \`{ "action": "createFile", "path": "/src/utils/helpers.js", "content": "export const newUtil = () => {};" }\`
+
+3.  **openFile(path: string)**: Open an existing file in the editor. This must be done before you can edit it.
+    \`{ "action": "openFile", "path": "/src/App.jsx" }\`
+
+4.  **moveCursor(line: number, column: number)**: Move the cursor to a specific position in the currently open file.
+    \`{ "action": "moveCursor", "line": 15, "column": 5 }\`
+
+5.  **type(text: string)**: Type text at the current cursor position. Use \`\\n\` for new lines.
+    \`{ "action": "type", "text": "const [count, setCount] = useState(0);\\n" }\`
+
+6.  **select(startLine: number, startColumn: number, endLine: number, endColumn: number)**: Select a block of text.
+    \`{ "action": "select", "startLine": 10, "startColumn": 1, "endLine": 12, "endColumn": 1 }\`
+
+7.  **replace(text: string)**: Replace the currently selected text. Must be preceded by a \`select\` action.
+    \`{ "action": "replace", "text": "const [value, setValue] = useState('');" }\`
+
+8.  **delete(lines: number)**: Delete a specified number of lines forward from the current cursor position.
+    \`{ "action": "delete", "lines": 3 }\`
+
+9.  **finish(reason: string)**: Announce that you have completed the user's request. This must be the VERY LAST action in your plan.
+    \`{ "action": "finish", "reason": "I have successfully added the new state variable and integrated it into the component." }\`
+
+**WORKFLOW**
+1.  Acknowledge the request and state your plan using the \`comment\` action.
+2.  Use a sequence of \`openFile\`, \`moveCursor\`, \`type\`, \`select\`, \`replace\`, and \`delete\` to perform the edits.
+3.  Be precise with line and column numbers.
+4.  Once all edits are done, use the \`finish\` action.`;
+
+
+export async function* streamAIActions(prompt: string, files: {path: string, content: string}[], apiKey: string | null): AsyncGenerator<EditorActionCommand> {
     const ai = getAiClient(apiKey);
-
-    const systemInstruction = `You are an expert pair programming assistant in a web-based IDE.
-You do not have direct access to the user's file system. To see file contents, you must ask the user to provide them for you.
-
-Your response format depends on the user's request.
-
-**Scenario 1: The user asks you to write, create, update, or modify code.**
-If you have enough information, you MUST ONLY output a single, raw JSON object. Do not include markdown fences (\`\`\`json) or any other text before or after the JSON.
-
-The JSON object must have this exact structure:
-{
-  "explanation": "A concise, well-formatted markdown string explaining the changes you made.",
-  "actions": [
-    {
-      "action": "create" | "update",
-      "path": "/path/to/the/file.js",
-      "content": "The ENTIRE new content of the file."
-    }
-  ]
-}
-
-**Scenario 2: The user asks a general question or for an explanation.**
-Respond with a helpful, friendly answer in standard Markdown format. Do NOT use the JSON format for these requests.`;
+    const fullPrompt = `The user wants to make the following change: "${prompt}".\n\nHere is the current project structure and content:\n${files.map(f => `--- FILE: ${f.path} ---\n${f.content}`).join('\n\n')}\n\nGenerate the stream of JSON actions to fulfill the request.`;
 
     try {
-        const contents = history.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
-
         const responseStream = await ai.models.generateContentStream({
             model: 'gemini-2.5-flash',
-            contents,
-            config: { systemInstruction }
+            contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+            config: { systemInstruction: AGENT_SYSTEM_INSTRUCTION }
         });
         
+        let buffer = '';
+        let braceCount = 0;
+        let objectStartIndex = -1;
+
         for await (const chunk of responseStream) {
-            yield chunk.text;
+            buffer += chunk.text;
+            let i = 0;
+            while (i < buffer.length) {
+                if (buffer[i] === '{') {
+                    if (braceCount === 0) {
+                        objectStartIndex = i;
+                    }
+                    braceCount++;
+                } else if (buffer[i] === '}') {
+                    braceCount--;
+                    if (braceCount === 0 && objectStartIndex !== -1) {
+                        const objectStr = buffer.substring(objectStartIndex, i + 1);
+                        try {
+                            const action = JSON.parse(objectStr);
+                            yield action as EditorActionCommand;
+                        } catch (e) {
+                            // Incomplete JSON, but shouldn't happen if braces match.
+                            // Could be a streaming artifact. We'll just continue buffering.
+                            console.warn("Could not parse JSON object, might be partial:", objectStr);
+                        }
+                        // Reset for the next object
+                        buffer = buffer.substring(i + 1);
+                        i = -1; 
+                        objectStartIndex = -1;
+                    }
+                }
+                i++;
+            }
         }
     } catch (error) {
-        console.error("Error getting AI stream response:", error);
+        console.error("Error getting AI action stream:", error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-        if (errorMessage.includes('API key not valid')) {
-             yield `\n\n**AI Service Error:**\nInvalid Gemini API key. Please check the key in your settings.`;
-        } else {
-            yield `\n\n**AI Service Error:**\n${errorMessage}`;
-        }
+        throw new Error(errorMessage.includes('API key not valid') ? 'Invalid Gemini API key.' : errorMessage);
     }
 }
 
+
+// --- Legacy and other AI functions ---
 
 export const generateCodeForFile = async (userPrompt: string, fileName: string, apiKey: string | null): Promise<string> => {
     const ai = getAiClient(apiKey);
@@ -88,51 +133,6 @@ export const getInlineCodeSuggestion = async (codeBeforeCursor: string, apiKey: 
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt, config: { stopSequences: ['\n'] } });
     return response.text;
 };
-
-export const fixCodeWithAI = async (
-    errorMessage: string,
-    files: {path: string, content: string}[],
-    apiKey: string | null,
-): Promise<AIFixResponse> => {
-    const ai = getAiClient(apiKey);
-    const prompt = `You are an expert software debugger. A user has encountered an error in their web application. Your task is to analyze the error message and the provided project files to identify the root cause and provide a fix.
-
-The user's error message is:
-\`\`\`
-${errorMessage}
-\`\`\`
-
-Here are the project files:
-${files.map((f: any) => `--- FILE: ${f.path} ---\n${f.content}`).join('\n\n')}
-
-Based on your analysis, you MUST provide a fix by responding ONLY with a single raw JSON object with the following structure:
-{
-  "explanation": "A concise, well-formatted markdown explanation of the bug and your proposed fix.",
-  "actions": [
-    {
-      "action": "update",
-      "path": "/path/to/the/file/to/modify.js",
-      "content": "The ENTIRE new content of the modified file."
-    }
-  ]
-}
-Do not include any other text, conversation, or markdown fences before or after the JSON object. Your entire response must be the JSON object.`;
-
-    const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
-    
-    try {
-        let responseText = response.text;
-        const jsonMatch = responseText.match(/({[\s\S]*})/);
-        if (jsonMatch) {
-            responseText = jsonMatch[1];
-            return JSON.parse(responseText);
-        }
-        throw new Error("AI response was not valid JSON.");
-    } catch (e) {
-         console.error("Failed to parse JSON from AI fix response:", response.text, e);
-         throw new Error("AI returned an invalid response. Please try again.");
-    }
-}
 
 export const getSuggestedFix = async (fileContent: string, problem: Diagnostic, activeFile: string, apiKey: string | null): Promise<string> => {
     const ai = getAiClient(apiKey);
@@ -159,89 +159,76 @@ export const generateComponentSet = async (componentName: string, description: s
     }
 };
 
-// --- Mocked / Passthrough services ---
-
-export const deployProject = async (): Promise<{ url: string; success: boolean; message: string }> => {
-    // This is a mock function and does not use the AI.
-    return new Promise(resolve => setTimeout(() => {
-        resolve({
-            url: `https://mock-deploy-${Math.random().toString(36).substring(2, 8)}.mominai.app`,
-            success: true,
-            message: "Project deployed successfully!"
-        });
-    }, 2000));
-};
-
-// --- Placeholder stubs for other AI services ---
-
-const simpleAITask = async (prompt: string, apiKey: string | null): Promise<string> => {
+export const generateCommitMessage = async (files: {path: string, content: string}[], apiKey: string | null): Promise<string> => {
     const ai = getAiClient(apiKey);
+    const prompt = `Generate a conventional commit message for these file changes:\n\n${files.map(f => `Path: ${f.path}\nContent:\n${f.content}`).join('\n---\n')}`;
     const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
     return response.text.trim();
+}
+
+// Fix: Add missing AI service functions
+export const generateRegex = async (description: string, apiKey: string | null): Promise<string> => {
+    throw new Error("Regex generation is not implemented in this version.");
 };
 
-export const getCodeExplanation = async (code: string, apiKey: string | null): Promise<string> => simpleAITask(`Explain this code snippet:\n\`\`\`\n${code}\n\`\`\``, apiKey);
+export const deployProject = async (): Promise<{ success: boolean; url: string; }> => {
+    throw new Error("Project deployment is not implemented in this version.");
+};
+
+export const migrateCode = async (code: string, from: string, to: string, apiKey: string | null): Promise<string> => {
+    throw new Error("Code migration is not implemented in this version.");
+};
 
 export const analyzeCodeForBugs = async (code: string, apiKey: string | null): Promise<Omit<Diagnostic, 'source'>[]> => {
-    // This is a complex task. Returning an empty array for now.
-    console.warn("analyzeCodeForBugs is not fully implemented.");
-    return Promise.resolve([]);
-};
-
-export const generateMermaidDiagram = async (code: string, apiKey: string | null): Promise<string> => simpleAITask(`Generate a Mermaid.js diagram to represent this code's structure:\n\n${code}`, apiKey);
-
-export const generateTestFile = async (code: string, filePath: string, apiKey: string | null): Promise<string> => simpleAITask(`Generate a test file for the following code from "${filePath}":\n\n${code}`, apiKey);
-
-export const optimizeCss = async (css: string, apiKey: string | null): Promise<string> => simpleAITask(`Optimize the following CSS:\n\n${css}`, apiKey);
-
-export const generateCommitMessage = async (files: {path: string, content: string}[], apiKey: string | null): Promise<string> => simpleAITask(`Generate a conventional commit message for these file changes:\n\n${files.map(f => `Path: ${f.path}\nContent:\n${f.content}`).join('\n---\n')}`, apiKey);
-
-export const generateRegex = async (description: string, apiKey: string | null): Promise<string> => simpleAITask(`Generate a JavaScript regex for: "${description}"`, apiKey);
-
-export const generateDocsForCode = async (code: string, filePath: string, apiKey: string | null): Promise<string> => simpleAITask(`Generate Markdown documentation for the code in "${filePath}":\n\n${code}`, apiKey);
-
-export const generateTheme = async (description: string, apiKey: string | null): Promise<Record<string, string>> => {
-    // This is a complex task. Returning a placeholder.
-    console.warn("generateTheme is not fully implemented.");
-    return Promise.resolve({ '--background': '#1a202c', '--foreground': '#e2e8f0', '--accent': '#63b3ed' });
-};
-
-export const migrateCode = async (code: string, from: string, to: string, apiKey: string | null): Promise<string> => simpleAITask(`Migrate this code from ${from} to ${to}:\n\n${code}`, apiKey);
-
-export const generateCodeFromImage = async (base64Image: string, prompt: string, apiKey: string | null): Promise<string> => {
-    const ai = getAiClient(apiKey);
-    const imagePart = { inlineData: { mimeType: 'image/jpeg', data: base64Image } };
-    const textPart = { text: `Generate HTML and CSS for this image. User hint: "${prompt}"` };
-    const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: { parts: [imagePart, textPart] }});
-    return response.text.trim();
+    throw new Error("Bug analysis is not implemented in this version.");
 };
 
 export const scaffoldProject = async (prompt: string, apiKey: string | null): Promise<Record<string, string>> => {
-    // This is a complex task. Returning placeholder.
-    console.warn("scaffoldProject is not fully implemented.");
-    return Promise.resolve({ 'index.html': '<h1>Hello World</h1>', 'style.css': 'h1 { color: blue; }' });
+    throw new Error("Project scaffolding is not implemented in this version.");
+};
+
+export const generateDocsForCode = async (code: string, filePath: string, apiKey: string | null): Promise<string> => {
+    throw new Error("Documentation generation is not implemented in this version.");
+};
+
+export const generateMermaidDiagram = async (code: string, apiKey: string | null): Promise<string> => {
+    throw new Error("Mermaid diagram generation is not implemented in this version.");
+};
+
+export const optimizeCss = async (css: string, apiKey: string | null): Promise<string> => {
+    throw new Error("CSS optimization is not implemented in this version.");
 };
 
 export const analyzeDependencies = async (packageJsonContent: string, apiKey: string | null): Promise<DependencyReport> => {
-    // This is a complex task. Returning placeholder.
-    console.warn("analyzeDependencies is not fully implemented.");
-    return Promise.resolve({ dependencies: [], devDependencies: [] });
+    throw new Error("Dependency analysis is not implemented in this version.");
 };
 
-export const generateCodeFromFigma = async (fileUrl: string, token: string, userPrompt: string, apiKey: string | null): Promise<string> => {
-     console.warn("generateCodeFromFigma is a placeholder.");
-    return Promise.resolve(`<h1>Figma Import for ${fileUrl}</h1><p>${userPrompt}</p>`);
+export const generateTestFile = async (code: string, filePath: string, apiKey: string | null): Promise<string> => {
+    throw new Error("Test file generation is not implemented in this version.");
+};
+
+export const generateTheme = async (description: string, apiKey: string | null): Promise<Record<string, string>> => {
+    throw new Error("Theme generation is not implemented in this version.");
+};
+
+
+// Functions below are for plugins and could be refactored or kept as is.
+
+export const generateCodeFromFigma = async (url: string, figmaToken: string, prompt: string, apiKey: string | null): Promise<string> => {
+    throw new Error("Figma import is not implemented in this version.");
+};
+
+export const generateCodeFromImage = async (base64Image: string, prompt: string, apiKey: string | null): Promise<string> => {
+    throw new Error("Image to code is not implemented in this version.");
 };
 
 export const reviewCode = async (code: string, apiKey: string | null): Promise<Omit<Diagnostic, 'source'>[]> => {
-    console.warn("reviewCode is not fully implemented.");
-    return Promise.resolve([]);
+    throw new Error("Code review is not implemented in this version.");
 };
 
-export const updateCssInProject = async (files: { path: string; content: string }[], selector: string, newStyles: Record<string, string>, apiKey: string | null): Promise<{ filePath: string, updatedCode: string }> => {
-    console.warn("updateCssInProject is not fully implemented.");
-    const cssFile = files.find(f => f.path.endsWith('.css'));
-    return Promise.resolve({ filePath: cssFile?.path || 'style.css', updatedCode: cssFile?.content || '' });
+export const getCodeExplanation = async (code: string, apiKey: string | null): Promise<string> => {
+    const ai = getAiClient(apiKey);
+    const prompt = `Explain the following code snippet concisely:\n\n\`\`\`\n${code}\n\`\`\``;
+    const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
+    return response.text;
 };
-
-export const generateShellCommand = async (prompt: string, apiKey: string | null): Promise<string> => simpleAITask(`Generate a single shell command for: "${prompt}"`, apiKey);

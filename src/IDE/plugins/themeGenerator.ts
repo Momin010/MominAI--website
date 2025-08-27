@@ -26,8 +26,12 @@ export const themeGeneratorPlugin: Plugin = {
                     });
                     api.showNotification({ type: 'success', message: 'New theme applied!' });
                 } catch (error) {
-                     const message = error instanceof Error ? error.message : "Failed to generate theme.";
-                    api.showNotification({ type: 'error', message });
+                    // Fix: Refactored catch block to handle unknown error type safely.
+                    if (error instanceof Error) {
+                        api.showNotification({ type: 'error', message: error.message });
+                    } else {
+                        api.showNotification({ type: 'error', message: "Failed to generate theme." });
+                    }
                 }
             }
         });

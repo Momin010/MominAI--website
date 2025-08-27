@@ -1,10 +1,8 @@
 
-
-
 import React, { useRef, useEffect, useState } from 'react';
-import { getInlineCodeSuggestion } from '../services/aiService';
-import { useAI } from '../contexts/AIContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { getInlineCodeSuggestion } from '../services/aiService.ts';
+import { useAI } from '../contexts/AIContext.tsx';
+import { useTheme } from '../contexts/ThemeContext.tsx';
 import type { Diagnostic } from '../types';
 
 declare const window: any;
@@ -16,9 +14,10 @@ interface MonacoEditorProps {
   diagnostics: Diagnostic[];
   breakpoints: number[];
   onBreakpointsChange: (path: string, newBreakpoints: number[]) => void;
+  onEditorMount: (editor: any) => void;
 }
 
-const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diagnostics, breakpoints, onBreakpointsChange }) => {
+const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diagnostics, breakpoints, onBreakpointsChange, onEditorMount }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const editorInstance = useRef<any>(null);
   const suggestionTimeout = useRef<number | null>(null);
@@ -92,6 +91,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
         padding: { top: 10 },
       });
       editorInstance.current = editor;
+      onEditorMount(editor);
 
       editor.addAction({ id: 'ai-explain-code', label: 'AI: Explain Selection', contextMenuGroupId: 'navigation', contextMenuOrder: 1.5, precondition: 'editorHasSelection', run: (ed: any) => { const sel = ed.getSelection(); if (sel) { const txt = ed.getModel().getValueInRange(sel); performEditorActionRef.current('explain', txt, ed.getModel().uri.path); } } });
       editor.addAction({ id: 'ai-refactor-code', label: 'AI: Refactor Selection', contextMenuGroupId: 'navigation', contextMenuOrder: 1.6, precondition: 'editorHasSelection', run: (ed: any) => { const sel = ed.getSelection(); if (sel) { const txt = ed.getModel().getValueInRange(sel); performEditorActionRef.current('refactor', txt, ed.getModel().uri.path); } } });
@@ -145,12 +145,13 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({ value, onChange, path, diag
           if (suggestionTimeout.current) { clearTimeout(suggestionTimeout.current); }
       }
     };
-  }, [isMonacoLoaded, geminiApiKey]);
+  }, [isMonacoLoaded, geminiApiKey, onEditorMount]);
 
   useEffect(() => () => {
       editorInstance.current?.dispose();
       editorInstance.current = null;
-  }, []);
+      onEditorMount(null);
+  }, [onEditorMount]);
 
 
   useEffect(() => {

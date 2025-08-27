@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 
 export interface File {
@@ -125,26 +124,22 @@ export interface SearchResult {
   postMatch: string;
 }
 
-// --- AI Assistant & Context Types ---
-export interface FileAction {
-    action: 'create' | 'update';
-    path: string;
-    content: string;
-}
-
-// FIX: Added missing AIFixResponse type definition.
-export interface AIFixResponse {
-    explanation: string;
-    actions: FileAction[];
-}
+// --- AI Agent Types ---
+export type EditorActionCommand =
+  | { action: 'comment'; text: string }
+  | { action: 'createFile'; path: string; content: string }
+  | { action: 'openFile'; path: string }
+  | { action: 'moveCursor'; line: number; column: number }
+  | { action: 'type'; text: string }
+  | { action: 'select'; startLine: number; startColumn: number; endLine: number; endColumn: number }
+  | { action: 'replace'; text: string }
+  | { action: 'delete'; lines: number }
+  | { action: 'finish'; reason: string };
 
 export interface Message {
   sender: 'user' | 'ai';
   text: string;
   isStreaming?: boolean;
-  actions?: FileAction[];
-  actionsApplied?: boolean;
-  originalFileContents?: { path: string; content: string }[];
 }
 
 export type EditorAIAction = 'explain' | 'refactor' | 'find_bugs';
@@ -243,9 +238,13 @@ export interface InspectedElement {
   styles: Record<string, string>;
 }
 
-// --- AI Diff View ---
+// Fix: Add missing DiffLine type
 export interface DiffLine {
-  type: 'added' | 'removed' | 'unchanged';
-  content: string;
-  lineNumber: number;
+    type: 'unchanged' | 'added' | 'removed';
+    content: string;
+    lineNumber: number;
 }
+
+// --- Deprecated types for old AI workflow ---
+export type AIFixResponse = any;
+export type FileAction = any;

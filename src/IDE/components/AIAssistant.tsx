@@ -7,7 +7,7 @@ import { Icons } from './Icon';
 declare const marked: any;
 
 const AIAssistant: React.FC = () => {
-  const { messages, sendMessage, isLoading, applyChanges } = useAI();
+  const { messages, sendMessage, isLoading } = useAI();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -50,28 +50,6 @@ const AIAssistant: React.FC = () => {
             {msg.sender === 'ai' && <div className="w-8 h-8 rounded-full bg-[var(--accent)]/50 flex items-center justify-center flex-shrink-0"><Icons.Bot className="w-5 h-5"/></div>}
             <div className={`rounded-lg p-3 max-w-xs md:max-w-md lg:max-w-lg shadow-md animate-fade-in-up ${msg.sender === 'user' ? 'bg-[var(--accent)]/80 text-white' : 'bg-[var(--gray-dark)]/50 text-gray-200'}`}>
               {renderMessage(msg)}
-              {msg.sender === 'ai' && msg.actions && (
-                <div className="mt-4 border-t border-[var(--border-color)] pt-3">
-                  <h4 className="text-xs font-bold uppercase text-[var(--gray)] mb-2">Proposed File Changes</h4>
-                  <ul className="space-y-1 text-sm mb-3">
-                    {msg.actions.map((action, actionIndex) => (
-                      <li key={actionIndex} className="flex items-center p-1 bg-black/20 rounded">
-                        <span className={`px-1.5 py-0.5 text-xs rounded mr-2 font-semibold ${action.action === 'create' ? 'bg-green-600 text-white' : 'bg-yellow-600 text-black'}`}>
-                          {action.action.toUpperCase()}
-                        </span>
-                        <span className="font-mono text-gray-300 truncate">{action.path}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    onClick={() => applyChanges(index, msg.actions!)}
-                    disabled={msg.actionsApplied}
-                    className="w-full text-sm bg-[var(--accent)] hover:brightness-110 text-white font-bold rounded-md px-3 py-1.5 transition-all disabled:bg-green-700 disabled:cursor-default disabled:hover:brightness-100 disabled:text-white"
-                  >
-                    {msg.actionsApplied ? '✓ Changes Applied' : 'Review & Apply Changes'}
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         ))}

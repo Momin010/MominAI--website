@@ -1,6 +1,4 @@
 
-
-
 import React from 'react';
 import MonacoEditor from './MonacoEditor';
 import type { EditorAction, Diagnostic } from '../types';
@@ -19,6 +17,7 @@ interface EditorPaneProps {
   breakpoints: number[];
   onBreakpointsChange: (path: string, newBreakpoints: number[]) => void;
   pluginViews: Record<string, React.ReactNode>;
+  onEditorMount: (editor: any) => void;
 }
 
 const EditorPane: React.FC<EditorPaneProps> = ({
@@ -33,6 +32,7 @@ const EditorPane: React.FC<EditorPaneProps> = ({
   breakpoints,
   onBreakpointsChange,
   pluginViews,
+  onEditorMount,
 }) => {
 
   const isFileActive = activeTab && !activeTab.startsWith('plugin:') && activeTab !== 'ai-assistant';
@@ -107,6 +107,7 @@ const EditorPane: React.FC<EditorPaneProps> = ({
                 diagnostics={diagnostics}
                 breakpoints={breakpoints}
                 onBreakpointsChange={onBreakpointsChange}
+                onEditorMount={onEditorMount}
             />
         ) : (
           <WelcomeScreen />

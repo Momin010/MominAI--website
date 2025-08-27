@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -13,7 +8,7 @@ import { useLocalStorageState } from '../hooks/useLocalStorageState.ts';
 import { ThemeProvider } from './contexts/ThemeContext.tsx';
 import { CommandPaletteProvider, useCommandPalette } from './hooks/useCommandPalette.ts';
 import { AIProvider } from './contexts/AIContext.tsx';
-import { generateCodeForFile, generateComponentSet, fixCodeWithAI } from './services/aiService.ts';
+import { generateCodeForFile, generateComponentSet } from './services/aiService.ts';
 import { getAllFiles } from './utils/fsUtils.ts';
 import { allPlugins } from './plugins/index.ts';
 
@@ -31,7 +26,6 @@ import TitleBar from './components/TitleBar.tsx';
 import PreviewContainer from './components/PreviewContainer.tsx';
 import TabbedPanel from './components/TabbedPanel.tsx';
 import CommandPalette from './components/CommandPalette.tsx';
-import AiDiffViewModal from './components/AiDiffViewModal.tsx';
 import AiFileGeneratorModal from './components/AiFileGeneratorModal.tsx';
 import AiComponentGeneratorModal from './components/AiComponentGeneratorModal.tsx';
 
@@ -49,7 +43,7 @@ import ImageToCodePanel from './components/ImageToCodePanel.tsx';
 import PluginPanel from './components/PluginPanel.tsx';
 
 
-import type { Notification, BottomPanelView, FileAction, Diagnostic, ConsoleMessage, DependencyReport, StoryboardComponent, SearchResult, FileSystemNode } from './types.ts';
+import type { Notification, BottomPanelView, Diagnostic, ConsoleMessage, DependencyReport, StoryboardComponent, SearchResult, FileSystemNode } from './types.ts';
 import { Icons } from './components/Icon.tsx';
 import { analyzeCode } from './services/languageService.ts';
 
@@ -124,13 +118,13 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     const [activeView, setActiveView] = useState('explorer');
     const [activeBottomTab, setActiveBottomTab] = useState<BottomPanelView>('terminal');
     const [panelVisibility, setPanelVisibility] = useState({ left: true, right: true, bottom: true });
+    const [editorInstance, setEditorInstance] = useState<any>(null);
     
     // Feature State
     const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
     const [consoleMessages, setConsoleMessages] = useState<ConsoleMessage[]>([]);
     const [dependencyReport, setDependencyReport] = useState<DependencyReport | null>(null);
     const [storyboardComponents, setStoryboardComponents] = useState<StoryboardComponent[]>([]);
-    const [diffModalState, setDiffModalState] = useState<{ isOpen: boolean; actions: FileAction[], originalFiles: { path: string, content: string }[], messageIndex?: number }>({ isOpen: false, actions: [], originalFiles: [] });
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isFileGeneratorOpen, setIsFileGeneratorOpen] = useState(false);
@@ -316,35 +310,11 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     };
 
     const handleAiFixRequest = useCallback(async (error: ConsoleMessage) => {
-        if (!fs) return;
-        if (!geminiApiKey) {
-            addNotification({ type: 'error', message: 'Please set your Gemini API key in the settings to use this feature.' });
-            setActiveView('settings');
-            return;
-        }
-        const errorMessage = error.message.join(' ');
-        setIsFixingWithAi(errorMessage);
-        addNotification({ type: 'info', message: 'Asking AI to analyze the error...' });
-
-        try {
-            const allFiles = getAllFiles(fs, "/");
-            const result = await fixCodeWithAI(errorMessage, allFiles, geminiApiKey);
-
-            if (result.actions && result.actions.length > 0) {
-                 setDiffModalState({
-                    isOpen: true,
-                    actions: result.actions,
-                    originalFiles: allFiles
-                });
-            } else {
-                addNotification({ type: 'info', message: result.explanation || 'AI could not find a fix.' });
-            }
-        } catch (e) {
-            if (e instanceof Error) addNotification({ type: 'error', message: `AI Fix failed: ${e.message}` });
-        } finally {
-            setIsFixingWithAi(null);
-        }
-    }, [fs, addNotification, setDiffModalState, geminiApiKey, setActiveView]);
+        // This function's logic will now be handled by the main AI agent.
+        // For now, we can ask the user to prompt the AI.
+        addNotification({ type: 'info', message: 'Please ask the AI Assistant in the editor to fix this error.' });
+        setActiveTab('ai-assistant');
+    }, [addNotification]);
 
     useEffect(() => {
         if(registerCommand) {
@@ -394,19 +364,16 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     
     return (
         <AIProvider
-            activeFile={activeTab}
-            getOpenFileContent={() => getFileContent(activeTab)}
             createNode={createNode}
             updateNode={handleContentChange}
-            getNode={(path) => null} // simplified
             openFile={handleFileSelect}
             fs={fs}
-            setDiffModalState={setDiffModalState}
             geminiApiKey={geminiApiKey}
+            editorInstance={editorInstance}
+            setActiveTab={setActiveTab}
         >
             <div className="w-full h-full bg-transparent flex flex-col p-2 gap-2">
                  <CommandPalette />
-                 <AiDiffViewModal {...diffModalState} onClose={() => setDiffModalState(prev => ({ ...prev, isOpen: false }))} />
                  <AiFileGeneratorModal
                     isOpen={isFileGeneratorOpen}
                     onClose={() => setIsFileGeneratorOpen(false)}
@@ -475,6 +442,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                                     onContentChange={handleContentChange}
                                     editorActions={[]} diagnostics={diagnostics} breakpoints={[]}
                                     onBreakpointsChange={() => {}} pluginViews={{}}
+                                    onEditorMount={setEditorInstance}
                                 />
                             }
                             rightPanel={

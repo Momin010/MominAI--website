@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext.tsx';
 import { fetchGithubUser } from '../services/githubService.ts';
