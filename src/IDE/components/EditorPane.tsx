@@ -1,9 +1,11 @@
 
+
+
 import React from 'react';
-import MonacoEditor from './MonacoEditor';
-import type { EditorAction, Diagnostic } from '../types';
-import AIAssistant from './AIAssistant';
-import { Icons } from './Icon';
+import CodeMirrorEditor from './CodeMirrorEditor.tsx';
+import type { Diagnostic } from '../types.ts';
+import AIAssistant from './AIAssistant.tsx';
+import { Icons } from './Icon.tsx';
 
 interface EditorPaneProps {
   openFiles: string[];
@@ -12,7 +14,6 @@ interface EditorPaneProps {
   onTabClose: (path: string) => void;
   fileContent: string;
   onContentChange: (path: string, content: string) => void;
-  editorActions: EditorAction[];
   diagnostics: Diagnostic[];
   breakpoints: number[];
   onBreakpointsChange: (path: string, newBreakpoints: number[]) => void;
@@ -27,7 +28,6 @@ const EditorPane: React.FC<EditorPaneProps> = ({
   onTabClose,
   fileContent,
   onContentChange,
-  editorActions,
   diagnostics,
   breakpoints,
   onBreakpointsChange,
@@ -36,17 +36,6 @@ const EditorPane: React.FC<EditorPaneProps> = ({
 }) => {
 
   const isFileActive = activeTab && !activeTab.startsWith('plugin:') && activeTab !== 'ai-assistant';
-
-  const relevantActions = isFileActive
-    ? editorActions.filter(a => a.shouldShow(activeTab, fileContent))
-    : [];
-
-  const handleAction = (actionId: string) => {
-    const action = editorActions.find(a => a.id === actionId);
-    if(action && isFileActive){
-        action.action(activeTab, fileContent);
-    }
-  }
 
   return (
     <div className="flex flex-col h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md rounded-lg shadow-xl">
@@ -81,16 +70,7 @@ const EditorPane: React.FC<EditorPaneProps> = ({
           />
         </div>
         <div className="flex items-center pr-2">
-            {relevantActions.map(action => (
-                <button 
-                    key={action.id}
-                    title={action.label}
-                    onClick={() => handleAction(action.id)}
-                    className="p-2 rounded hover:bg-[var(--gray-light)]"
-                >
-                    {action.icon}
-                </button>
-            ))}
+            {/* Editor actions bar removed as it was Monaco-specific */}
         </div>
       </div>
       <div className="flex-grow w-full h-full overflow-hidden flex">
@@ -99,7 +79,7 @@ const EditorPane: React.FC<EditorPaneProps> = ({
         ) : activeTab?.startsWith('plugin:') ? (
             pluginViews[activeTab] || <div className="p-4">Unknown Plugin: {activeTab}</div>
         ) : isFileActive ? (
-            <MonacoEditor
+            <CodeMirrorEditor
                 key={activeTab}
                 value={fileContent}
                 onChange={(content) => onContentChange(activeTab, content || '')}

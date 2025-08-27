@@ -1,4 +1,6 @@
 
+
+
 import React from 'react';
 
 export interface File {
@@ -49,8 +51,6 @@ export interface IDEApi {
     addStatusBarItem: (item: StatusBarItem) => void;
     removeStatusBarItem: (id: string) => void;
     showNotification: (notification: Omit<Notification, 'id'>) => void;
-    addEditorAction: (action: EditorAction) => void;
-    removeEditorAction: (id: string) => void;
     showInPreview: (title: string, component: React.ReactNode) => void;
     hidePreview: () => void;
     toggleZenMode: () => void;
@@ -104,14 +104,6 @@ export interface Notification {
     message: string;
     type: 'info' | 'success' | 'warning' | 'error';
     duration?: number;
-}
-
-export interface EditorAction {
-    id:string;
-    label: string;
-    icon: React.ReactNode;
-    action: (filePath: string, content: string) => void;
-    shouldShow: (filePath: string, content: string) => boolean;
 }
 
 // Added for global search feature

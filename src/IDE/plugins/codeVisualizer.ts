@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import type { Plugin, IDEApi } from '../types';
 import { generateMermaidDiagram } from '../services/aiService';
@@ -12,15 +13,21 @@ export const codeVisualizerPlugin: Plugin = {
     description: 'Generates a diagram to visualize the selected code.',
     
     activate: (api: IDEApi) => {
-        api.addEditorAction({
+        api.registerCommand({
             id: EDITOR_ACTION_ID,
-            label: 'AI: Visualize Code',
-            icon: React.createElement('span', null, '📊'),
-            action: async (filePath, content) => {
-                // In a real app, we'd use the selected text. For now, we use the whole file.
+            label: 'AI: Visualize Current File',
+            category: 'AI',
+            action: async () => {
+                const filePath = api.getActiveFile();
+                const content = api.getOpenFileContent();
+                const supportedExtensions = ['.js', '.jsx', '.ts', '.tsx'];
+                if (!filePath || content.trim().length === 0 || !supportedExtensions.some(ext => filePath.endsWith(ext))) {
+                    api.showNotification({type: 'warning', message: 'Can only visualize non-empty JS/TS files.'});
+                    return;
+                }
+
                 api.showNotification({ type: 'info', message: 'Generating diagram...' });
                  try {
-                    // FIX: Get API key from localStorage and pass it to the service function.
                     const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
                     const mermaidCode = await generateMermaidDiagram(content, apiKey);
                     const previewComponent = React.createElement(MermaidPreview, { chart: mermaidCode });
@@ -30,13 +37,10 @@ export const codeVisualizerPlugin: Plugin = {
                     api.showNotification({ type: 'error', message });
                 }
             },
-            shouldShow: (filePath, content) => {
-                 return content.trim().length > 0 && (filePath.endsWith('.js') || filePath.endsWith('.jsx') || filePath.endsWith('.ts') || filePath.endsWith('.tsx'));
-            }
         });
     },
 
     deactivate: (api: IDEApi) => {
-        api.removeEditorAction(EDITOR_ACTION_ID);
+        api.unregisterCommand(EDITOR_ACTION_ID);
     },
 };

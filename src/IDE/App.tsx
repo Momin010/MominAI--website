@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -440,8 +442,10 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                                     onTabClose={handleTabClose}
                                     fileContent={getFileContent(activeTab)}
                                     onContentChange={handleContentChange}
-                                    editorActions={[]} diagnostics={diagnostics} breakpoints={[]}
-                                    onBreakpointsChange={() => {}} pluginViews={{}}
+                                    diagnostics={diagnostics}
+                                    breakpoints={[]}
+                                    onBreakpointsChange={() => {}}
+                                    pluginViews={{}}
                                     onEditorMount={setEditorInstance}
                                 />
                             }

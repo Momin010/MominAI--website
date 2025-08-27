@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import type { Plugin, IDEApi } from '../types';
 import { generateTestFile } from '../services/aiService';
@@ -11,14 +12,21 @@ export const testGeneratorPlugin: Plugin = {
     description: 'Generates a test file for the current file.',
     
     activate: (api: IDEApi) => {
-        api.addEditorAction({
+        api.registerCommand({
             id: EDITOR_ACTION_ID,
-            label: 'AI: Generate Test File',
-            icon: React.createElement('span', null, '🧪'),
-            action: async (filePath, content) => {
+            label: 'AI: Generate Test File for Current File',
+            category: 'AI',
+            action: async () => {
+                const filePath = api.getActiveFile();
+                const supportedExtensions = ['.js', '.jsx', '.ts', '.tsx'];
+                if (!filePath || !supportedExtensions.some(ext => filePath.endsWith(ext))) {
+                    api.showNotification({ type: 'warning', message: 'Can only generate tests for JS/TS files.'});
+                    return;
+                }
+
+                const content = api.getOpenFileContent();
                 api.showNotification({ type: 'info', message: `Generating tests for ${filePath.split('/').pop()}...` });
                 try {
-                    // FIX: Get API key from localStorage and pass it to the service function.
                     const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
                     const testContent = await generateTestFile(content, filePath, apiKey);
                     const extension = filePath.substring(filePath.lastIndexOf('.'));
@@ -32,14 +40,10 @@ export const testGeneratorPlugin: Plugin = {
                     api.showNotification({ type: 'error', message });
                 }
             },
-            shouldShow: (filePath, content) => {
-                const supportedExtensions = ['.js', '.jsx', '.ts', '.tsx'];
-                return supportedExtensions.some(ext => filePath.endsWith(ext));
-            }
         });
     },
 
     deactivate: (api: IDEApi) => {
-        api.removeEditorAction(EDITOR_ACTION_ID);
+        api.unregisterCommand(EDITOR_ACTION_ID);
     },
 };

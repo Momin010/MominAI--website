@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import type { Plugin, IDEApi } from '../types';
 import { generateDocsForCode } from '../services/aiService';
@@ -11,14 +12,19 @@ export const codeToDocsPlugin: Plugin = {
     description: 'Generates Markdown documentation for the current file.',
     
     activate: (api: IDEApi) => {
-        api.addEditorAction({
+        api.registerCommand({
             id: EDITOR_ACTION_ID,
-            label: 'AI: Generate Documentation',
-            icon: React.createElement('span', null, '📄'),
-            action: async (filePath, content) => {
+            label: 'AI: Generate Documentation for Current File',
+            category: 'AI',
+            action: async () => {
+                const filePath = api.getActiveFile();
+                if (!filePath || filePath.endsWith('.md')) {
+                    api.showNotification({ type: 'warning', message: 'This command can only be run on non-markdown files.' });
+                    return;
+                }
+                const content = api.getOpenFileContent();
                 api.showNotification({ type: 'info', message: 'Generating documentation...' });
                 try {
-                    // FIX: Get API key from localStorage and pass it to the service function.
                     const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
                     const docContent = await generateDocsForCode(content, filePath, apiKey);
                     const docPath = filePath.substring(0, filePath.lastIndexOf('.')) + '.md';
@@ -29,13 +35,10 @@ export const codeToDocsPlugin: Plugin = {
                     api.showNotification({ type: 'error', message });
                 }
             },
-            shouldShow: (filePath, content) => {
-                return !filePath.endsWith('.md');
-            }
         });
     },
 
     deactivate: (api: IDEApi) => {
-        api.removeEditorAction(EDITOR_ACTION_ID);
+        api.unregisterCommand(EDITOR_ACTION_ID);
     },
 };

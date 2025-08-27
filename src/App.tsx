@@ -1,6 +1,6 @@
 
+
 import React, { useState, useEffect } from 'react';
-import CustomCursor from './components/CustomCursor.tsx';
 import LandingPage from './components/LandingPage.tsx';
 import IDE from './IDE/App.tsx';
 import Loader from './components/Loader.tsx';
@@ -45,10 +45,8 @@ const App = () => {
 
         if (view === 'ide' || view === 'mobile-not-supported') {
             document.body.classList.add('ide-view');
-            document.body.classList.add('native-cursor-active');
         } else {
             document.body.classList.remove('ide-view');
-            document.body.classList.remove('native-cursor-active');
         }
 
         if (['ide', 'loading', 'dashboard', 'checkout', 'mobile-not-supported'].includes(view)) {
@@ -61,7 +59,6 @@ const App = () => {
 
         return () => {
             document.body.classList.remove('ide-view');
-            document.body.classList.remove('native-cursor-active');
             if (rootEl) {
                 rootEl.style.height = 'auto';
                 rootEl.style.overflow = 'visible';
@@ -97,7 +94,6 @@ const App = () => {
 
     return (
         <>
-            <CustomCursor />
             {renderContent()}
         </>
     );

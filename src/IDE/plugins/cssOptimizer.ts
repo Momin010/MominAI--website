@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import type { Plugin, IDEApi } from '../types';
 import { optimizeCss } from '../services/aiService';
@@ -11,14 +12,20 @@ export const cssOptimizerPlugin: Plugin = {
     description: 'Uses AI to optimize and refactor your CSS file.',
     
     activate: (api: IDEApi) => {
-        api.addEditorAction({
+        api.registerCommand({
             id: EDITOR_ACTION_ID,
-            label: 'AI: Optimize CSS',
-            icon: React.createElement('span', null, '✨'),
-            action: async (filePath, content) => {
+            label: 'AI: Optimize Current CSS File',
+            category: 'AI',
+            action: async () => {
+                const filePath = api.getActiveFile();
+                if (!filePath || !filePath.endsWith('.css')) {
+                    api.showNotification({ type: 'warning', message: 'This command only works on CSS files.'});
+                    return;
+                }
+
+                const content = api.getOpenFileContent();
                 api.showNotification({ type: 'info', message: 'Optimizing CSS...' });
                 try {
-                    // FIX: Get API key from localStorage and pass it to the service function.
                     const apiKey = JSON.parse(localStorage.getItem('geminiApiKey') || 'null');
                     const optimizedContent = await optimizeCss(content, apiKey);
                     api.updateActiveFileContent(optimizedContent);
@@ -28,13 +35,10 @@ export const cssOptimizerPlugin: Plugin = {
                     api.showNotification({ type: 'error', message });
                 }
             },
-            shouldShow: (filePath, content) => {
-                return filePath.endsWith('.css');
-            }
         });
     },
 
     deactivate: (api: IDEApi) => {
-        api.removeEditorAction(EDITOR_ACTION_ID);
+        api.unregisterCommand(EDITOR_ACTION_ID);
     },
 };
