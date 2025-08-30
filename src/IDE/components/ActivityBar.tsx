@@ -1,6 +1,7 @@
 
 
 
+
 import React from 'react';
 import { Icons } from './Icon';
 
@@ -11,6 +12,7 @@ interface ActivityBarProps {
 
 const ActivityBar: React.FC<ActivityBarProps> = ({ activeView, setActiveView }) => {
     const views = [
+        { id: 'ai-assistant', icon: <Icons.Bot className="w-6 h-6"/>, title: 'AI Assistant' },
         { id: 'explorer', icon: <Icons.Files className="w-6 h-6"/>, title: 'Explorer' },
         { id: 'search', icon: <Icons.Search className="w-6 h-6"/>, title: 'Search' },
         { id: 'source-control', icon: <Icons.GitFork className="w-6 h-6"/>, title: 'Source Control' },
@@ -22,7 +24,7 @@ const ActivityBar: React.FC<ActivityBarProps> = ({ activeView, setActiveView }) 
     ];
     
     return (
-        <div className="bg-[var(--background-secondary)]/70 backdrop-blur-md h-full w-12 flex flex-col items-center py-4 space-y-2 rounded-lg shadow-xl">
+        <div className="bg-transparent h-full w-12 flex flex-col items-center py-4 space-y-2 rounded-l-lg">
             {views.map(view => (
                 <button
                     key={view.id}

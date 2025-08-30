@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Icons } from './Icon';
 
@@ -6,7 +7,6 @@ interface PreviewContainerProps {
   isVisible: boolean;
   title: string;
   children: React.ReactNode;
-  onClose: () => void;
   serverUrl: string | null;
   previewContext: { html: string } | null;
   iframeRef: React.RefObject<HTMLIFrameElement>;
@@ -18,7 +18,6 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
   isVisible, 
   title, 
   children, 
-  onClose, 
   serverUrl,
   previewContext, 
   iframeRef,
@@ -49,12 +48,12 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
 
   const containerClasses = isMaximized
     ? 'fixed inset-2 bg-[var(--background-secondary)]/90 backdrop-blur-lg z-50 flex flex-col rounded-lg shadow-2xl border border-[var(--border-color)]'
-    : 'h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md flex flex-col rounded-lg shadow-xl';
+    : 'h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md flex flex-col rounded-b-lg';
     
   return (
     <div className={containerClasses}>
-      <div className="p-2 border-b border-[var(--border-color)] bg-[var(--gray-dark)]/50 rounded-t-lg flex justify-between items-center flex-shrink-0">
-        <h2 className="text-sm font-bold uppercase tracking-wider pl-2">{title || 'Preview'}</h2>
+      <div className="p-2 border-b border-[var(--border-color)] bg-[var(--gray-dark)]/50 flex justify-between items-center flex-shrink-0">
+        <h2 className="text-sm font-bold uppercase tracking-wider pl-2">{title || 'Live Preview'}</h2>
         <div className="flex items-center space-x-1">
            <button
             title={isInspectorActive ? 'Deactivate Inspector' : 'Activate Inspector'}
@@ -84,13 +83,6 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
             className="p-1.5 rounded-md hover:bg-[var(--gray-light)]"
           >
             {isMaximized ? <Icons.Minimize className="w-4 h-4" /> : <Icons.Maximize className="w-4 h-4" />}
-          </button>
-          <button
-            title="Close Preview"
-            onClick={onClose}
-            className="p-1.5 rounded-md hover:bg-[var(--gray-light)]"
-          >
-            <Icons.X className="w-4 h-4" />
           </button>
         </div>
       </div>

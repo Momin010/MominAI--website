@@ -1,11 +1,14 @@
 
 
 
+
 import React from 'react';
 import CodeMirrorEditor from './CodeMirrorEditor.tsx';
 import type { Diagnostic } from '../types.ts';
-import AIAssistant from './AIAssistant.tsx';
 import { Icons } from './Icon.tsx';
+import PreviewContainer from './PreviewContainer.tsx';
+import { FileIcon } from './FileIcon.tsx';
+
 
 interface EditorPaneProps {
   openFiles: string[];
@@ -17,8 +20,9 @@ interface EditorPaneProps {
   diagnostics: Diagnostic[];
   breakpoints: number[];
   onBreakpointsChange: (path: string, newBreakpoints: number[]) => void;
-  pluginViews: Record<string, React.ReactNode>;
   onEditorMount: (editor: any) => void;
+  serverUrl: string | null;
+  previewIframeRef: React.RefObject<HTMLIFrameElement>;
 }
 
 const EditorPane: React.FC<EditorPaneProps> = ({
@@ -31,53 +35,43 @@ const EditorPane: React.FC<EditorPaneProps> = ({
   diagnostics,
   breakpoints,
   onBreakpointsChange,
-  pluginViews,
   onEditorMount,
+  serverUrl,
+  previewIframeRef,
 }) => {
-
-  const isFileActive = activeTab && !activeTab.startsWith('plugin:') && activeTab !== 'ai-assistant';
+  const isFileActive = activeTab && activeTab !== 'preview';
 
   return (
     <div className="flex flex-col h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md rounded-lg shadow-xl">
-      <div className="flex-shrink-0 bg-[var(--gray-dark)]/50 flex justify-between items-center rounded-t-lg">
-        <div className="flex items-center overflow-x-auto">
-          {openFiles.map(path => {
-              if (path.startsWith('plugin:')) {
-                const pluginId = path.split(':')[1];
-                return (
-                    <PluginTab
-                        key={path}
-                        pluginId={pluginId}
-                        isActive={activeTab === path}
-                        onSelect={() => onTabSelect(path)}
-                        onClose={() => onTabClose(path)}
-                    />
-                );
-              }
-              return (
-                <Tab
-                  key={path}
-                  path={path}
-                  isActive={activeTab === path}
-                  onSelect={() => onTabSelect(path)}
-                  onClose={() => onTabClose(path)}
-                />
-            );
-          })}
-          <AITab
-            isActive={activeTab === 'ai-assistant'}
-            onSelect={() => onTabSelect('ai-assistant')}
+      <div className="flex-shrink-0 bg-[var(--gray-dark)]/50 flex items-center rounded-t-lg overflow-x-auto">
+        <Tab
+          label="Preview"
+          isActive={activeTab === 'preview'}
+          onSelect={() => onTabSelect('preview')}
+          onClose={null}
+          icon={<Icons.Eye className="w-4 h-4 mr-2"/>}
+        />
+        {openFiles.map(path => (
+          <Tab
+            key={path}
+            label={path.split('/').pop() || ''}
+            isActive={activeTab === path}
+            onSelect={() => onTabSelect(path)}
+            onClose={() => onTabClose(path)}
+            icon={<FileIcon filename={path.split('/').pop() || ''} className="w-4 h-4 mr-2" />}
           />
-        </div>
-        <div className="flex items-center pr-2">
-            {/* Editor actions bar removed as it was Monaco-specific */}
-        </div>
+        ))}
       </div>
       <div className="flex-grow w-full h-full overflow-hidden flex">
-        {activeTab === 'ai-assistant' ? (
-            <AIAssistant />
-        ) : activeTab?.startsWith('plugin:') ? (
-            pluginViews[activeTab] || <div className="p-4">Unknown Plugin: {activeTab}</div>
+        {activeTab === 'preview' ? (
+           <PreviewContainer 
+                isVisible={true} title=""
+                serverUrl={serverUrl}
+                previewContext={null} iframeRef={previewIframeRef}
+                onToggleInspector={()=>{}} isInspectorActive={false}
+            >
+                <iframe src={serverUrl || ''} className="w-full h-full rounded-b-lg border-none bg-white" />
+            </PreviewContainer>
         ) : isFileActive ? (
             <CodeMirrorEditor
                 key={activeTab}
@@ -98,95 +92,41 @@ const EditorPane: React.FC<EditorPaneProps> = ({
 };
 
 interface TabProps {
-  path: string;
+  label: string;
   isActive: boolean;
   onSelect: () => void;
-  onClose: () => void;
+  onClose: (() => void) | null;
+  icon: React.ReactNode;
 }
 
-const Tab: React.FC<TabProps> = ({ path, isActive, onSelect, onClose }) => {
-  const fileName = path.split('/').pop();
+const Tab: React.FC<TabProps> = ({ label, isActive, onSelect, onClose, icon }) => {
 
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onClose();
+    if(onClose) onClose();
   };
 
   return (
     <div
       onClick={onSelect}
-      className={`flex items-center justify-between p-2 cursor-pointer text-sm border-r border-t border-transparent transition-colors duration-200 relative ${
+      className={`flex items-center justify-between p-2 cursor-pointer text-sm border-r border-t border-transparent transition-colors duration-200 relative whitespace-nowrap ${
         isActive
           ? 'bg-[var(--background-secondary)]/90 text-[var(--foreground)] border-t-[var(--accent)]'
           : 'bg-transparent text-[var(--gray)] hover:bg-[var(--gray-dark)]/50'
       }`}
     >
-      <span className="whitespace-nowrap px-2">{fileName}</span>
-      <button
-        onClick={handleClose}
-        className="ml-3 w-5 h-5 flex items-center justify-center rounded-full hover:bg-[var(--gray-light)]/80 flex-shrink-0"
-      >
-        <Icons.X className="w-3 h-3"/>
-      </button>
-    </div>
-  );
-};
-
-const getPluginInfo = (pluginId: string) => {
-    switch (pluginId) {
-        case 'storyboard':
-            return { title: 'Storyboard', icon: <Icons.LayoutDashboard className="w-4 h-4 mr-2" /> };
-        case 'figma':
-            return { title: 'Figma Import', icon: <Icons.Figma className="w-4 h-4 mr-2" /> };
-        case 'image-to-code':
-            return { title: 'Image to Code', icon: <Icons.Image className="w-4 h-4 mr-2" /> };
-        default:
-            return { title: pluginId, icon: <Icons.Puzzle className="w-4 h-4 mr-2" /> };
-    }
-};
-
-const PluginTab: React.FC<{ pluginId: string; isActive: boolean; onSelect: () => void; onClose: () => void; }> = ({ pluginId, isActive, onSelect, onClose }) => {
-    const { title, icon } = getPluginInfo(pluginId);
-    
-    const handleClose = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onClose();
-    };
-
-    return (
-        <div
-          onClick={onSelect}
-          className={`flex items-center justify-between p-2 cursor-pointer text-sm border-r border-t border-transparent transition-colors duration-200 relative ${
-            isActive
-              ? 'bg-[var(--background-secondary)]/90 text-[var(--foreground)] border-t-[var(--accent)]'
-              : 'bg-transparent text-[var(--gray)] hover:bg-[var(--gray-dark)]/50'
-          }`}
-        >
-          <div className='px-2'>{icon}</div>
-          <span className="whitespace-nowrap">{title}</span>
-          <button
+      <div className="flex items-center px-2">
+        {icon}
+        <span>{label}</span>
+      </div>
+      {onClose && (
+         <button
             onClick={handleClose}
             className="ml-3 w-5 h-5 flex items-center justify-center rounded-full hover:bg-[var(--gray-light)]/80 flex-shrink-0"
-          >
+        >
             <Icons.X className="w-3 h-3"/>
-          </button>
-        </div>
-    );
-};
-
-
-const AITab: React.FC<{ isActive: boolean; onSelect: () => void }> = ({ isActive, onSelect }) => {
-  return (
-    <div
-      onClick={onSelect}
-      className={`flex items-center p-2 cursor-pointer text-sm border-r border-l border-t border-transparent transition-colors duration-200 relative ${
-        isActive
-          ? 'bg-[var(--background-secondary)]/90 text-[var(--foreground)] border-t-[var(--accent)]'
-          : 'bg-transparent text-[var(--gray)] hover:bg-[var(--gray-dark)]/50'
-      }`}
-    >
-      <Icons.Bot className="w-4 h-4 ml-2 mr-2 flex-shrink-0" />
-      <span className="whitespace-nowrap mr-2">AI Assistant</span>
+        </button>
+      )}
     </div>
   );
 };

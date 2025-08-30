@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -17,36 +18,29 @@ import { allPlugins } from './plugins/index.ts';
 
 // UI Components
 import Loader from './components/Loader.tsx';
-import ResizablePanels from './components/ResizablePanels.tsx';
 import { StatusBar } from './components/StatusBar.tsx';
-import { Terminal } from './components/Terminal.tsx';
 import EditorPane from './components/EditorPane.tsx';
 import ActivityBar from './components/ActivityBar.tsx';
 import SideBar from './components/SideBar.tsx';
 import FileExplorer from './components/FileExplorer.tsx';
 import TitleBar from './components/TitleBar.tsx';
-import PreviewContainer from './components/PreviewContainer.tsx';
-import TabbedPanel from './components/TabbedPanel.tsx';
 import CommandPalette from './components/CommandPalette.tsx';
 import AiFileGeneratorModal from './components/AiFileGeneratorModal.tsx';
 import AiComponentGeneratorModal from './components/AiComponentGeneratorModal.tsx';
+import AIAssistant from './components/AIAssistant.tsx';
 
 
 // Panel Components
 import SearchPanel from './components/SearchPanel.tsx';
 import SourceControlPanel from './components/SourceControlPanel.tsx';
 import SettingsPanel from './components/SettingsPanel.tsx';
-import ProblemsPanel from './components/ProblemsPanel.tsx';
-import DebugConsolePanel from './components/DebugConsolePanel.tsx';
-import DependencyPanel from './components/DependencyPanel.tsx';
 import StoryboardPanel from './components/StoryboardPanel.tsx';
 import FigmaPanel from './components/FigmaPanel.tsx';
 import ImageToCodePanel from './components/ImageToCodePanel.tsx';
 import PluginPanel from './components/PluginPanel.tsx';
 
 
-import type { Notification, BottomPanelView, Diagnostic, ConsoleMessage, DependencyReport, StoryboardComponent, SearchResult, FileSystemNode } from './types.ts';
-import { Icons } from './components/Icon.tsx';
+import type { Notification, Diagnostic, ConsoleMessage, DependencyReport, StoryboardComponent, SearchResult, FileSystemNode } from './types.ts';
 import { analyzeCode } from './services/languageService.ts';
 
 
@@ -70,7 +64,7 @@ const NotificationItem: React.FC<{ notification: Notification; onDismiss: () => 
         <div className={`flex items-center justify-between w-full max-w-sm p-3 text-white rounded-lg shadow-lg ${colorClasses[notification.type]} backdrop-blur-md animate-fade-in-up`}>
             <p className="text-sm">{notification.message}</p>
             <button onClick={onDismiss} className="p-1 rounded-full hover:bg-white/20">
-                <Icons.X className="w-4 h-4" />
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
     );
@@ -116,23 +110,17 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     
     // UI State
     const [openFiles, setOpenFiles] = useState<string[]>(['/src/App.jsx']);
-    const [activeTab, setActiveTab] = useState<string | null>('/src/App.jsx');
-    const [activeView, setActiveView] = useState('explorer');
-    const [activeBottomTab, setActiveBottomTab] = useState<BottomPanelView>('terminal');
-    const [panelVisibility, setPanelVisibility] = useState({ left: true, right: true, bottom: true });
+    const [activeRightTab, setActiveRightTab] = useState<string>('preview');
+    const [activeView, setActiveView] = useState('ai-assistant');
     const [editorInstance, setEditorInstance] = useState<any>(null);
     
     // Feature State
     const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
-    const [consoleMessages, setConsoleMessages] = useState<ConsoleMessage[]>([]);
-    const [dependencyReport, setDependencyReport] = useState<DependencyReport | null>(null);
-    const [storyboardComponents, setStoryboardComponents] = useState<StoryboardComponent[]>([]);
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isFileGeneratorOpen, setIsFileGeneratorOpen] = useState(false);
     const [fileGenBasePath, setFileGenBasePath] = useState('/');
     const { addNotification } = useNotifications();
-    const [isFixingWithAi, setIsFixingWithAi] = useState<string | null>(null);
     
     // Config State
     const [githubToken, setGithubToken] = useLocalStorageState<string | null>('githubToken', null);
@@ -175,21 +163,21 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
         if (!openFiles.includes(path)) {
             setOpenFiles(prev => [...prev, path]);
         }
-        setActiveTab(path);
+        setActiveRightTab(path);
         runDiagnostics(path);
     }, [openFiles, runDiagnostics]);
 
     const handleTabClose = useCallback((path: string) => {
         setOpenFiles(prev => {
             const newOpenFiles = prev.filter(p => p !== path);
-            if (activeTab === path) {
-                const newActiveTab = newOpenFiles.length > 0 ? newOpenFiles[newOpenFiles.length - 1] : null;
-                setActiveTab(newActiveTab);
-                runDiagnostics(newActiveTab);
+            if (activeRightTab === path) {
+                const newActiveTab = 'preview';
+                setActiveRightTab(newActiveTab);
+                runDiagnostics(null);
             }
             return newOpenFiles;
         });
-    }, [activeTab, runDiagnostics]);
+    }, [activeRightTab, runDiagnostics]);
 
     const handleContentChange = useCallback((path: string, content: string) => {
         updateNode(path, content);
@@ -311,13 +299,6 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
         }
     };
 
-    const handleAiFixRequest = useCallback(async (error: ConsoleMessage) => {
-        // This function's logic will now be handled by the main AI agent.
-        // For now, we can ask the user to prompt the AI.
-        addNotification({ type: 'info', message: 'Please ask the AI Assistant in the editor to fix this error.' });
-        setActiveTab('ai-assistant');
-    }, [addNotification]);
-
     useEffect(() => {
         if(registerCommand) {
             registerCommand({
@@ -326,29 +307,13 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                 category: 'AI',
                 action: () => openAiComponentGenerator('/src/components'),
             });
-            registerCommand({
-                id: 'ai.debug.last-error',
-                label: 'AI: Fix last console error...',
-                category: 'AI',
-                action: () => {
-                    const lastError = [...consoleMessages].reverse().find(m => m.type === 'error');
-                    if (lastError) {
-                        handleAiFixRequest(lastError);
-                    } else {
-                        addNotification({ type: 'warning', message: 'No errors found in the console.' });
-                    }
-                },
-            });
         }
-    }, [registerCommand, consoleMessages, handleAiFixRequest, addNotification]);
+    }, [registerCommand]);
     
     useEffect(() => {
-        runDiagnostics(activeTab);
-    }, [activeTab, runDiagnostics]);
+        runDiagnostics(activeRightTab);
+    }, [activeRightTab, runDiagnostics]);
 
-    const togglePanel = (panel: 'left' | 'right' | 'bottom') => {
-        setPanelVisibility(prev => ({ ...prev, [panel]: !prev[panel] }));
-    };
 
     if (isWcLoading || isFsLoading) {
         return <Loader />;
@@ -372,7 +337,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
             fs={fs}
             geminiApiKey={geminiApiKey}
             editorInstance={editorInstance}
-            setActiveTab={setActiveTab}
+            setActiveTab={setActiveRightTab}
         >
             <div className="w-full h-full bg-transparent flex flex-col p-2 gap-2">
                  <CommandPalette />
@@ -391,86 +356,70 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                     addNotification={addNotification}
                 />
 
-                <TitleBar onTogglePanel={togglePanel} panelVisibility={panelVisibility} onLogout={onLogout} />
+                <TitleBar onLogout={onLogout} />
                 <div className="flex-grow flex min-h-0 gap-2">
-                    {panelVisibility.left && <ActivityBar activeView={activeView} setActiveView={setActiveView} />}
-                    <div className="flex-grow">
-                        <ResizablePanels
-                            panelVisibility={panelVisibility}
-                            leftPanel={
-                                <SideBar activeView={activeView}>
-                                    <FileExplorer 
-                                        fs={fs!}
-                                        onFileSelect={handleFileSelect}
-                                        createNode={createNode}
-                                        deleteNode={deleteNode}
-                                        renameNode={renameNode}
-                                        moveNode={moveNode}
-                                        openAiFileGenerator={openAiFileGenerator}
-                                        openAiComponentGenerator={openAiComponentGenerator}
-                                    />
-                                    <SearchPanel 
-                                        performSearch={performSearch} 
-                                        isSearching={isSearching} 
-                                        searchResults={searchResults} 
-                                        onResultClick={(path) => handleFileSelect(path)} 
-                                        replaceAll={replaceAll}
-                                     />
-                                    <SourceControlPanel fs={fs!} replaceFs={() => {}} githubToken={githubToken} switchView={setActiveView} supabaseUser={null} />
-                                    <StoryboardPanel components={storyboardComponents} readNode={getFileContent} />
-                                    <FigmaPanel />
-                                    <PluginPanel plugins={allPlugins} />
-                                    <ImageToCodePanel />
-                                    <SettingsPanel 
-                                        githubToken={githubToken} 
-                                        setGithubToken={setGithubToken} 
-                                        geminiApiKey={geminiApiKey}
-                                        setGeminiApiKey={setGeminiApiKey}
-                                        supabaseUser={null} 
-                                        supabaseUrl={null} 
-                                        setSupabaseUrl={() => {}} 
-                                        supabaseAnonKey={null} 
-                                        setSupabaseAnonKey={() => {}} 
-                                    />
-                                </SideBar>
-                            }
-                            mainPanel={
-                                <EditorPane
-                                    openFiles={openFiles}
-                                    activeTab={activeTab}
-                                    onTabSelect={setActiveTab}
-                                    onTabClose={handleTabClose}
-                                    fileContent={getFileContent(activeTab)}
-                                    onContentChange={handleContentChange}
-                                    diagnostics={diagnostics}
-                                    breakpoints={[]}
-                                    onBreakpointsChange={() => {}}
-                                    pluginViews={{}}
-                                    onEditorMount={setEditorInstance}
+                    {/* Left Panel */}
+                    <div className="flex w-[30%] max-w-md min-w-[320px] rounded-lg shadow-xl bg-[var(--background-secondary)]/70 backdrop-blur-md">
+                        <ActivityBar activeView={activeView} setActiveView={setActiveView} />
+                        <div className="flex-grow min-w-0">
+                            <SideBar activeView={activeView}>
+                                <AIAssistant />
+                                <FileExplorer 
+                                    fs={fs!}
+                                    onFileSelect={handleFileSelect}
+                                    createNode={createNode}
+                                    deleteNode={deleteNode}
+                                    renameNode={renameNode}
+                                    moveNode={moveNode}
+                                    openAiFileGenerator={openAiFileGenerator}
+                                    openAiComponentGenerator={openAiComponentGenerator}
                                 />
-                            }
-                            rightPanel={
-                                <PreviewContainer 
-                                    isVisible={true} title="Live Preview" onClose={() => togglePanel('right')}
-                                    serverUrl={serverUrl}
-                                    previewContext={null} iframeRef={previewIframeRef}
-                                    onToggleInspector={()=>{}} isInspectorActive={false}
-                                >
-                                   <iframe src={serverUrl || ''} className="w-full h-full rounded-b-lg border-none bg-white" />
-                                </PreviewContainer>
-                            }
-                            bottomPanel={
-                                <TabbedPanel activeTab={activeBottomTab} onTabChange={setActiveBottomTab} diagnostics={diagnostics} dependencyReport={dependencyReport}>
-                                    <Terminal />
-                                    <ProblemsPanel diagnostics={diagnostics} onProblemSelect={handleFileSelect} activeFile={activeTab} readNode={getFileContent} updateNode={handleContentChange} addNotification={() => {}} />
-                                    <DebugConsolePanel messages={consoleMessages} onClear={() => setConsoleMessages([])} onAiFixRequest={handleAiFixRequest} isFixingWithAi={isFixingWithAi} />
-                                    <DependencyPanel report={dependencyReport} />
-                                </TabbedPanel>
-                            }
+                                <SearchPanel 
+                                    performSearch={performSearch} 
+                                    isSearching={isSearching} 
+                                    searchResults={searchResults} 
+                                    onResultClick={(path) => handleFileSelect(path)} 
+                                    replaceAll={replaceAll}
+                                    />
+                                <SourceControlPanel fs={fs!} replaceFs={() => {}} githubToken={githubToken} switchView={setActiveView} supabaseUser={null} />
+                                <StoryboardPanel components={[]} readNode={getFileContent} />
+                                <FigmaPanel />
+                                <PluginPanel plugins={allPlugins} />
+                                <ImageToCodePanel />
+                                <SettingsPanel 
+                                    githubToken={githubToken} 
+                                    setGithubToken={setGithubToken} 
+                                    geminiApiKey={geminiApiKey}
+                                    setGeminiApiKey={setGeminiApiKey}
+                                    supabaseUser={null} 
+                                    supabaseUrl={null} 
+                                    setSupabaseUrl={() => {}} 
+                                    supabaseAnonKey={null} 
+                                    setSupabaseAnonKey={() => {}} 
+                                />
+                            </SideBar>
+                        </div>
+                    </div>
+
+                    {/* Right Panel */}
+                    <div className="flex-grow min-w-0">
+                        <EditorPane
+                            openFiles={openFiles}
+                            activeTab={activeRightTab}
+                            onTabSelect={setActiveRightTab}
+                            onTabClose={handleTabClose}
+                            fileContent={getFileContent(activeRightTab)}
+                            onContentChange={handleContentChange}
+                            diagnostics={diagnostics}
+                            breakpoints={[]}
+                            onBreakpointsChange={() => {}}
+                            onEditorMount={setEditorInstance}
+                            serverUrl={serverUrl}
+                            previewIframeRef={previewIframeRef}
                         />
                     </div>
                 </div>
-                <StatusBar activeFile={activeTab} customItems={[]} diagnostics={diagnostics} collaborators={[]} voiceStatus='idle' onVoiceToggle={()=>{}} supabaseUser={null} />
+                <StatusBar activeFile={openFiles.includes(activeRightTab) ? activeRightTab : null} customItems={[]} diagnostics={diagnostics} collaborators={[]} voiceStatus='idle' onVoiceToggle={()=>{}} supabaseUser={null} />
             </div>
         </AIProvider>
     );
