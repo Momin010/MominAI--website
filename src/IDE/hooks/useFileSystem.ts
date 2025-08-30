@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import type { WebContainer } from '@webcontainer/api';
 import { useWebContainer } from '../WebContainerProvider.tsx';
 import type { Directory, FileSystemNode, File } from '../types.ts';
@@ -12,7 +13,6 @@ const readDirectory = async (wc: WebContainer, path: string): Promise<Directory>
         if (entry.isDirectory()) {
             children[entry.name] = await readDirectory(wc, newPath);
         } else {
-            // We can read content lazily later if performance becomes an issue
             const content = await wc.fs.readFile(newPath, 'utf-8');
             children[entry.name] = { type: 'file', content };
         }
@@ -21,51 +21,37 @@ const readDirectory = async (wc: WebContainer, path: string): Promise<Directory>
 };
 
 export const useFileSystem = () => {
-    const { webContainer, isLoading: isWebContainerLoading } = useWebContainer();
-    const [fs, setFs] = useState<Directory | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const isSyncing = useRef(false);
+    const { webContainer, fs: initialFs } = useWebContainer();
+    const [fs, setFs] = useState<Directory | null>(initialFs);
+    
+    useEffect(() => {
+        if (initialFs) {
+            setFs(initialFs);
+        }
+    }, [initialFs]);
 
     const syncFsFromWebContainer = useCallback(async () => {
-        if (!webContainer || isSyncing.current) return;
-        isSyncing.current = true;
-        setIsLoading(true);
+        if (!webContainer) return;
         try {
             const root = await readDirectory(webContainer, '/');
             setFs(root);
         } catch (error) {
-            console.error("Failed to sync filesystem from WebContainer:", error);
-        } finally {
-            setIsLoading(false);
-            isSyncing.current = false;
+            console.error("Failed to re-sync filesystem from WebContainer:", error);
         }
     }, [webContainer]);
-
-    useEffect(() => {
-        if (!isWebContainerLoading && webContainer) {
-            syncFsFromWebContainer();
-        }
-    }, [isWebContainerLoading, webContainer, syncFsFromWebContainer]);
 
     const updateNode = useCallback(async (path: string, content: string) => {
         if (!webContainer) return;
         await webContainer.fs.writeFile(path, content);
         
-        // Optimistic update to avoid full re-read, which can be slow
         setFs(prevFs => {
             if (!prevFs) return null;
-            const newFs = { ...prevFs }; // Shallow clone root
+            const newFs = JSON.parse(JSON.stringify(prevFs));
             const parts = path.split('/').filter(p => p);
             let currentNode: Directory = newFs;
 
             for (let i = 0; i < parts.length - 1; i++) {
-                const part = parts[i];
-                const child = currentNode.children[part];
-                if (child && child.type === 'directory') {
-                    currentNode = child;
-                } else {
-                    return prevFs; // Path not found, do nothing
-                }
+                currentNode = currentNode.children[parts[i]] as Directory;
             }
 
             const fileName = parts[parts.length - 1];
@@ -84,13 +70,13 @@ export const useFileSystem = () => {
         } else {
             await webContainer.fs.mkdir(path, { recursive: true });
         }
-        await syncFsFromWebContainer(); // Full sync after creation
+        await syncFsFromWebContainer();
     }, [webContainer, syncFsFromWebContainer]);
 
     const deleteNode = useCallback(async (path: string) => {
         if (!webContainer) return;
         await webContainer.fs.rm(path, { recursive: true });
-        await syncFsFromWebContainer(); // Full sync after deletion
+        await syncFsFromWebContainer();
     }, [webContainer, syncFsFromWebContainer]);
 
     const renameNode = useCallback(async (oldPath: string, newName: string) => {
@@ -112,7 +98,6 @@ export const useFileSystem = () => {
 
     return {
         fs,
-        isLoading: isLoading || isWebContainerLoading,
         updateNode,
         createNode,
         deleteNode,

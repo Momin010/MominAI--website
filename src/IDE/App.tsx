@@ -4,6 +4,8 @@
 
 
 
+
+
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -107,8 +109,8 @@ interface IDEWorkspaceProps {
 }
 
 const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
-    const { isLoading: isWcLoading, error, serverUrl, setupLog } = useWebContainer();
-    const { fs, isLoading: isFsLoading, updateNode, createNode, deleteNode, renameNode, moveNode } = useFileSystem();
+    const { isLoading, error, serverUrl, setupLog } = useWebContainer();
+    const { fs, updateNode, createNode, deleteNode, renameNode, moveNode } = useFileSystem();
     
     // UI State
     const [openFiles, setOpenFiles] = useState<string[]>(['/src/App.jsx']);
@@ -317,7 +319,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
     }, [activeRightTab, runDiagnostics]);
 
 
-    if (isWcLoading || isFsLoading) {
+    if (isLoading) {
         return <Loader log={setupLog} />;
     }
 
