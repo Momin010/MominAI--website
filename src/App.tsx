@@ -8,7 +8,6 @@ import MobileNotSupported from './components/MobileNotSupported.tsx';
 
 type View = 'landing' | 'dashboard' | 'loading' | 'ide' | 'checkout' | 'mobile-not-supported';
 
-// Fix: Define a type for script configurations to allow optional async/defer properties.
 interface ScriptConfig {
   src: string;
   views: string[];
@@ -19,6 +18,7 @@ interface ScriptConfig {
 const useExternalScripts = (view: View) => {
   useEffect(() => {
     const SCRIPT_CONFIG: Record<string, ScriptConfig> = {
+      tailwindcss: { src: 'https://cdn.tailwindcss.com', views: ['landing', 'dashboard', 'checkout'] },
       stripe: { src: 'https://js.stripe.com/v3/', views: ['landing', 'checkout'] },
       supabase: { src: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js', views: ['dashboard', 'landing', 'checkout'] },
       google: { src: 'https://accounts.google.com/gsi/client', views: ['landing'], async: true, defer: true },
@@ -35,7 +35,6 @@ const useExternalScripts = (view: View) => {
           script.id = scriptId;
           script.src = config.src;
           script.setAttribute('data-managed-script', 'true');
-          // Fix: These properties are now correctly recognized as optional
           if (config.async) script.async = true;
           if (config.defer) script.defer = true;
           document.body.appendChild(script);
@@ -46,37 +45,44 @@ const useExternalScripts = (view: View) => {
   }, [view]);
 };
 
+// Determines the initial view synchronously to avoid race conditions.
+const getInitialView = (): View => {
+    const params = new URLSearchParams(window.location.search);
+    const isMobile = window.innerWidth < 768 || navigator.maxTouchPoints > 0;
+
+    if (params.get('ide') === 'true') {
+        return isMobile ? 'mobile-not-supported' : 'loading';
+    }
+    if (params.get('dashboard') === 'true') {
+        return 'dashboard';
+    }
+    if (params.get('checkout')) {
+        return 'checkout';
+    }
+    return 'landing';
+};
 
 const App = () => {
-    const [view, setView] = useState<View>('landing');
-    const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
+    const [view, setView] = useState<View>(getInitialView);
+    const [checkoutPlan, setCheckoutPlan] = useState<string | null>(() => {
+        if (getInitialView() === 'checkout') {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('checkout');
+        }
+        return null;
+    });
 
     useExternalScripts(view);
 
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const plan = params.get('checkout');
-        const isMobile = window.innerWidth < 768 || navigator.maxTouchPoints > 0;
-
-        if (params.get('ide') === 'true') {
-            if (isMobile) {
-                setView('mobile-not-supported');
-            } else {
-                setView('loading');
-                const timer = setTimeout(() => {
-                    setView('ide');
-                }, 4000);
-                return () => clearTimeout(timer);
-            }
-        } else if (params.get('dashboard') === 'true') {
-            setView('dashboard');
-        } else if (plan) {
-            setCheckoutPlan(plan);
-            setView('checkout');
-        } else {
-            setView('landing');
+        // This effect now only handles transitions *after* the initial load.
+        if (view === 'loading') {
+            const timer = setTimeout(() => {
+                setView('ide');
+            }, 4000);
+            return () => clearTimeout(timer);
         }
-    }, []);
+    }, [view]);
 
     useEffect(() => {
         const rootEl = document.getElementById('root');
