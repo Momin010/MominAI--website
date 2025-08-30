@@ -1,11 +1,4 @@
 
-
-
-
-
-
-
-
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -109,7 +102,8 @@ interface IDEWorkspaceProps {
 }
 
 const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
-    const { isLoading, error, serverUrl, setupLog } = useWebContainer();
+    // FIX: Removed `setupLog` as it's not provided by this WebContainerProvider implementation. The Loader component will show a static message.
+    const { isLoading, error, serverUrl } = useWebContainer();
     const { fs, updateNode, createNode, deleteNode, renameNode, moveNode } = useFileSystem();
     
     // UI State
@@ -320,7 +314,8 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
 
 
     if (isLoading) {
-        return <Loader log={setupLog} />;
+        // FIX: Removed `log` prop as it's not supported by the Loader and not provided by the context.
+        return <Loader />;
     }
 
     if (error) {

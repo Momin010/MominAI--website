@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import type { WebContainer } from '@webcontainer/api';
 import { useWebContainer } from '../WebContainerProvider.tsx';
@@ -21,14 +20,22 @@ const readDirectory = async (wc: WebContainer, path: string): Promise<Directory>
 };
 
 export const useFileSystem = () => {
-    const { webContainer, fs: initialFs } = useWebContainer();
-    const [fs, setFs] = useState<Directory | null>(initialFs);
+    const { webContainer } = useWebContainer();
+    const [fs, setFs] = useState<Directory | null>(null);
     
     useEffect(() => {
-        if (initialFs) {
-            setFs(initialFs);
-        }
-    }, [initialFs]);
+        const initializeFs = async () => {
+            if (webContainer && !fs) {
+                try {
+                    const root = await readDirectory(webContainer, '/');
+                    setFs(root);
+                } catch (error) {
+                    console.error("Failed to initialize filesystem:", error);
+                }
+            }
+        };
+        initializeFs();
+    }, [webContainer, fs]);
 
     const syncFsFromWebContainer = useCallback(async () => {
         if (!webContainer) return;
