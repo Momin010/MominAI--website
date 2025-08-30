@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useState, useCallback, useRef, createContext, useContext, ReactNode, useEffect } from 'react';
 
 // Providers & Hooks
@@ -105,7 +107,7 @@ interface IDEWorkspaceProps {
 }
 
 const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
-    const { isLoading: isWcLoading, error, serverUrl } = useWebContainer();
+    const { isLoading: isWcLoading, error, serverUrl, setupLog } = useWebContainer();
     const { fs, isLoading: isFsLoading, updateNode, createNode, deleteNode, renameNode, moveNode } = useFileSystem();
     
     // UI State
@@ -316,7 +318,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
 
 
     if (isWcLoading || isFsLoading) {
-        return <Loader />;
+        return <Loader log={setupLog} />;
     }
 
     if (error) {
@@ -339,7 +341,7 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
             editorInstance={editorInstance}
             setActiveTab={setActiveRightTab}
         >
-            <div className="w-full h-full bg-transparent flex flex-col p-2 gap-2">
+            <div className="w-full h-full bg-transparent flex flex-col">
                  <CommandPalette />
                  <AiFileGeneratorModal
                     isOpen={isFileGeneratorOpen}
@@ -357,9 +359,9 @@ const IDEWorkspace: React.FC<IDEWorkspaceProps> = ({ onLogout }) => {
                 />
 
                 <TitleBar onLogout={onLogout} />
-                <div className="flex-grow flex min-h-0 gap-2">
+                <div className="flex-grow flex min-h-0">
                     {/* Left Panel */}
-                    <div className="flex w-[30%] max-w-md min-w-[320px] rounded-lg shadow-xl bg-[var(--background-secondary)]/70 backdrop-blur-md">
+                    <div className="flex w-[30%] max-w-md min-w-[320px] bg-[var(--background-secondary)]/70 backdrop-blur-md">
                         <ActivityBar activeView={activeView} setActiveView={setActiveView} />
                         <div className="flex-grow min-w-0">
                             <SideBar activeView={activeView}>

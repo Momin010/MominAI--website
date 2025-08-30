@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useEffect, useRef } from 'react';
 import { Terminal as XtermTerminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
@@ -11,10 +13,13 @@ export const Terminal: React.FC = () => {
     const isTerminalAttached = useRef(false);
 
     useEffect(() => {
+        // The setup logic (npm install, npm run dev) has been moved to WebContainerProvider
+        // to ensure it runs automatically when the IDE loads, regardless of whether
+        // the terminal is visible. This component is now only for display if needed.
         if (!webContainer || isTerminalAttached.current || !terminalRef.current) {
             return;
         }
-
+        
         isTerminalAttached.current = true;
         const terminal = new XtermTerminal({
             cursorBlink: true,
@@ -31,38 +36,6 @@ export const Terminal: React.FC = () => {
             requestAnimationFrame(() => fitAddon.fit());
         });
         resizeObserver.observe(terminalRef.current);
-
-        const runSetup = async () => {
-            terminal.writeln('Welcome to CodeCraft IDE!');
-            terminal.writeln('--------------------------');
-            terminal.writeln('\x1b[1;33mStarting environment setup...\x1b[0m');
-
-            // 1. Install dependencies
-            terminal.writeln('\n\x1b[1;34m> npm install\x1b[0m');
-            const installProcess = await webContainer.spawn('npm', ['install']);
-            installProcess.output.pipeTo(new WritableStream({
-                write(data) {
-                    terminal.write(data);
-                }
-            }));
-            const installExitCode = await installProcess.exit;
-            if (installExitCode !== 0) {
-                terminal.writeln(`\x1b[1;31mInstallation failed with exit code ${installExitCode}\x1b[0m`);
-                return;
-            }
-            terminal.writeln('\x1b[1;32mDependencies installed successfully.\x1b[0m');
-
-            // 2. Start dev server
-            terminal.writeln('\n\x1b[1;34m> npm run dev\x1b[0m');
-            const devProcess = await webContainer.spawn('npm', ['run', 'dev']);
-            devProcess.output.pipeTo(new WritableStream({
-                write(data) {
-                    terminal.write(data);
-                }
-            }));
-        };
-
-        runSetup();
 
         return () => {
             resizeObserver.disconnect();

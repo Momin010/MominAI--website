@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState } from 'react';
 import { Icons } from './Icon';
 
@@ -37,8 +39,9 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
   };
 
   const handleRefresh = () => {
-    if (iframeRef.current) {
-        iframeRef.current.src = iframeRef.current.src;
+    if (iframeRef.current?.contentWindow) {
+      // This is the correct way to reload an iframe without affecting the parent page.
+      iframeRef.current.contentWindow.location.reload();
     }
   };
 
@@ -48,7 +51,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
 
   const containerClasses = isMaximized
     ? 'fixed inset-2 bg-[var(--background-secondary)]/90 backdrop-blur-lg z-50 flex flex-col rounded-lg shadow-2xl border border-[var(--border-color)]'
-    : 'h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md flex flex-col rounded-b-lg';
+    : 'h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md flex flex-col';
     
   return (
     <div className={containerClasses}>

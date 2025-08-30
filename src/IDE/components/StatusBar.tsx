@@ -1,5 +1,7 @@
 
 
+
+
 import React from 'react';
 import type { StatusBarItem, Diagnostic, UserPresence, SupabaseUser } from '../types';
 import { Icons } from './Icon';
@@ -57,7 +59,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ activeFile, customItems, d
   const warningCount = diagnostics.filter(d => d.severity === 'warning').length;
 
   return (
-    <footer className="bg-[var(--ui-panel-bg-heavy)] text-[var(--text-secondary)] px-4 py-1 text-xs flex items-center justify-between border-t border-[var(--ui-border)] flex-shrink-0 rounded-b-[var(--ui-border-radius)] shadow-xl">
+    <footer className="bg-[var(--ui-panel-bg-heavy)] text-[var(--text-secondary)] px-4 py-1 text-xs flex items-center justify-between flex-shrink-0">
       <div className="flex items-center space-x-4">
         <span>main*</span>
         <div className="flex items-center space-x-2" title="Problems">

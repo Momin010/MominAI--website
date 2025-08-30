@@ -2,6 +2,8 @@
 
 
 
+
+
 import React from 'react';
 import CodeMirrorEditor from './CodeMirrorEditor.tsx';
 import type { Diagnostic } from '../types.ts';
@@ -42,8 +44,8 @@ const EditorPane: React.FC<EditorPaneProps> = ({
   const isFileActive = activeTab && activeTab !== 'preview';
 
   return (
-    <div className="flex flex-col h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md rounded-lg shadow-xl">
-      <div className="flex-shrink-0 bg-[var(--gray-dark)]/50 flex items-center rounded-t-lg overflow-x-auto">
+    <div className="flex flex-col h-full w-full bg-[var(--background-secondary)]/70 backdrop-blur-md">
+      <div className="flex-shrink-0 bg-[var(--gray-dark)]/50 flex items-center overflow-x-auto">
         <Tab
           label="Preview"
           isActive={activeTab === 'preview'}
@@ -70,7 +72,14 @@ const EditorPane: React.FC<EditorPaneProps> = ({
                 previewContext={null} iframeRef={previewIframeRef}
                 onToggleInspector={()=>{}} isInspectorActive={false}
             >
-                <iframe src={serverUrl || ''} className="w-full h-full rounded-b-lg border-none bg-white" />
+              {serverUrl ? (
+                <iframe src={serverUrl} className="w-full h-full border-none bg-white" />
+              ) : (
+                 <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-900">
+                    <div className="border-2 border-gray-600 border-l-gray-400 rounded-full w-8 h-8 animate-spin"></div>
+                    <span className="ml-4 text-lg">Starting dev server...</span>
+                </div>
+              )}
             </PreviewContainer>
         ) : isFileActive ? (
             <CodeMirrorEditor
@@ -109,7 +118,7 @@ const Tab: React.FC<TabProps> = ({ label, isActive, onSelect, onClose, icon }) =
   return (
     <div
       onClick={onSelect}
-      className={`flex items-center justify-between p-2 cursor-pointer text-sm border-r border-t border-transparent transition-colors duration-200 relative whitespace-nowrap ${
+      className={`flex items-center justify-between p-2 cursor-pointer text-sm border-t border-transparent transition-colors duration-200 relative whitespace-nowrap ${
         isActive
           ? 'bg-[var(--background-secondary)]/90 text-[var(--foreground)] border-t-[var(--accent)]'
           : 'bg-transparent text-[var(--gray)] hover:bg-[var(--gray-dark)]/50'

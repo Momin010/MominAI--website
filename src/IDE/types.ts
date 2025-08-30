@@ -1,6 +1,8 @@
 
 
 
+
+
 import React from 'react';
 
 export interface File {
@@ -240,3 +242,14 @@ export interface DiffLine {
 // --- Deprecated types for old AI workflow ---
 export type AIFixResponse = any;
 export type FileAction = any;
+
+// WebContainer context type
+export interface WebContainerContextType {
+    webContainer: any | null; // WebContainer instance
+    isLoading: boolean;
+    serverUrl: string | null;
+    error: string | null;
+    fs: any | null; // WebContainer FileSystem
+    runCommand: (command: string, args: string[]) => Promise<void>;
+    setupLog: string[];
+}

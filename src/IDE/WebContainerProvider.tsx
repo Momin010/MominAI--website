@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { WebContainer } from '@webcontainer/api';
 import type { WebContainer as WebContainerType } from '@webcontainer/api';
@@ -11,6 +12,7 @@ interface WebContainerContextType {
     error: string | null;
     fs: WebContainerType['fs'] | null;
     runCommand: (command: string, args: string[]) => Promise<void>;
+    setupLog: string[];
 }
 
 const WebContainerContext = createContext<WebContainerContextType | undefined>(undefined);
@@ -28,6 +30,7 @@ export const WebContainerProvider: React.FC<{ children: ReactNode }> = ({ childr
     const [isLoading, setIsLoading] = useState(true);
     const [serverUrl, setServerUrl] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [setupLog, setSetupLog] = useState<string[]>(['Booting WebContainer...']);
     const isBooted = useRef(false);
 
     useEffect(() => {
@@ -36,28 +39,53 @@ export const WebContainerProvider: React.FC<{ children: ReactNode }> = ({ childr
             isBooted.current = true;
 
             try {
-                console.log("Booting WebContainer...");
                 const wc = await WebContainer.boot();
                 setWebContainer(wc);
 
-                console.log("Mounting default files...");
+                setSetupLog(prev => [...prev, 'Mounting file system...']);
                 await wc.mount(defaultFiles);
+                
+                const logStream = (process: any, prefix: string) => {
+                    process.output.pipeTo(new WritableStream({
+                        write(data) {
+                            // Don't log progress bars to avoid spamming the log
+                            if(!data.includes('%')) {
+                                setSetupLog(prev => [...prev, `${prefix}: ${data}`.trim()]);
+                            }
+                        }
+                    }));
+                };
+
+                setSetupLog(prev => [...prev, 'Installing dependencies... (This may take a moment)']);
+                const installProcess = await wc.spawn('npm', ['install']);
+                logStream(installProcess, 'npm install');
+                const installExitCode = await installProcess.exit;
+
+                if (installExitCode !== 0) {
+                    const errorMsg = `Installation failed with exit code ${installExitCode}`;
+                    setSetupLog(prev => [...prev, `ERROR: ${errorMsg}`]);
+                    setError(errorMsg);
+                    setIsLoading(false);
+                    return;
+                }
+                
+                setSetupLog(prev => [...prev, 'Dependencies installed.']);
+                setSetupLog(prev => [...prev, 'Starting dev server...']);
+                const devProcess = await wc.spawn('npm', ['run', 'dev']);
+                logStream(devProcess, 'npm run dev');
 
                 wc.on('server-ready', (port, url) => {
-                    console.log(`Server ready at ${url}`);
                     setServerUrl(url);
+                    setSetupLog(prev => [...prev, `Server is ready at ${url}`]);
+                    setIsLoading(false); // IDE is fully ready
                 });
 
                 wc.on('error', (err) => {
-                    console.error("WebContainer Error:", err);
                     setError(err.message);
+                    setSetupLog(prev => [...prev, `WEBCONTAINER ERROR: ${err.message}`]);
                 });
-                
-                // UI is ready to be shown, setup will continue in the terminal
-                setIsLoading(false);
 
             } catch (err) {
-                console.error("Failed to initialize WebContainer:", err);
                 setError(err instanceof Error ? err.message : String(err));
                 setIsLoading(false);
             }
@@ -83,6 +111,7 @@ export const WebContainerProvider: React.FC<{ children: ReactNode }> = ({ childr
         error,
         fs: webContainer?.fs || null,
         runCommand,
+        setupLog
     };
 
     return (
